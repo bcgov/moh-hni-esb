@@ -49,9 +49,10 @@ public class ValidateAccessToken implements Processor {
         // The public RSA keys to validate the signatures
         // The RemoteJWKSet caches the retrieved keys to speed up subsequent look-ups
         // TODO this should be moved into the constructor to make use of the JWK caching
+        // TODO url should be a config property
         JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
         JWKSource<SecurityContext> keySource = new RemoteJWKSet<>(
-                new URL("https://common-logon-dev.hlth.gov.bc.ca/auth/realms/moh_applications/protocol/openid-connect/certs"),
+                new URL("https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos/protocol/openid-connect/certs"),
                 // Overrides the DefaultResourceRetriever to up the timeouts to 5 seconds
                 new DefaultResourceRetriever(5000, 5000, 51200)
         );
@@ -71,8 +72,9 @@ public class ValidateAccessToken implements Processor {
                         // Accepted Scopes -> scope
                         authorizationProperties.getScopes(),
                         // Exact Match Claims -> iss
+                        // TODO issuer should be a config property
                         new JWTClaimsSet.Builder()
-                                .issuer("https://common-logon-dev.hlth.gov.bc.ca/auth/realms/moh_applications")
+                                .issuer("https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos")
                                 .build(),
                         // Required Claims -> azp, scope, iat, exp, jti
                         new HashSet<>(Arrays.asList("azp", "scope", "iat", "exp", "jti")),
