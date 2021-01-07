@@ -1,0 +1,6 @@
+language: java
+jobs:
+  include:
+    - name: hnsecure
+      env: DIR=hnsecure
+script: cd $DIR && mvn test -B
