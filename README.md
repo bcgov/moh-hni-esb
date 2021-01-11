@@ -16,11 +16,11 @@ Prerequisites:
 
 ## Step 1: Configure and run HNI ESB
 
-HNI ESB must be configured to validate a JWT as part of the OAuth 2 flow it must be configured. 
-`Authorized Party` - found in application.properties this is the client id of the client retrieving a JWT
-`Audience` - found in application.properties
-`Issuer` - still in the code this is the URL of the realm issuing the token
-`RemoteJWKSet` - still in the code this is the URL of the `certs` endpoint of the realm issuing the token
+HNI ESB must be configured to validate a JWT as part of the OAuth 2 flow. The following parameters need to be configured depending on the Keycloak environment:
+- `Authorized Party` - found in application.properties this is the client id of the client retrieving a JWT
+- `Audience` - found in application.properties
+- `Issuer` - still in the code this is the URL of the realm issuing the token
+- `RemoteJWKSet` - still in the code this is the URL of the `certs` endpoint of the realm issuing the token
 
 # Run the applications
 `HNI ESB` can be run from the command line:
