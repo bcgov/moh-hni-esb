@@ -1,15 +1,17 @@
 package ca.bc.gov.hlth.hnsecure;
 
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonMessage;
+import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonUtil;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 public class FhirPayloadExtractor {
 
@@ -19,19 +21,12 @@ public class FhirPayloadExtractor {
     @Handler
     public static String extractFhirPayload(String fhirMessage) throws Exception {
 
-        //TODO - Investigate other JSON libraries. This JSON library came as a Nimbus dependency but it's a little cumbersome to get a nested property
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
-
-        JSONArray entryProperties = (JSONArray) jsonParser.parse(fhirMessageJSON.getAsString("entry")); // Get the "entry" property json array
-
-        JSONObject entryPropertyContainingPayload = (JSONObject) entryProperties.get(1); // Get the second json object from the array
-
-        JSONObject resourceProperty = (JSONObject) jsonParser.parse(entryPropertyContainingPayload.getAsString("resource")); // get the "resource" property
-
-        String encodedExtractedMessage = resourceProperty.getAsString("data"); // get the data property
+        
+        FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
 
         //TODO we may need to check somewhere in the message to verify the base 64 encoding
-        String extractedMessage = decodeBase64(encodedExtractedMessage);
+        String extractedMessage = decodeBase64(encodedExtractedMessage.getV2MessageData());
 
         return extractedMessage;
     }
