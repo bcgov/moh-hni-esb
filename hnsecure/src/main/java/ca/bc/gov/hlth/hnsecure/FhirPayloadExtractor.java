@@ -12,6 +12,7 @@ import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonMessage;
 import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 public class FhirPayloadExtractor {
 
@@ -19,7 +20,7 @@ public class FhirPayloadExtractor {
     private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
     @Handler
-    public static String extractFhirPayload(String fhirMessage) throws Exception {
+    public static String extractFhirPayload(String fhirMessage) throws ParseException, UnsupportedEncodingException {
 
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
         
