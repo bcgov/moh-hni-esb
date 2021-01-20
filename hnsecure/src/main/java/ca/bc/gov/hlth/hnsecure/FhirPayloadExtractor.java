@@ -1,13 +1,12 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnclientv2.Util;
 import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonMessage;
 import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonUtil;
 import net.minidev.json.JSONObject;
@@ -27,25 +26,8 @@ public class FhirPayloadExtractor {
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
 
         //TODO we may need to check somewhere in the message to verify the base 64 encoding
-        String extractedMessage = decodeBase64(encodedExtractedMessage.getV2MessageData());
-
+        String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
+        logger.debug("The decode HL7 message is:"+extractedMessage);
         return extractedMessage;
-    }
-
-    private static JSONObject parse(String s) throws Exception {
-        Object parsedString = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE).parse(s);
-        if (parsedString instanceof JSONObject) {
-            return (JSONObject) parsedString;
-        } else {
-            throw new Exception("Parsing did not return a JSON object");
-        }
-    }
-
-    private static String decodeBase64(String stringToDecode) throws UnsupportedEncodingException {
-        byte[] bytesToDecode = stringToDecode.getBytes(StandardCharsets.UTF_8);
-        byte[] decodedBytes = Base64.getDecoder().decode(bytesToDecode);
-        String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
-
-        return decodedString;
-    }
+    }    
 }
