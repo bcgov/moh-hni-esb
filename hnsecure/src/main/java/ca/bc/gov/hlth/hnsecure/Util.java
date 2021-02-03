@@ -4,8 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import io.netty.util.internal.StringUtil;
-
 public final class Util {
 
     private Util() {
@@ -24,8 +22,9 @@ public final class Util {
 	 * @return
 	 */
 	public static String encodeBase64(String stringToEncode) {
-		if (StringUtil.isNullOrEmpty(stringToEncode))
+		if (stringToEncode == null || stringToEncode.isEmpty()) {
 			return null;
+		}
 		return new String(Base64.getEncoder().encode(stringToEncode.getBytes()));
 	}
 	
@@ -37,7 +36,9 @@ public final class Util {
 	 * @throws UnsupportedEncodingException
 	 */
 	public static String decodeBase64(String stringToDecode) throws UnsupportedEncodingException {
-        if(StringUtil.isNullOrEmpty(stringToDecode)) return null;
+        if(stringToDecode == null || stringToDecode.isEmpty()) {
+        	return null;
+		}
 		byte[] bytesToDecode = stringToDecode.getBytes(StandardCharsets.UTF_8);
         byte[] decodedBytes = Base64.getDecoder().decode(bytesToDecode);
         String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);

@@ -1,13 +1,9 @@
-/**
- * 
- */
 package ca.bc.gov.hlth.hnsecure.json;
 
 import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.netty.util.internal.StringUtil;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
@@ -32,19 +28,20 @@ public final class FHIRJsonUtil {
 	 * 
 	 * A null should be returned if the HL7 message is empty.
 	 * 
-	 * @param hl7
+	 * @param hl7 - the hl7v2 message
 	 * @return JSONObject
 	 */
 	
 	public static JSONObject createFHIRJsonObj(final String hl7) {
 
 		// if the content of HL7 message is null/empty, return null;
-		if (StringUtil.isNullOrEmpty(hl7))
+		if (hl7 == null || hl7.isEmpty()) {
 			return null;
+		}
 
 		// init a JSON object
 		JSONObject v2JsonObj = new JSONObject();
-		JSONArray contentArrary = new JSONArray();
+		JSONArray contentArray = new JSONArray();
 		JSONObject contentObj = new JSONObject();
 		JSONObject attachmentObj = new JSONObject();
 
@@ -52,16 +49,15 @@ public final class FHIRJsonUtil {
 		// based on this specification. Please refer to the
 		// https://github.com/bcgov/bcmoh-iam-integration-guide/wiki/FHIR-message-specification-to-wrap-HL7v2-messages
 		// for details.
-		
 		attachmentObj.put(FHIR_JSONMESSAGE_TYPE, "x-application/hl7-v2+er7");
 		attachmentObj.put(FHIR_JSONMESSAGE_DATA, hl7);
 		contentObj.put(FHIR_JSONMESSAGE_ATTACHMENT, attachmentObj);
-		contentArrary.add(contentObj);
+		contentArray.add(contentObj);
 		v2JsonObj.put(FHIR_JSONMESSAGE_RESOURCETYPE, "DocumentReference");
 		v2JsonObj.put(FHIR_JSONMESSAGE_STATUS, "current");
-		v2JsonObj.put(FHIR_JSONMESSAGE_CONTENT, contentArrary);
+		v2JsonObj.put(FHIR_JSONMESSAGE_CONTENT, contentArray);
 		logger.debug("The JSON Message is:"+v2JsonObj.toJSONString());
-		//return the JSON object
+
 		return v2JsonObj; 
 		
 	}	
@@ -69,24 +65,28 @@ public final class FHIRJsonUtil {
 	/**
 	 * This method is for parse a JSON message into a FHIR Message object based on the specification
 	 * 
-	 * @param jsonObj
+	 * @param jsonObj - the json message to parse
 	 * @return	FHIRJsonMessage
 	 */
 	public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 		
 		FHIRJsonMessage fhirJsonMsg = new FHIRJsonMessage();
 		
-		if (jsonObj == null) return null;		
+		if (jsonObj == null) {
+			return null;
+		}
 
 		for (Entry<String, Object> hs : jsonObj.entrySet()) {
 			String key = hs.getKey();
 			Object value = hs.getValue();
 			if (value instanceof String) {
-				if (key.equals(FHIR_JSONMESSAGE_RESOURCETYPE))
+				if (key.equals(FHIR_JSONMESSAGE_RESOURCETYPE)) {
 					fhirJsonMsg.setRecourceType(value.toString());
-				else if (key.equals(FHIR_JSONMESSAGE_STATUS))
+
+				} else if (key.equals(FHIR_JSONMESSAGE_STATUS)) {
 					fhirJsonMsg.setStatus(value.toString());
-				else {
+
+				} else {
 					logger.error("This is not an valid FHIR message!");
 					return null;
 				}
@@ -98,11 +98,12 @@ public final class FHIRJsonUtil {
 				for (Entry<String, Object> attach : attachmentJson.entrySet()) {
 					String attachKey = attach.getKey();
 					Object attachValue = attach.getValue();
-					if (attachKey.equals(FHIR_JSONMESSAGE_TYPE))
+					if (attachKey.equals(FHIR_JSONMESSAGE_TYPE)) {
 						fhirJsonMsg.setContentType(attachValue.toString());
-					else if (attachKey.equals(FHIR_JSONMESSAGE_DATA))
+
+					} else if (attachKey.equals(FHIR_JSONMESSAGE_DATA)) {
 						fhirJsonMsg.setV2MessageData(attachValue.toString());
-					else {
+					} else {
 						logger.error("This is not an valid FHIR message!");
 						return null;
 					}
