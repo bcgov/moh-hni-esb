@@ -5,10 +5,8 @@ import java.io.UnsupportedEncodingException;
 import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ca.bc.gov.hlth.hnclientv2.Util;
-import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonMessage;
-import ca.bc.gov.hlth.hnclientv2.json.FHIRJsonUtil;
+import ca.bc.gov.hlth.hnsecure.json.FHIRJsonMessage;
+import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
