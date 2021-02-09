@@ -9,6 +9,7 @@ public final class MainMethod {
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
+        main.setPropertyPlaceholderLocations("file:./application.properties;optional=true, classpath:application.properties");
         main.configure().addRoutesBuilder(Route.class);
         main.run(args);
     }
