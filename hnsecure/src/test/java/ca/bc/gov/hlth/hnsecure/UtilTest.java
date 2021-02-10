@@ -20,6 +20,7 @@ public class UtilTest {
 			+ "QPD|E45^^HNET0003|1|^^00000001^^^CANBC^XX^MOH|^^00000001^^^CANBC^XX^MOH|^^00000754^^^CANBC^XX^MOH|9020198746^^^CANBC^JHN^MOH||19420112||||||19980601||PVC^^HNET9909||\r\n"
 			+ "RCP|I|";
 
+	
 	public static String encodeMsg45 = "TVNIfF5+XCZ8SFJ8QkMwMDAwMDA5OHxSQUlHRVQtRE9DLVNVTXxCQzAwMDMwMDB8MTk5OTEwMDQxMDMwMzl8bGhhcnJpc3xFNDV8MTk5ODA5MTUwMDAwMTV8RHwyLjNIRFJ8fHxUUkFJTklOR0FkbWluDQpTRlR8MS4wfHx0ZXN0b3JnXl5vcmdpZF5eXk1PSHwxLjB8YmFyZWJvbmVzfHwNClFQRHxFNDVeXkhORVQwMDAzfDF8Xl4wMDAwMDAwMV5eXkNBTkJDXlhYXk1PSHxeXjAwMDAwMDAxXl5eQ0FOQkNeWFheTU9IfF5eMDAwMDA3NTReXl5DQU5CQ15YWF5NT0h8OTAyMDE5ODc0Nl5eXkNBTkJDXkpITl5NT0h8fDE5NDIxMTEyfHx8fHx8MTk5ODA2MDF8fFBWQ15eSE5FVDk5MDl8fA0KUkNQfEl8";
 	
 	public static String msgR50 = "MSH|^~\\&|HNWeb|BC01000030|RAIENROL-EMP|BC00002041|20210121120533|train96|R50^Z05|20210121120533|D|2.4||\r\n" + 
@@ -67,24 +68,10 @@ public class UtilTest {
 	}
 
 	@Test
-	public void testEncodeBase64() {
-		String expectedValue = encodeMsg45;
-		String actualValue = Util.encodeBase64(msgE45);
-		assertEquals(expectedValue, actualValue);
-	}
-
-	@Test
 	public void testNullDecodeBase64() throws UnsupportedEncodingException {
 		assertNull(Util.decodeBase64(nullValue));
 	}
 
-	@Test
-	public void testDecodeBase64() throws UnsupportedEncodingException {
-		String expectedValue = msgE45;
-		String	actualValue = Util.decodeBase64(encodeMsg45);
-		assertEquals(expectedValue, actualValue);
-	}
-	
 	@Test
 	public void testBothEncode_Decode64() throws UnsupportedEncodingException{
 		String expectedValue = msgE45;
