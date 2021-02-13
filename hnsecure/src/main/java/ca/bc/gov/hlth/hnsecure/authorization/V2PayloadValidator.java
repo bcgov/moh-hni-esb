@@ -26,7 +26,7 @@ public class V2PayloadValidator {
     public static void validate(Exchange exchange, String v2Message) throws Exception {
 
         int mshIndex = v2Message.indexOf("MSH|");
-        if (mshIndex != 8) {
+        if (mshIndex != 0) {
             exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
             exchange.getIn().setBody("{ \"error\": \"Message does not start with MSH and is an invalid v2 message.\" }");
             return;
