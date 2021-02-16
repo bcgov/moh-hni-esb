@@ -3,6 +3,7 @@ package ca.bc.gov.hlth.hnsecure;
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.authorization.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
+
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 
@@ -22,6 +23,7 @@ public class Route extends RouteBuilder {
     private String scopes;
     @PropertyInject(value = "valid-v2-message-types")
     private String validV2MessageTypes;
+    
 
     @Override
     public void configure() {
@@ -35,9 +37,33 @@ public class Route extends RouteBuilder {
             .log("HNSecure received a request")
             .process(validateAccessToken).id("ValidateAccessToken")
             .setBody().method(new FhirPayloadExtractor())
-            .log("Decoded V2: ${body}")
+            .log("Decoded V2: ${body}")            
             .bean(V2PayloadValidator.class).id("V2PayloadValidator")
+            //set the receiving app, message type into headers
+            .bean(PopulateReqHeader.class).id("PopulateReqHeader")
+            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+            .log("The message receiving application is <${in.header.receivingApp}> and the message type is <${in.header.messageType}>.")     
+            
+            //dispatch the message based on the receiving application code and message type
+            .choice()
+	            //sending message to pharmaNet
+	            .when(simple("${in.header.receivingApp} == {{pharmanet-endpoint}}"))
+	            .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will delivery through a socket.")
+	            
+	            //sending message to HIBC for ELIG
+	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
+	            .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
+	            
+	            //sending message to HIBC for ENROL
+	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
+	            .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
+	            
+	            //others sending to JMB
+	            .otherwise()
+	            .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
+            .end()
+            
             .filter(simple("${header.CamelHttpResponseCode} == '200'"))
-                .setBody(simple(responseMessage));
+            .setBody(simple(responseMessage));
     }
 }
