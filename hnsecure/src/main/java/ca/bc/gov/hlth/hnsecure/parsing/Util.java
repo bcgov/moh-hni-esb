@@ -1,4 +1,4 @@
-package ca.bc.gov.hlth.hnsecure;
+package ca.bc.gov.hlth.hnsecure.parsing;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -9,15 +9,6 @@ public final class Util {
 	public final static String HL7_DELIMITER = "\\|";
 	public final static String R50_SPEC_CHAR = "^";
 
-    private Util() {
-    }
-
-	public static void requireNonBlank(String str, String msg) {
-        if (str == null || str.trim().length() == 0) {
-            throw new IllegalArgumentException(msg);
-        }
-    }
-	
 	/**
 	 * return a Base64 encoding string
 	 * 
@@ -38,7 +29,7 @@ public final class Util {
 	 * @return 64Encoding String
 	 * @throws UnsupportedEncodingException
 	 */
-	public static String decodeBase64(String stringToDecode) throws UnsupportedEncodingException {
+	public static String decodeBase64(String stringToDecode) {
         if(stringToDecode == null || stringToDecode.isEmpty()) {
         	return null;
 		}

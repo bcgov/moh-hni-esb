@@ -1,5 +1,6 @@
-package ca.bc.gov.hlth.hnsecure.authorization;
+package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
+import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.slf4j.Logger;
@@ -20,10 +21,9 @@ public class V2PayloadValidator {
     /**
      * Validates the Hl7V2 transaction type (MSH.8) against the list of valid transaction type (valid-v2-message-types)
      * @param v2Message the hl7v2 message to validate
-     * @throws Exception message is not valid hl7v2 or is not an accepted v2 transaction type
      */
     @Handler
-    public static void validate(Exchange exchange, String v2Message) throws Exception {
+    public static void validate(Exchange exchange, String v2Message) {
 
         int mshIndex = v2Message.indexOf("MSH|");
         if (mshIndex != 0) {

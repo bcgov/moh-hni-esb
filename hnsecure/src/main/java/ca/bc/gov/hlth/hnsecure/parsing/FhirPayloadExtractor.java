@@ -1,4 +1,4 @@
-package ca.bc.gov.hlth.hnsecure;
+package ca.bc.gov.hlth.hnsecure.parsing;
 
 import java.io.UnsupportedEncodingException;
 
@@ -23,7 +23,7 @@ public class FhirPayloadExtractor {
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
 
-        //TODO we may need to check somewhere in the message to verify the base 64 encoding
+        // TODO we may need to check somewhere in the message to verify the base 64 encoding
         String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
         logger.debug("The decode HL7 message is:"+extractedMessage);
         return extractedMessage;
