@@ -1,19 +1,16 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
-import ca.bc.gov.hlth.hnsecure.authorization.V2PayloadValidator;
+import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 
+import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
+import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 
 public class Route extends RouteBuilder {
-
-    private static final String responseMessage = "MSH|^~\\&|RAIGT-PRSN-DMGR|BC00002041|HNWeb|BC01000030|20200206123841|train96|R03|1819924|D|2.4^M\n" +
-            "MSA|AA|20200206123840|HJMB001ISUCCESSFULLY COMPLETED^M\n" +
-            "ERR|^^^HJMB001I&SUCCESSFULLY COMPLETED^M\n" +
-            "PID||123456789^^^BC^PH^MOH|||||19840225|M^M\n" +
-            "ZIA|||||||||||||||LASTNAME^FIRST^S^^^^L|912 VIEW ST^^^^^^^^^^^^^^^^^^^VICTORIA^BC^V8V3M2^CAN^H^^^^N|^PRN^PH^^^250^1234568";
 
     @PropertyInject(value = "audience")
     private String audiences;
@@ -21,17 +18,29 @@ public class Route extends RouteBuilder {
     private String authorizedParties;
     @PropertyInject(value = "scopes")
     private String scopes;
+    @PropertyInject(value = "issuer")
+    private String issuer;
     @PropertyInject(value = "valid-v2-message-types")
     private String validV2MessageTypes;
-    
+    @PropertyInject(value = "certs-endpoint")
+    private String certsEndpoint;
+
+    public Route() {
+
+    }
+
+    // PropertyInject doesn't seem to work in the unit tests, allows creation of the route setting this value
+    public Route(String validV2MessageTypes) {
+        this.validV2MessageTypes = validV2MessageTypes;
+    }
 
     @Override
     public void configure() {
 
-        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes);
+        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer);
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
-        ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties);
+        ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")
@@ -48,22 +57,24 @@ public class Route extends RouteBuilder {
             .choice()
 	            //sending message to pharmaNet
 	            .when(simple("${in.header.receivingApp} == {{pharmanet-endpoint}}"))
-	            .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will delivery through a socket.")
+                    .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will be sent to PharmaNet webservices")
+                    .setBody(simple(SampleMessages.pnpResponseMessage))
 	            
 	            //sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
-	            .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
+	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
+                    .setBody(simple(SampleMessages.e45ResponseMessage))
 	            
 	            //sending message to HIBC for ENROL
 	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
-	            .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
+	                .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
+                    .setBody(simple(SampleMessages.r50ResponseMessage))
 	            
 	            //others sending to JMB
 	            .otherwise()
-	            .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
-            .end()
-            
-            .filter(simple("${header.CamelHttpResponseCode} == '200'"))
-            .setBody(simple(responseMessage));
+                    .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
+                    .setBody(simple(SampleMessages.r03ResponseMessage))
+            .end();
+
     }
 }

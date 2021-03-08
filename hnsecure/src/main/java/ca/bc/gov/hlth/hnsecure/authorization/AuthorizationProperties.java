@@ -8,12 +8,14 @@ public class AuthorizationProperties {
     private Set<String> authorizedParties;
     private Set<String> scopes;
     private Set<String> validV2MessageTypes;
+    private String issuer;
 
-    public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes) {
+    public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes, String issuer) {
         this.audiences = getPropertyAsSet(audiences);
         this.authorizedParties = getPropertyAsSet(authorizedParties);
         this.scopes = getPropertyAsSet(scopes);
         this.validV2MessageTypes = getPropertyAsSet(validV2MessageTypes);
+        this.issuer = issuer;
     }
 
     /**
@@ -51,7 +53,10 @@ public class AuthorizationProperties {
     public Set<String> getScopes() {
         return scopes;
     }
+
     public Set<String> getValidV2MessageTypes() {
         return validV2MessageTypes;
     }
+
+    public String getIssuer() { return issuer; }
 }

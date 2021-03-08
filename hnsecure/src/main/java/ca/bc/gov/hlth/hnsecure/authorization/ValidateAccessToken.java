@@ -26,19 +26,20 @@ public class ValidateAccessToken implements Processor {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidateAccessToken.class);
 
-    AuthorizationProperties authorizationProperties;
+    private AuthorizationProperties authorizationProperties;
+    private String certsEndpoint;
 
     /**
      * Default Constructor
      */
-    public ValidateAccessToken(AuthorizationProperties authorizationProperties) {
+    public ValidateAccessToken(AuthorizationProperties authorizationProperties, String certsEndpoint) {
         this.authorizationProperties = authorizationProperties;
+        this.certsEndpoint = certsEndpoint;
     }
 
     @Override
     public void process(Exchange exchange)
             throws Exception {
-
         AccessToken accessToken = AccessToken.parse(exchange.getIn().getHeader("Authorization").toString());
         logger.info(String.format("Access token: %s", accessToken));
 
@@ -49,10 +50,9 @@ public class ValidateAccessToken implements Processor {
         // The public RSA keys to validate the signatures
         // The RemoteJWKSet caches the retrieved keys to speed up subsequent look-ups
         // TODO this should be moved into the constructor to make use of the JWK caching
-        // TODO url should be a config property
         JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
         JWKSource<SecurityContext> keySource = new RemoteJWKSet<>(
-                new URL("https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos/protocol/openid-connect/certs"),
+                new URL(certsEndpoint),
                 // Overrides the DefaultResourceRetriever to up the timeouts to 5 seconds
                 new DefaultResourceRetriever(5000, 5000, 51200)
         );
@@ -72,9 +72,8 @@ public class ValidateAccessToken implements Processor {
                         // Accepted Scopes -> scope
                         authorizationProperties.getScopes(),
                         // Exact Match Claims -> iss
-                        // TODO issuer should be a config property
                         new JWTClaimsSet.Builder()
-                                .issuer("https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos")
+                                .issuer(authorizationProperties.getIssuer())
                                 .build(),
                         // Required Claims -> azp, scope, iat, exp, jti
                         new HashSet<>(Arrays.asList("azp", "scope", "iat", "exp", "jti")),
