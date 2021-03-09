@@ -30,4 +30,4 @@ cd hnsecure
 mvn compile camel:run
 ```
 
-After the application is running, you can send a message using via an [HNClient-v2 application](https://github.com/bcgov/moh-hnclient-v2).
+After the application is running, you can send a message using the [HNClient-v2 application](https://github.com/bcgov/moh-hnclient-v2).
