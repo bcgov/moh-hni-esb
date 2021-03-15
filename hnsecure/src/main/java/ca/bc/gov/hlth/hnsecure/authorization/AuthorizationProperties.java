@@ -9,13 +9,17 @@ public class AuthorizationProperties {
     private Set<String> scopes;
     private Set<String> validV2MessageTypes;
     private String issuer;
+    private String processingDomain;
+    private Set<String> vaildReceivingFascility;
 
-    public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes, String issuer) {
+    public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes, String issuer, String vaildReceivingFascility,String processingDomain) {
         this.audiences = getPropertyAsSet(audiences);
         this.authorizedParties = getPropertyAsSet(authorizedParties);
         this.scopes = getPropertyAsSet(scopes);
         this.validV2MessageTypes = getPropertyAsSet(validV2MessageTypes);
         this.issuer = issuer;
+        this.vaildReceivingFascility = getPropertyAsSet(vaildReceivingFascility);
+        this.processingDomain = processingDomain;
     }
 
     /**
@@ -59,4 +63,12 @@ public class AuthorizationProperties {
     }
 
     public String getIssuer() { return issuer; }
+
+	public Set<String> getVaildReceivingFascility() {
+		return vaildReceivingFascility;
+	}
+
+	public String getProcessingDomain() {
+		return processingDomain;
+	}
 }

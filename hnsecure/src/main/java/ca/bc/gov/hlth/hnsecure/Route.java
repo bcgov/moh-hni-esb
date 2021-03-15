@@ -24,6 +24,11 @@ public class Route extends RouteBuilder {
     private String validV2MessageTypes;
     @PropertyInject(value = "certs-endpoint")
     private String certsEndpoint;
+    @PropertyInject(value = "valid-receiving-fascility")
+    private String validReceivingFascility;
+    @PropertyInject(value = "issuer")
+    private String processingDomain;
+    
 
     public Route() {
 
@@ -37,7 +42,7 @@ public class Route extends RouteBuilder {
     @Override
     public void configure() {
 
-        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer);
+        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer,validReceivingFascility,processingDomain);
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
@@ -55,6 +60,8 @@ public class Route extends RouteBuilder {
             
             //dispatch the message based on the receiving application code and message type
             .choice()
+            	.when(simple("${body} contains 'AR'"))
+            	.log("There is an error validation the message and it will not be sent to endpoint")
 	            //sending message to pharmaNet
 	            .when(simple("${in.header.receivingApp} == {{pharmanet-endpoint}}"))
                     .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will be sent to PharmaNet webservices")
