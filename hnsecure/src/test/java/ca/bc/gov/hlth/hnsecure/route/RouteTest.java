@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.camel.EndpointInject;
+import org.apache.camel.Exchange;
+import org.apache.camel.Predicate;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -67,7 +69,7 @@ public class RouteTest extends CamelTestSupport {
 
 		context.stop();
 	}
-
+	
 	@Test
 	public void testValidationError() throws Exception {
 
@@ -86,4 +88,36 @@ public class RouteTest extends CamelTestSupport {
 
 		context.stop();
 	}
+
+	@Test
+	public void testValidationError_MismatchFascilityId() throws Exception {
+
+		String expectedMsg = "VLDT3  The Client Facility and HL7 Sending Facility IDs do not match.";
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:response").expectedMessageCount(1);
+
+		responseEndpoint.expectedMessagesMatches(new Predicate() {
+
+			@Override
+			public boolean matches(Exchange exchange) {
+				String obj = (String) exchange.getIn().getBody();
+				String[] arr = obj.split("\\|");
+
+				return (arr[14].equals(expectedMsg));
+			}
+		});
+	
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsg, headers);// triggering
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+
 }
