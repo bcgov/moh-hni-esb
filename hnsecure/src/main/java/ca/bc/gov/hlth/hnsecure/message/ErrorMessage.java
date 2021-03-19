@@ -14,7 +14,12 @@ public enum ErrorMessage {
 	HL7Error_Msg_MissingReceivingFacility(4,"The Receiving Facility ID was not specified in the HL7 Message."),
 	
 	HL7Error_Msg_InvalidDomain(5,"The Processing Domain is not one of P, T, E, or D."),
-	HL7Error_Msg_InvalidHL7Format(6,"The Supplied HL7 Message was improperly formatted");
+	HL7Error_Msg_InvalidHL7Format(6,"The Supplied HL7 Message was improperly formatted"),
+	
+	HL7Error_Msg_RemoteTimeOut(7,"Connection with remote facility timed out"),
+	HL7Error_Msg_ServerTimedOut(8,"Connection to HL7Xfer Server timed out with no or partial response."),
+	HL7Error_Msg_ServerUnavailable(9,"Server could not be contacted. HL7Xfer Server running?"),
+	HL7Error_Msg_Unknown(10,"An unknown error has occurred.");
 
 	private int errorSequence;
 	private String errorMessage;
