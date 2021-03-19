@@ -4,21 +4,22 @@ import java.util.*;
 
 public class AuthorizationProperties {
 
-    private Set<String> audiences;
-    private Set<String> authorizedParties;
-    private Set<String> scopes;
-    private Set<String> validV2MessageTypes;
-    private String issuer;
-    private String processingDomain;
-    private Set<String> vaildReceivingFascility;
+    private final Set<String> audiences;
+    private final Set<String> authorizedParties;
+    private final Set<String> scopes;
+    private final Set<String> validV2MessageTypes;
+    private final String issuer;
+    private final String processingDomain;
+    private final Set<String> validReceivingFacility;
 
-    public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes, String issuer, String vaildReceivingFascility,String processingDomain) {
+    public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes,
+                                   String issuer, String validReceivingFacility,String processingDomain) {
         this.audiences = getPropertyAsSet(audiences);
         this.authorizedParties = getPropertyAsSet(authorizedParties);
         this.scopes = getPropertyAsSet(scopes);
         this.validV2MessageTypes = getPropertyAsSet(validV2MessageTypes);
         this.issuer = issuer;
-        this.vaildReceivingFascility = getPropertyAsSet(vaildReceivingFascility);
+        this.validReceivingFacility = getPropertyAsSet(validReceivingFacility);
         this.processingDomain = processingDomain;
     }
 
@@ -64,8 +65,8 @@ public class AuthorizationProperties {
 
     public String getIssuer() { return issuer; }
 
-	public Set<String> getVaildReceivingFascility() {
-		return vaildReceivingFascility;
+	public Set<String> getValidReceivingFacility() {
+		return validReceivingFacility;
 	}
 
 	public String getProcessingDomain() {

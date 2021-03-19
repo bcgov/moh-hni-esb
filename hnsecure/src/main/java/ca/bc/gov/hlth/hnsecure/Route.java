@@ -24,8 +24,8 @@ public class Route extends RouteBuilder {
     private String validV2MessageTypes;
     @PropertyInject(value = "certs-endpoint")
     private String certsEndpoint;
-    @PropertyInject(value = "valid-receiving-fascility")
-    private String validReceivingFascility;
+    @PropertyInject(value = "valid-receiving-facility")
+    private String validReceivingFacility;
     @PropertyInject(value = "issuer")
     private String processingDomain;
     
@@ -35,15 +35,15 @@ public class Route extends RouteBuilder {
     }
 
     // PropertyInject doesn't seem to work in the unit tests, allows creation of the route setting this value
-    public Route(String validV2MessageTypes, String validRecevingFascility) {
+    public Route(String validV2MessageTypes, String validReceivingFacility) {
         this.validV2MessageTypes = validV2MessageTypes;
-        this.validReceivingFascility = validRecevingFascility;
+        this.validReceivingFacility = validReceivingFacility;
     }
 
     @Override
     public void configure() {
 
-        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer,validReceivingFascility,processingDomain);
+        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain);
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);

@@ -21,10 +21,10 @@ public enum ErrorMessage {
 	HL7Error_Msg_ServerUnavailable(9,"Server could not be contacted. HL7Xfer Server running?"),
 	HL7Error_Msg_Unknown(10,"An unknown error has occurred.");
 
-	private int errorSequence;
-	private String errorMessage;
+	private final int errorSequence;
+	private final String errorMessage;
 	
-	public static Map<Integer, ErrorMessage> errorMessageByErrorSequence = new HashMap<Integer, ErrorMessage>();
+	public static Map<Integer, ErrorMessage> errorMessageByErrorSequence = new HashMap<>();
 
 	static {
 		for (ErrorMessage errorMessage : ErrorMessage.values()) {
@@ -32,7 +32,7 @@ public enum ErrorMessage {
 		}
 	}
 
-	private ErrorMessage(int errorSequence, String errorMessage) {
+	ErrorMessage(int errorSequence, String errorMessage) {
 		this.errorSequence = errorSequence;
 		this.errorMessage = errorMessage;
 	}
@@ -43,10 +43,6 @@ public enum ErrorMessage {
 
 	public String getErrorMessage() {
 		return errorMessage;
-	}
-
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
 	}
 
 	public static ErrorMessage getErrorMessageBySequence(Integer errorSequence) {

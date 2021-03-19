@@ -2,31 +2,29 @@ package ca.bc.gov.hlth.hnsecure.message;
 
 public class ErrorResponse implements ResponseSegment {
 	
-	private String segmentIdentifier = "MSA";
+	private final String segmentIdentifier = "MSA";
 	
-	private String fieldSeperator = "|";
+	private final String fieldSeperator = "|";
 	
-	private String ackKnowledgemetCode = "AR";
+	private final String ackKnowledgementCode = "AR";
 	
-	private String section  = "VLDT";
+	private final String section  = "VLDT";
 	
-
-
 	@Override
-	public String consructResponse(HL7Message messageObj,String messageControlID, ErrorMessage errorMessage) {
+	public String constructResponse(HL7Message messageObj,String messageControlID, ErrorMessage errorMessage) {
 		return constructMSH(messageObj) + constructMSA(messageControlID, errorMessage);
 	}
 	
 	public String constructMSA(String messageControlID, ErrorMessage errorMessage) {
 		StringBuilder sb = new StringBuilder(segmentIdentifier);
 		sb.append(fieldSeperator);
-		sb.append(ackKnowledgemetCode);
+		sb.append(ackKnowledgementCode);
 		sb.append(fieldSeperator);
 		sb.append(messageControlID);
 		sb.append(fieldSeperator);
 		sb.append(section +errorMessage.getErrorSequence()+ "  " + errorMessage.getErrorMessage());
 		sb.append(fieldSeperator);
-		
+
 		return sb.toString();
 		
 	}
@@ -38,9 +36,9 @@ public class ErrorResponse implements ResponseSegment {
 			messageObj.segmentIdentifier = v2Segment[0];
 			messageObj.setEncodingCharacter(v2Segment[1]);
 			messageObj.setSendingApplication(v2Segment[2]);
-			messageObj.setSendingFascility(v2Segment[3]);
+			messageObj.setSendingFacility(v2Segment[3]);
 			messageObj.setReceivingApplication(v2Segment[4]); 
-			messageObj.setReceivingFascility(v2Segment[5]);
+			messageObj.setReceivingFacility(v2Segment[5]);
 			messageObj.setDateTime(v2Segment[6]);
 			messageObj.setSecurity(v2Segment[7]);
 			messageObj.setMessageType(v2Segment[8]); 
@@ -55,37 +53,37 @@ public class ErrorResponse implements ResponseSegment {
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(messageObj.segmentIdentifier);
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 				
 		sb.append(messageObj.getEncodingCharacter());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getSendingApplication());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
-		sb.append(messageObj.getSendingFascility());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getSendingFacility());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getReceivingApplication());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
-		sb.append(messageObj.getReceivingFascility());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getReceivingFacility());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getDateTime());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getSecurity());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getMessageType());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getMessageControlId());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getProcessingId());
-		sb.append(messageObj.getFieldSeperator());
+		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getVersionId());
 		

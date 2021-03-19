@@ -8,11 +8,11 @@ public class HL7Message {
 
 	private  String sendingApplication;
 
-	private  String sendingFascility;
+	private  String sendingFacility;
 
 	private  String receivingApplication;
 
-	private  String receivingFascility;
+	private  String receivingFacility;
 
 	private  String dateTime;
 
@@ -26,22 +26,14 @@ public class HL7Message {
 
 	private  String versionId;
 
-	private  String fieldSeperator = "|";
+	private final String fieldSeparator = "|";
 
 	public String getSegmentIdentifier() {
 		return segmentIdentifier;
 	}
 
-	public void setSegmentIdentifier(String segmentIdentifier) {
-		this.segmentIdentifier = segmentIdentifier;
-	}
-
-	public String getFieldSeperator() {
-		return fieldSeperator;
-	}
-
-	public void setFieldSeperator(String fieldSeperator) {
-		this.fieldSeperator = fieldSeperator;
+	public String getFieldSeparator() {
+		return fieldSeparator;
 	}
 
 	public String getEncodingCharacter() {
@@ -60,12 +52,12 @@ public class HL7Message {
 		this.sendingApplication = sendingApplication;
 	}
 
-	public String getSendingFascility() {
-		return sendingFascility;
+	public String getSendingFacility() {
+		return sendingFacility;
 	}
 
-	public void setSendingFascility(String sendingFascility) {
-		this.sendingFascility = sendingFascility;
+	public void setSendingFacility(String sendingFacility) {
+		this.sendingFacility = sendingFacility;
 	}
 
 	public String getReceivingApplication() {
@@ -76,12 +68,12 @@ public class HL7Message {
 		this.receivingApplication = receivingApplication;
 	}
 
-	public String getReceivingFascility() {
-		return receivingFascility;
+	public String getReceivingFacility() {
+		return receivingFacility;
 	}
 
-	public void setReceivingFascility(String receivingFascility) {
-		this.receivingFascility = receivingFascility;
+	public void setReceivingFacility(String receivingFacility) {
+		this.receivingFacility = receivingFacility;
 	}
 
 	public String getDateTime() {
