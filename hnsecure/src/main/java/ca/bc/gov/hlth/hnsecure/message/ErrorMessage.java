@@ -16,10 +16,10 @@ public enum ErrorMessage {
 	HL7Error_Msg_InvalidDomain(5,"The Processing Domain is not one of P, T, E, or D."),
 	HL7Error_Msg_InvalidHL7Format(6,"The Supplied HL7 Message was improperly formatted");
 
-	private int errorSequence;
-	private String errorMessage;
+	private final int errorSequence;
+	private final String errorMessage;
 	
-	public static Map<Integer, ErrorMessage> errorMessageByErrorSequence = new HashMap<Integer, ErrorMessage>();
+	public static Map<Integer, ErrorMessage> errorMessageByErrorSequence = new HashMap<>();
 
 	static {
 		for (ErrorMessage errorMessage : ErrorMessage.values()) {
@@ -27,7 +27,7 @@ public enum ErrorMessage {
 		}
 	}
 
-	private ErrorMessage(int errorSequence, String errorMessage) {
+	ErrorMessage(int errorSequence, String errorMessage) {
 		this.errorSequence = errorSequence;
 		this.errorMessage = errorMessage;
 	}
@@ -38,10 +38,6 @@ public enum ErrorMessage {
 
 	public String getErrorMessage() {
 		return errorMessage;
-	}
-
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
 	}
 
 	public static ErrorMessage getErrorMessageBySequence(Integer errorSequence) {

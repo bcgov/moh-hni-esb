@@ -1,7 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -12,8 +11,6 @@ import org.apache.camel.Handler;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.nimbusds.jose.util.ArrayUtils;
 
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
@@ -30,11 +27,10 @@ public class V2PayloadValidator {
 	private static Set<String> validV2MessageTypes;
 	private static Set<String> validReceivingFascility;
 	private static String processingDomain;
-	private static String expectedEncodingChar = "^~\\&";
+	private static final String expectedEncodingChar = "^~\\&";
 	private static boolean isValidSeg;
-	private static String segmentIdentifier = "MSH";
-	private static List<String> validDomainType = Collections
-			.unmodifiableList(Arrays.asList(new String[] { "P", "E", "T", "D" }));
+	private static final String segmentIdentifier = "MSH";
+	private static final List<String> validDomainType = List.of(new String[]{"P", "E", "T", "D"});
 	private static ErrorMessage errorMessage;
 	private static ErrorResponse errorResponse;
 
@@ -42,7 +38,7 @@ public class V2PayloadValidator {
 
 	public V2PayloadValidator(AuthorizationProperties authorizationProperties) {
 		validV2MessageTypes = authorizationProperties.getValidV2MessageTypes();
-		validReceivingFascility = authorizationProperties.getVaildReceivingFascility();
+		validReceivingFascility = authorizationProperties.getValidReceivingFacility();
 		processingDomain = authorizationProperties.getProcessingDomain();
 	}
 
@@ -91,30 +87,30 @@ public class V2PayloadValidator {
 		}
 
 		// Validate Sending facility
-		if (isValidSeg && StringUtil.isEmpty(messageObj.getSendingFascility())) {
+		if (isValidSeg && StringUtil.isEmpty(messageObj.getSendingFacility())) {
 
-			messageObj.setSendingFascility(getSendingFascility(auth));
+			messageObj.setSendingFacility(getSendingFacility(auth));
 		}
 
-		if (isValidSeg && !StringUtil.isEmpty(messageObj.getSendingFascility())) {
+		if (isValidSeg && !StringUtil.isEmpty(messageObj.getSendingFacility())) {
 
-			String localFascilityName = getSendingFascility(auth);
+			String localFascilityName = getSendingFacility(auth);
 
-			if (!messageObj.getSendingFascility().equals(localFascilityName)) {
+			if (!messageObj.getSendingFacility().equals(localFascilityName)) {
 				isValidSeg = false;
 				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
 			}
 		}
 
 		// Validate Receiving facility
-		if (isValidSeg && StringUtil.isEmpty(messageObj.getReceivingFascility())) {
+		if (isValidSeg && StringUtil.isEmpty(messageObj.getReceivingFacility())) {
 			isValidSeg = false;
 			errorMessage = ErrorMessage.HL7Error_Msg_MissingReceivingFacility;
 
 		}
 
-		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingFascility())) {
-			if (!validReceivingFascility.stream().anyMatch(messageObj.getReceivingFascility()::equalsIgnoreCase)) {
+		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingFacility())) {
+			if (validReceivingFascility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				isValidSeg = false;
 				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
 
@@ -135,7 +131,7 @@ public class V2PayloadValidator {
 		if (!isValidSeg) {
 
 			errorResponse = new ErrorResponse();
-			String v2Response = errorResponse.consructResponse(messageObj, null, errorMessage);
+			String v2Response = errorResponse.constructResponse(messageObj, null, errorMessage);
 			logger.info(v2Response);
 			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
 			exchange.getIn().setBody(v2Response);
@@ -143,7 +139,7 @@ public class V2PayloadValidator {
 		}
 
 		String transactionType = v2Message.split("\\|")[8];
-		if (!validV2MessageTypes.stream().anyMatch(transactionType::equalsIgnoreCase)) {
+		if (validV2MessageTypes.stream().noneMatch(transactionType::equalsIgnoreCase)) {
 			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
 			exchange.getIn().setBody("{ \"error\": \"Unsupported v2 transaction type.\" }");
 			return;
@@ -161,7 +157,7 @@ public class V2PayloadValidator {
 
 	}
 
-	private static String getSendingFascility(String auth) {
+	private static String getSendingFacility(String auth) {
 		String clientId = "";
 		if (!StringUtil.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
