@@ -10,6 +10,8 @@ public class ErrorResponse implements ResponseSegment {
 	
 	private final String section  = "VLDT";
 	
+	private final String ack = "ACK";
+	
 	@Override
 	public String constructResponse(HL7Message messageObj,String messageControlID, ErrorMessage errorMessage) {
 		return constructMSH(messageObj) + constructMSA(messageControlID, errorMessage);
@@ -33,7 +35,7 @@ public class ErrorResponse implements ResponseSegment {
 	 */
 	public void initSegment(String[] v2Segment,HL7Message messageObj ) {
 		if (v2Segment.length >= 12) {
-			messageObj.segmentIdentifier = v2Segment[0];
+			messageObj.setSegmentIdentifier(v2Segment[0]) ;
 			messageObj.setEncodingCharacter(v2Segment[1]);
 			messageObj.setSendingApplication(v2Segment[2]);
 			messageObj.setSendingFacility(v2Segment[3]);
@@ -51,11 +53,18 @@ public class ErrorResponse implements ResponseSegment {
 	@Override
 	public String constructMSH(HL7Message messageObj) {
 		StringBuilder sb = new StringBuilder();
+		messageObj.setSegmentIdentifier("MSH");
 		
-		sb.append(messageObj.segmentIdentifier);
+		sb.append(messageObj.getSegmentIdentifier());
 		sb.append(messageObj.getFieldSeparator());
 				
 		sb.append(messageObj.getEncodingCharacter());
+		sb.append(messageObj.getFieldSeparator());
+				
+		sb.append(messageObj.getReceivingApplication());
+		sb.append(messageObj.getFieldSeparator());
+		
+		sb.append(messageObj.getReceivingFacility());
 		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getSendingApplication());
@@ -64,16 +73,11 @@ public class ErrorResponse implements ResponseSegment {
 		sb.append(messageObj.getSendingFacility());
 		sb.append(messageObj.getFieldSeparator());
 		
-		sb.append(messageObj.getReceivingApplication());
-		sb.append(messageObj.getFieldSeparator());
-		
-		sb.append(messageObj.getReceivingFacility());
-		sb.append(messageObj.getFieldSeparator());
-		
 		sb.append(messageObj.getDateTime());
 		sb.append(messageObj.getFieldSeparator());
 		
-		sb.append(messageObj.getSecurity());
+		//sb.append(messageObj.getSecurity());
+		sb.append(getAck());
 		sb.append(messageObj.getFieldSeparator());
 		
 		sb.append(messageObj.getMessageType());
@@ -91,6 +95,10 @@ public class ErrorResponse implements ResponseSegment {
 		
 		return sb.toString();
 		
+	}
+
+	public String getAck() {
+		return ack;
 	}
 
 }

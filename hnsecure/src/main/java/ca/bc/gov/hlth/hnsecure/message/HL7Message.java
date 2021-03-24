@@ -2,7 +2,7 @@ package ca.bc.gov.hlth.hnsecure.message;
 
 public class HL7Message {
 
-	public String segmentIdentifier = "MSH";
+	private String segmentIdentifier;
 	
 	private  String encodingCharacter;
 
@@ -30,6 +30,10 @@ public class HL7Message {
 
 	public String getSegmentIdentifier() {
 		return segmentIdentifier;
+	}
+
+	public void setSegmentIdentifier(String segmentIdentifier) {
+		this.segmentIdentifier = segmentIdentifier;
 	}
 
 	public String getFieldSeparator() {

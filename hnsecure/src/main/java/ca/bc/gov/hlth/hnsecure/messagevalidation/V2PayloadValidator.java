@@ -16,6 +16,7 @@ import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
+import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -101,6 +102,17 @@ public class V2PayloadValidator {
 				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
 			}
 		}
+		
+		//Validate receiving application
+		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingApplication())) {
+
+			String receivingApplication = getReceivingApplication(messageObj.getMessageType());
+
+			if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
+				isValidSeg = false;
+				errorMessage = ErrorMessage.HL7Error_Msg_UnknownReceivingApplication;
+			}
+		}
 
 		// Validate Receiving facility
 		if (isValidSeg && StringUtil.isEmpty(messageObj.getReceivingFacility())) {
@@ -119,7 +131,6 @@ public class V2PayloadValidator {
 
 		// Validate Domain
 		if (isValidSeg && StringUtil.isEmpty(messageObj.getProcessingId())) {
-			// TODO::Populate Processing id from client config
 			messageObj.setProcessingId(processingDomain);
 		}
 
@@ -131,27 +142,13 @@ public class V2PayloadValidator {
 		if (!isValidSeg) {
 
 			errorResponse = new ErrorResponse();
+			messageObj.setReceivingApplication("HNSecure");
 			String v2Response = errorResponse.constructResponse(messageObj, null, errorMessage);
 			logger.info(v2Response);
-			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
+			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			exchange.getIn().setBody(v2Response);
 			return;
 		}
-
-		String transactionType = v2Message.split("\\|")[8];
-		if (validV2MessageTypes.stream().noneMatch(transactionType::equalsIgnoreCase)) {
-			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
-			exchange.getIn().setBody("{ \"error\": \"Unsupported v2 transaction type.\" }");
-			return;
-		}
-
-		/*
-		 * int mshIndex = v2Message.indexOf("MSH|"); if (mshIndex != 0) {
-		 * exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
-		 * exchange.getIn()
-		 * .setBody("{ \"error\": \"Message does not start with MSH and is an invalid v2 message.\" }"
-		 * ); return; }
-		 */
 
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 
@@ -171,6 +168,12 @@ public class V2PayloadValidator {
 			}
 		}
 		return clientId;
+	}
+	
+	private static String getReceivingApplication(String messageType) {
+		return MessageUtil.mTypeCollection.get(messageType);
+		
+		
 	}
 
 }

@@ -30,26 +30,26 @@ public class V2PayloadValidatorTest {
     @Ignore
     public void messageDoesntBeginWithMSHTest() {
         v2PayloadValidator.validate(exchange, SamplesToSend.msgInvalidMSH);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         assertEquals(exchange.getIn().getBody(), "{ \"error\": \"Message does not start with MSH and is an invalid v2 message.\" }");
     }
     
     @Test
     public void test_HL7Error_Msg_InvalidHL7Format() {
-    	String expectedResponse = "MSA|AR|null|VLDT6  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR|null|VLDT7  The Supplied HL7 Message was improperly formatted|";
     	
         v2PayloadValidator.validate(exchange, SamplesToSend.msgInvalidFormat);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
     
     @Test
     public void test_HL7Error_Msg_InvalidHL7Format_MissingEncodingChar() {
-    	String expectedResponse = "MSA|AR|null|VLDT6  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR|null|VLDT7  The Supplied HL7 Message was improperly formatted|";
     	
         v2PayloadValidator.validate(exchange,SamplesToSend.msgMissingEncodingChar );
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
@@ -59,7 +59,7 @@ public class V2PayloadValidatorTest {
     	String expectedResponse = "MSA|AR|null|VLDT1  No HL7 Message was supplied as input|";
     	
         v2PayloadValidator.validate(exchange, null);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
@@ -72,7 +72,7 @@ public class V2PayloadValidatorTest {
     	String expectedResponse = "MSA|AR|null|VLDT2  The MSH Segment from the HL7 Message is missing.|";
     	
         v2PayloadValidator.validate(exchange, msgInput);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
@@ -85,18 +85,11 @@ public class V2PayloadValidatorTest {
     	String expectedResponse = "MSA|AR|null|VLDT3  The Client Facility and HL7 Sending Facility IDs do not match.|";
     	
         v2PayloadValidator.validate(exchange, msgInput);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
     
-    @Test
-    @Ignore
-    public void messageIsNotValidV2MessageType() {
-        v2PayloadValidator.validate(exchange, SamplesToSend.msgR15);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 403);
-        assertEquals(exchange.getIn().getBody(), "{ \"error\": \"Unsupported v2 transaction type.\" }");
-    }
 
     @Test
     @Ignore

@@ -77,8 +77,7 @@ public class RouteTest extends CamelTestSupport {
 
 		// Set expectations
 		getMockEndpoint("mock:response").expectedMessageCount(1);
-		// responseEndpoint.expectedBodiesReceived(SampleMessages.r03ResponseMessage);
-		responseEndpoint.expectedHeaderReceived("CamelHttpResponseCode", "403");
+		responseEndpoint.expectedHeaderReceived("CamelHttpResponseCode", "200");
 
 		// Send a message
 		mockRouteStart.sendBody(SamplesToSend.r03JsonMsg);
