@@ -3,7 +3,7 @@ package ca.bc.gov.hlth.hnsecure;
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
-
+import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
@@ -26,7 +26,7 @@ public class Route extends RouteBuilder {
     private String certsEndpoint;
     @PropertyInject(value = "valid-receiving-facility")
     private String validReceivingFacility;
-    @PropertyInject(value = "issuer")
+    @PropertyInject(value = "processing-domain")
     private String processingDomain;
     
 
@@ -47,6 +47,8 @@ public class Route extends RouteBuilder {
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
+        
+        onException(ValidationFailedException.class).log("Recieved body ${body}").handled(true);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")
@@ -61,8 +63,6 @@ public class Route extends RouteBuilder {
             
             //dispatch the message based on the receiving application code and message type
             .choice()
-            	.when(simple("${body} contains 'AR'"))
-            	.log("There is an error validation the message and it will not be sent to endpoint")
 	            //sending message to pharmaNet
 	            .when(simple("${in.header.receivingApp} == {{pharmanet-endpoint}}"))
                     .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will be sent to PharmaNet webservices")

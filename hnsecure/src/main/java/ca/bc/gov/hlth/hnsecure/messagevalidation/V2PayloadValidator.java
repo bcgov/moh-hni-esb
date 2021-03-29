@@ -17,6 +17,7 @@ import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
+import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -47,9 +48,10 @@ public class V2PayloadValidator {
 	 * Validates the Hl7V2 transaction type (MSH.8) format and required fields
 	 * 
 	 * @param v2Message the hl7v2 message to validate
+	 * @throws ValidationFailedException 
 	 */
 	@Handler
-	public static void validate(Exchange exchange, String v2Message) {
+	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		isValidSeg = true;
 		HL7Message messageObj = new HL7Message();
@@ -147,7 +149,7 @@ public class V2PayloadValidator {
 			logger.info(v2Response);
 			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			exchange.getIn().setBody(v2Response);
-			return;
+			throw new ValidationFailedException(errorMessage.getErrorMessage());
 		}
 
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
