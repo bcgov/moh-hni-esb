@@ -49,7 +49,7 @@ public class SamplesToSend {
             "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
             "PID||0000053655^^^BC^PH\r\n";
 
-    public static String msgR03="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
+    public static String msgR03="MSH|^~\\&|HNWeb|moh_hnclient_dev|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
             "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
             "PID||0000053655^^^BC^PH\r\n";
 

@@ -26,8 +26,7 @@ public class V2PayloadValidator {
 
 	private static final Logger logger = LoggerFactory.getLogger(V2PayloadValidator.class);
 
-	private static Set<String> validV2MessageTypes;
-	private static Set<String> validReceivingFascility;
+	private static Set<String> validReceivingFacility;
 	private static String processingDomain;
 	private static final String expectedEncodingChar = "^~\\&";
 	private static boolean isValidSeg;
@@ -39,8 +38,7 @@ public class V2PayloadValidator {
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
 	public V2PayloadValidator(AuthorizationProperties authorizationProperties) {
-		validV2MessageTypes = authorizationProperties.getValidV2MessageTypes();
-		validReceivingFascility = authorizationProperties.getValidReceivingFacility();
+		validReceivingFacility = authorizationProperties.getValidReceivingFacility();
 		processingDomain = authorizationProperties.getProcessingDomain();
 	}
 
@@ -97,9 +95,9 @@ public class V2PayloadValidator {
 
 		if (isValidSeg && !StringUtil.isEmpty(messageObj.getSendingFacility())) {
 
-			String localFascilityName = getSendingFacility(auth);
+			String localFacilityName = getSendingFacility(auth);
 
-			if (!messageObj.getSendingFacility().equals(localFascilityName)) {
+			if (!messageObj.getSendingFacility().equals(localFacilityName)) {
 				isValidSeg = false;
 				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
 			}
@@ -124,7 +122,7 @@ public class V2PayloadValidator {
 		}
 
 		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingFacility())) {
-			if (validReceivingFascility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
+			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				isValidSeg = false;
 				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
 
@@ -142,7 +140,6 @@ public class V2PayloadValidator {
 		}
 
 		if (!isValidSeg) {
-
 			errorResponse = new ErrorResponse();
 			messageObj.setReceivingApplication("HNSecure");
 			String v2Response = errorResponse.constructResponse(messageObj, null, errorMessage);
@@ -151,8 +148,6 @@ public class V2PayloadValidator {
 			exchange.getIn().setBody(v2Response);
 			throw new ValidationFailedException(errorMessage.getErrorMessage());
 		}
-
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 
 	}
 

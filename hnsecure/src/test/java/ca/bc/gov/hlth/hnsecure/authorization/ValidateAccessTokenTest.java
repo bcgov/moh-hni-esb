@@ -33,19 +33,16 @@ public class ValidateAccessTokenTest {
     @Test
     public void invalidAuthPartiesTest() {
         exchange.getIn().setHeader("Authorization", jwtInvalidAuthParties);
-
     }
 
     @Test
     public void invalidScopesTest() {
         exchange.getIn().setHeader("Authorization", jwtInvalidScopes);
-
     }
 
     @Test
     public void invalidIssuerTest() {
         exchange.getIn().setHeader("Authorization", jwtInvalidIssuer);
-
     }
 
 }

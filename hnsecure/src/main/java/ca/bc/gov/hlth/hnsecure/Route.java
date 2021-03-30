@@ -48,7 +48,10 @@ public class Route extends RouteBuilder {
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
         
-        onException(ValidationFailedException.class).log("Recieved body ${body}").handled(true);
+        onException(ValidationFailedException.class)
+                .log("Validation exception response: ${body}")
+                .handled(true)
+                .id("ValidationException");
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")

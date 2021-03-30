@@ -2,17 +2,14 @@ package ca.bc.gov.hlth.hnsecure.route;
 
 import ca.bc.gov.hlth.hnsecure.Route;
 import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
+import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.Predicate;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spi.PropertiesComponent;
@@ -33,6 +30,9 @@ public class RouteTest extends CamelTestSupport {
 	@EndpointInject("mock:response")
 	private MockEndpoint responseEndpoint;
 
+	@EndpointInject("mock:validationExceptionResponse")
+	private MockEndpoint validationExceptionEndpoint;
+
 	@Before
 	public void configureRoutes() throws Exception {
 
@@ -44,6 +44,7 @@ public class RouteTest extends CamelTestSupport {
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
 			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");
+			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
 			a.weaveAddLast().to("mock:response");
 		});
 	}
@@ -58,11 +59,10 @@ public class RouteTest extends CamelTestSupport {
 		responseEndpoint.expectedBodiesReceived(SampleMessages.r03ResponseMessage);
 
 		// Send a message with header
-
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsgLocal, headers);// triggering
-		// route execution by sending input to route
+		// trigger route execution by sending input to route
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsgLocal, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -73,45 +73,19 @@ public class RouteTest extends CamelTestSupport {
 	@Test
 	public void testValidationError() throws Exception {
 
+		String expectedErrorMsg = "MSH|^~\\&|HNSecure|BC00002041|HNWeb|BC01000030|20191108083244|ACK|R03|20191108083244|D|2.4\n" +
+				"MSA|AR|null|VLDT3  The Client Facility and HL7 Sending Facility IDs do not match.|";
+
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:response").expectedMessageCount(1);
-		responseEndpoint.expectedHeaderReceived("CamelHttpResponseCode", "200");
+		getMockEndpoint("mock:validationExceptionResponse").expectedMessageCount(1);
+		getMockEndpoint("mock:validationExceptionResponse").expectedBodiesReceived(expectedErrorMsg);
 
 		// Send a message
-		mockRouteStart.sendBody(SamplesToSend.r03JsonMsg);
-
-		// Verify our expectations were met
-		assertMockEndpointsSatisfied();
-
-		context.stop();
-	}
-
-	@Test
-	public void testValidationError_MismatchFascilityId() throws Exception {
-
-		String expectedMsg = "VLDT3  The Client Facility and HL7 Sending Facility IDs do not match.";
-
-		context.start();
-
-		// Set expectations
-		getMockEndpoint("mock:response").expectedMessageCount(1);
-
-		responseEndpoint.expectedMessagesMatches(new Predicate() {
-
-			@Override
-			public boolean matches(Exchange exchange) {
-				String obj = (String) exchange.getIn().getBody();
-				String[] arr = obj.split("\\|");
-
-				return (arr[14].equals(expectedMsg));
-			}
-		});
-	
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsg, headers);// triggering
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
