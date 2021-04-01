@@ -4,6 +4,6 @@ public interface ResponseSegment {
 	
 	String constructMSH(HL7Message messageObj);
 	
-	String constructResponse(HL7Message messageObj, String Id, ErrorMessage error);
+	String constructResponse(HL7Message messageObj, ErrorMessage error);
 
 }

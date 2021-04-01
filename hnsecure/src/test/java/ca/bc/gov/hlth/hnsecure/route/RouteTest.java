@@ -74,7 +74,7 @@ public class RouteTest extends CamelTestSupport {
 	public void testValidationError() throws Exception {
 
 		String expectedErrorMsg = "MSH|^~\\&|HNSecure|BC00002041|HNWeb|BC01000030|20191108083244|ACK|R03|20191108083244|D|2.4\n" +
-				"MSA|AR|null|VLDT3  The Client Facility and HL7 Sending Facility IDs do not match.|";
+				"MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match.|";
 
 		context.start();
 

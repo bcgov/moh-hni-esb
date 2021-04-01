@@ -66,4 +66,8 @@ public class SamplesToSend {
     public static String msgMissingEncodingChar="MSH|~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
             "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
             "PID||0000053655^^^BC^PH\r\n";
+    
+    public static String invalidRecevingApp="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMG|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
+            "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
+            "PID||0000053655^^^BC^PH\r\n";
 }

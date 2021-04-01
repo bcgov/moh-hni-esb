@@ -30,7 +30,7 @@ public class V2PayloadValidatorTest {
     
     @Test
     public void test_HL7Error_Msg_InvalidHL7Format() {
-    	String expectedResponse = "MSA|AR|null|VLDT7  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR|null|VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange, SamplesToSend.msgInvalidFormat);
@@ -43,7 +43,7 @@ public class V2PayloadValidatorTest {
     
     @Test
     public void test_HL7Error_Msg_InvalidHL7Format_MissingEncodingChar() throws ValidationFailedException {
-    	String expectedResponse = "MSA|AR|null|VLDT7  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange,SamplesToSend.msgMissingEncodingChar );
@@ -55,7 +55,7 @@ public class V2PayloadValidatorTest {
     
     @Test
     public void test_HL7Error_Msg_NoInputHL7() throws ValidationFailedException {
-    	String expectedResponse = "MSA|AR|null|VLDT1  No HL7 Message was supplied as input|";
+    	String expectedResponse = "MSA|AR|null|VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange, null);
@@ -67,7 +67,7 @@ public class V2PayloadValidatorTest {
     
     @Test
     public void test_HL7Error_Msg_MSHSegmentMissing() {
-    	String expectedResponse = "MSA|AR|null|VLDT2  The MSH Segment from the HL7 Message is missing.|";
+    	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange, SamplesToSend.msgInvalidMSH);
@@ -76,13 +76,15 @@ public class V2PayloadValidatorTest {
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
+    
+
 
     @Test
     public void test_HL7Error_Msg_FacilityIdMismatch() {
         String msgInput="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
                 "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
                 "PID||0000053655^^^BC^PH\r\n";
-    	String expectedResponse = "MSA|AR|null|VLDT3  The Client Facility and HL7 Sending Facility IDs do not match.|";
+    	String expectedResponse = "MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match.|";
 
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange, msgInput);

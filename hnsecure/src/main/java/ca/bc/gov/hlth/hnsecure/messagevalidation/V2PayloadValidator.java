@@ -31,7 +31,7 @@ public class V2PayloadValidator {
 	private static final String expectedEncodingChar = "^~\\&";
 	private static boolean isValidSeg;
 	private static final String segmentIdentifier = "MSH";
-	private static final List<String> validDomainType = List.of(new String[]{"P", "E", "T", "D"});
+	private static final List<String> validDomainType = List.of(new String[] { "P", "E", "T", "D" });
 	private static ErrorMessage errorMessage;
 	private static ErrorResponse errorResponse;
 
@@ -46,7 +46,7 @@ public class V2PayloadValidator {
 	 * Validates the Hl7V2 transaction type (MSH.8) format and required fields
 	 * 
 	 * @param v2Message the hl7v2 message to validate
-	 * @throws ValidationFailedException 
+	 * @throws ValidationFailedException
 	 */
 	@Handler
 	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
@@ -62,7 +62,7 @@ public class V2PayloadValidator {
 			String[] v2DataLines = v2Message.split("\r\n");
 			String[] v2Segments = v2DataLines[0].split("\\|");
 
-			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >=12) {
+			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
 				errorResponse.initSegment(v2Segments, messageObj);
 			} else {
 				isValidSeg = false;
@@ -71,24 +71,34 @@ public class V2PayloadValidator {
 			}
 		} else {
 			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_NoInputHL7;
+			errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
 
 		}
 
 		// Validate segment identifier
 		if (isValidSeg && !messageObj.getSegmentIdentifier().equals(segmentIdentifier)) {
 			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_MSHSegmentMissing;
-		}
-
-		// Validate encoding character
-		if (isValidSeg && !messageObj.getEncodingCharacter().equals(expectedEncodingChar)) {
-			isValidSeg = false;
 			errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
 		}
 
+		// Validate encoding character
+		if (isValidSeg) {
+			if (StringUtil.isEmpty(messageObj.getEncodingCharacter())) {
+				isValidSeg = false;
+				errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
+			} else if (isValidSeg && (messageObj.getEncodingCharacter().toCharArray()).length !=4 ) {
+				isValidSeg = false;
+				errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
+			} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
+				isValidSeg = false;
+				errorMessage = ErrorMessage.HL7Error_Msg_InvalidMSHSegment;
+			}
+		}
+
 		// Validate Sending facility
-		if (isValidSeg && StringUtil.isEmpty(messageObj.getSendingFacility())) {
+		if (isValidSeg && StringUtil.isEmpty(messageObj.getSendingFacility()))
+
+		{
 
 			messageObj.setSendingFacility(getSendingFacility(auth));
 		}
@@ -102,22 +112,12 @@ public class V2PayloadValidator {
 				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
 			}
 		}
-		
-		//Validate receiving application
-		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingApplication())) {
 
-			String receivingApplication = getReceivingApplication(messageObj.getMessageType());
-
-			if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_UnknownReceivingApplication;
-			}
-		}
-
-		// Validate Receiving facility
-		if (isValidSeg && StringUtil.isEmpty(messageObj.getReceivingFacility())) {
+		// Validate receiving application and receiving facility
+		if (isValidSeg && (StringUtil.isEmpty(messageObj.getReceivingApplication())
+				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
 			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_MissingReceivingFacility;
+			errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
 
 		}
 
@@ -129,20 +129,25 @@ public class V2PayloadValidator {
 			}
 		}
 
-		// Validate Domain
-		if (isValidSeg && StringUtil.isEmpty(messageObj.getProcessingId())) {
-			messageObj.setProcessingId(processingDomain);
+		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingApplication())) {
+
+			String receivingApplication = getReceivingApplication(messageObj.getMessageType());
+
+			if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
+				isValidSeg = false;
+				errorMessage = ErrorMessage.HL7Error_Msg_UnknownReceivingApplication;
+			}
 		}
 
-		if (isValidSeg && !validDomainType.contains(messageObj.getProcessingId())) {
-			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_InvalidDomain;
+		// Populate Domain
+		if (isValidSeg) {
+			messageObj.setProcessingId(processingDomain);
 		}
 
 		if (!isValidSeg) {
 			errorResponse = new ErrorResponse();
 			messageObj.setReceivingApplication("HNSecure");
-			String v2Response = errorResponse.constructResponse(messageObj, null, errorMessage);
+			String v2Response = errorResponse.constructResponse(messageObj, errorMessage);
 			logger.info(v2Response);
 			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			exchange.getIn().setBody(v2Response);
@@ -166,11 +171,18 @@ public class V2PayloadValidator {
 		}
 		return clientId;
 	}
-	
+
 	private static String getReceivingApplication(String messageType) {
 		return MessageUtil.mTypeCollection.get(messageType);
-		
-		
+
+	}
+
+	private static boolean sameChars(String firstStr, String secondStr) {
+		char[] first = firstStr.toCharArray();
+		char[] second = secondStr.toCharArray();
+		Arrays.sort(first);
+		Arrays.sort(second);
+		return Arrays.equals(first, second);
 	}
 
 }

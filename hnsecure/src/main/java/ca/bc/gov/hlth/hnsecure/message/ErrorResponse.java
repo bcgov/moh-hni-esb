@@ -13,8 +13,8 @@ public class ErrorResponse implements ResponseSegment {
 	private final String ack = "ACK";
 	
 	@Override
-	public String constructResponse(HL7Message messageObj,String messageControlID, ErrorMessage errorMessage) {
-		return constructMSH(messageObj) + constructMSA(messageControlID, errorMessage);
+	public String constructResponse(HL7Message messageObj, ErrorMessage errorMessage) {
+		return constructMSH(messageObj) + constructMSA(messageObj.getMessageControlId(), errorMessage);
 	}
 	
 	public String constructMSA(String messageControlID, ErrorMessage errorMessage) {
@@ -24,7 +24,7 @@ public class ErrorResponse implements ResponseSegment {
 		sb.append(fieldSeperator);
 		sb.append(messageControlID);
 		sb.append(fieldSeperator);
-		sb.append(section +errorMessage.getErrorSequence()+ "  " + errorMessage.getErrorMessage());
+		sb.append(errorMessage.getErrorSequence()+ "  " + errorMessage.getErrorMessage());
 		sb.append(fieldSeperator);
 
 		return sb.toString();
