@@ -2,15 +2,15 @@ package ca.bc.gov.hlth.hnsecure.message;
 
 public class ErrorResponse implements ResponseSegment {
 	
-	private final String segmentIdentifier = "MSA";
+	private static final String segmentIdentifier = "MSA";
 	
-	private final String fieldSeperator = "|";
+	private static final String fieldSeperator = "|";
 	
-	private final String ackKnowledgementCode = "AR";
+	private static final String ackKnowledgementCode = "AR";
 	
-	private final String section  = "VLDT";
+	private static final String section  = "VLDT";
 	
-	private final String ack = "ACK";
+	private static final String ack = "ACK";
 	
 	@Override
 	public String constructResponse(HL7Message messageObj, ErrorMessage errorMessage) {
@@ -33,7 +33,7 @@ public class ErrorResponse implements ResponseSegment {
 	/**
 	 * @param v2Segment
 	 */
-	public void initSegment(String[] v2Segment,HL7Message messageObj ) {
+	public static void initSegment(String[] v2Segment,HL7Message messageObj ) {
 		if (v2Segment.length >= 12) {
 			messageObj.setSegmentIdentifier(v2Segment[0]) ;
 			messageObj.setEncodingCharacter(v2Segment[1]);

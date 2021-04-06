@@ -1,7 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,11 +28,7 @@ public class V2PayloadValidator {
 	private static Set<String> validReceivingFacility;
 	private static String processingDomain;
 	private static final String expectedEncodingChar = "^~\\&";
-	private static boolean isValidSeg;
 	private static final String segmentIdentifier = "MSH";
-	private static final List<String> validDomainType = List.of(new String[] { "P", "E", "T", "D" });
-	private static ErrorMessage errorMessage;
-	private static ErrorResponse errorResponse;
 
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
@@ -46,16 +41,14 @@ public class V2PayloadValidator {
 	 * Validates the Hl7V2 transaction type (MSH.8) format and required fields
 	 * 
 	 * @param v2Message the hl7v2 message to validate
-	 * @throws ValidationFailedException
+	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
 	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
-		isValidSeg = true;
 		HL7Message messageObj = new HL7Message();
-		errorResponse = new ErrorResponse();
 
-		String auth = (String) exchange.getIn().getHeader("Authorization");
+		String accessToken = (String) exchange.getIn().getHeader("Authorization");
 
 		// Validate v2Message format
 		if (!StringUtil.isEmpty(v2Message)) {
@@ -63,99 +56,75 @@ public class V2PayloadValidator {
 			String[] v2Segments = v2DataLines[0].split("\\|");
 
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
-				errorResponse.initSegment(v2Segments, messageObj);
+				ErrorResponse.initSegment(v2Segments, messageObj);
 			} else {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
-
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 			}
 		} else {
-			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
-
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
 
 		// Validate segment identifier
-		if (isValidSeg && !messageObj.getSegmentIdentifier().equals(segmentIdentifier)) {
-			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
+		if (!messageObj.getSegmentIdentifier().equals(segmentIdentifier)) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
 
-		// Validate encoding character
-		if (isValidSeg) {
-			if (StringUtil.isEmpty(messageObj.getEncodingCharacter())) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
-			} else if (isValidSeg && (messageObj.getEncodingCharacter().toCharArray()).length !=4 ) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
-			} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_InvalidMSHSegment;
-			}
+		// Validate encoding characters
+		if (StringUtil.isEmpty(messageObj.getEncodingCharacter())
+				|| messageObj.getEncodingCharacter().toCharArray().length !=4
+				|| !sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
+
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
 
 		// Validate Sending facility
-		if (isValidSeg && StringUtil.isEmpty(messageObj.getSendingFacility()))
+		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
 
-		{
+			String facilityNameFromAccessToken = getSendingFacility(accessToken);
 
-			messageObj.setSendingFacility(getSendingFacility(auth));
-		}
-
-		if (isValidSeg && !StringUtil.isEmpty(messageObj.getSendingFacility())) {
-
-			String localFacilityName = getSendingFacility(auth);
-
-			if (!messageObj.getSendingFacility().equals(localFacilityName)) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
+			if (StringUtil.isEmpty(messageObj.getSendingFacility())
+					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}
 		}
 
 		// Validate receiving application and receiving facility
-		if (isValidSeg && (StringUtil.isEmpty(messageObj.getReceivingApplication())
+		if ((StringUtil.isEmpty(messageObj.getReceivingApplication())
 				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
-			isValidSeg = false;
-			errorMessage = ErrorMessage.HL7Error_Msg_InvalidHL7Format;
 
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
 
-		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingFacility())) {
-			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_FacilityIDMismatch;
-
-			}
+		// Validate the receiving facility is listed in application properties
+		if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 		}
 
-		if (isValidSeg && !StringUtil.isEmpty(messageObj.getReceivingApplication())) {
-
-			String receivingApplication = getReceivingApplication(messageObj.getMessageType());
-
-			if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
-				isValidSeg = false;
-				errorMessage = ErrorMessage.HL7Error_Msg_UnknownReceivingApplication;
-			}
-		}
-
-		// Populate Domain
-		if (isValidSeg) {
-			messageObj.setProcessingId(processingDomain);
-		}
-
-		if (!isValidSeg) {
-			errorResponse = new ErrorResponse();
-			messageObj.setReceivingApplication("HNSecure");
-			String v2Response = errorResponse.constructResponse(messageObj, errorMessage);
-			logger.info(v2Response);
-			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			exchange.getIn().setBody(v2Response);
-			throw new ValidationFailedException(errorMessage.getErrorMessage());
+		// Validate the receiving application matches the one that is expected for the message transaction type
+		String receivingApplication = getReceivingApplication(messageObj.getMessageType());
+		if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 
 	}
 
+	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange) throws ValidationFailedException {
+		messageObject.setProcessingId(processingDomain);
+		messageObject.setReceivingApplication("HNSecure");
+
+		ErrorResponse errorResponse = new ErrorResponse();
+		// TODO could probably make the constructResponse Static but need to refactor the interface
+		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
+		logger.info(v2Response);
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		exchange.getIn().setBody(v2Response);
+		throw new ValidationFailedException(errorMessage.getErrorMessage());
+	}
+
+	/*
+	The FacilityId is the legacy way to track connected clients and is now set as the ClientId of the client application
+	In the access token this is the 'azp' field
+	 */
 	private static String getSendingFacility(String auth) {
 		String clientId = "";
 		if (!StringUtil.isEmpty(auth)) {
@@ -172,9 +141,9 @@ public class V2PayloadValidator {
 		return clientId;
 	}
 
+	// Lookup the expected receiving application for a specific message type
 	private static String getReceivingApplication(String messageType) {
 		return MessageUtil.mTypeCollection.get(messageType);
-
 	}
 
 	private static boolean sameChars(String firstStr, String secondStr) {

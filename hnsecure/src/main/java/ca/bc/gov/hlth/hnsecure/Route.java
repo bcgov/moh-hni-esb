@@ -35,9 +35,10 @@ public class Route extends RouteBuilder {
     }
 
     // PropertyInject doesn't seem to work in the unit tests, allows creation of the route setting this value
-    public Route(String validV2MessageTypes, String validReceivingFacility) {
+    public Route(String validV2MessageTypes, String validReceivingFacility, String processingDomain) {
         this.validV2MessageTypes = validV2MessageTypes;
         this.validReceivingFacility = validReceivingFacility;
+        this.processingDomain = processingDomain;
     }
 
     @Override
