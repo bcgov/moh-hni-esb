@@ -31,3 +31,11 @@ mvn compile camel:run
 ```
 
 After the application is running, you can send a message using the [HNClient-v2 application](https://github.com/bcgov/moh-hnclient-v2).
+
+#Testing External Endpoints without connectivity
+`external-endpoint-stubs` creates mock endpoints for testing hn-secure routes that send to external endpoints. The endpoints will return a simple response.
+It can be run from the command line:
+
+```
+cd external-endpoint-stubs
+mvn spring-boot:run
