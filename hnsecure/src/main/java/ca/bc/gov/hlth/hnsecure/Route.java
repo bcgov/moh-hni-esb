@@ -1,14 +1,20 @@
 package ca.bc.gov.hlth.hnsecure;
 
-import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
-import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
-import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
-import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
-import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
+import org.apache.camel.Exchange;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
+
+import ca.bc.gov.hlth.hn.commons.json.Base64Encoder;
+import ca.bc.gov.hlth.hn.commons.json.ProcessV2ToPharmaNetJson;
+import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
+import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
+import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
+import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class Route extends RouteBuilder {
 
@@ -68,10 +74,19 @@ public class Route extends RouteBuilder {
             //dispatch the message based on the receiving application code and message type
             .choice()
 	            //sending message to pharmaNet
-	            .when(simple("${in.header.receivingApp} == {{pharmanet-endpoint}}"))
-                    .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will be sent to PharmaNet webservices")
-                    .setBody(simple(SampleMessages.pnpResponseMessage))
-	            
+            	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
+		            .log("Retrieving access token")
+		            .setBody().method(new Base64Encoder())
+		            .process(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+		            .log("Sending to Pharmanet")
+		            //TODO (dbarrett) are we setting Headers here or in Processor
+		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+		            .removeHeader(Exchange.HTTP_URI)
+		            .to("http://{{pharmanet-hostname}}:{{pharmanet-port}}/{{pharmanet-endpoint}}?throwExceptionOnFailure=false").id("ToPharmaNet")
+		            .log("Received response from Pharmanet")
+		            .process(new PharmaNetPayloadExtractor())
+		            
 	            //sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
 	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")

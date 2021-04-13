@@ -81,9 +81,14 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-http</artifactId>
-      <scope>test</scope>
     </dependency>
 
+    <dependency>
+	  <groupId>ca.bc.gov.hlth.hn.common</groupId>
+	  <artifactId>hni-common</artifactId>
+	  <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    
   </dependencies>
 
   <build>
