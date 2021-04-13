@@ -4,8 +4,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 
-import ca.bc.gov.hlth.hn.commons.json.Base64Encoder;
-import ca.bc.gov.hlth.hn.commons.json.ProcessV2ToPharmaNetJson;
+import ca.bc.gov.hlth.hnscommon.json.Base64Encoder;
+import ca.bc.gov.hlth.hnscommon.json.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
