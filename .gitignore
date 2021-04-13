@@ -1,6 +1,7 @@
 .idea/*
 *.iml
 *.class
-hnsecure/target/
-hnsecure/.idea/*
-hnsecure/.settings
+*/target/
+*/.idea/*
+*.project
+*.classpath
