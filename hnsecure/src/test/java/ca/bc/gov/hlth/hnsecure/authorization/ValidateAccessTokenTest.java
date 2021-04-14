@@ -12,7 +12,9 @@ public class ValidateAccessTokenTest {
             "moh_hnclient_dev",
             "system/*.write",
             "r03, r07, r09",
-            "https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos");
+            "https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos",
+            "",
+            "D");
     private String certsEndpoint = null;
 
     private String jwtInvalidAud;
@@ -31,19 +33,16 @@ public class ValidateAccessTokenTest {
     @Test
     public void invalidAuthPartiesTest() {
         exchange.getIn().setHeader("Authorization", jwtInvalidAuthParties);
-
     }
 
     @Test
     public void invalidScopesTest() {
         exchange.getIn().setHeader("Authorization", jwtInvalidScopes);
-
     }
 
     @Test
     public void invalidIssuerTest() {
         exchange.getIn().setHeader("Authorization", jwtInvalidIssuer);
-
     }
 
 }

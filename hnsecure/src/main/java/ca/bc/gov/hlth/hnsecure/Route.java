@@ -3,7 +3,7 @@ package ca.bc.gov.hlth.hnsecure;
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
-
+import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
@@ -24,23 +24,35 @@ public class Route extends RouteBuilder {
     private String validV2MessageTypes;
     @PropertyInject(value = "certs-endpoint")
     private String certsEndpoint;
+    @PropertyInject(value = "valid-receiving-facility")
+    private String validReceivingFacility;
+    @PropertyInject(value = "processing-domain")
+    private String processingDomain;
+    
 
     public Route() {
 
     }
 
     // PropertyInject doesn't seem to work in the unit tests, allows creation of the route setting this value
-    public Route(String validV2MessageTypes) {
+    public Route(String validV2MessageTypes, String validReceivingFacility, String processingDomain) {
         this.validV2MessageTypes = validV2MessageTypes;
+        this.validReceivingFacility = validReceivingFacility;
+        this.processingDomain = processingDomain;
     }
 
     @Override
     public void configure() {
 
-        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer);
+        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain);
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
+        
+        onException(ValidationFailedException.class)
+                .log("Validation exception response: ${body}")
+                .handled(true)
+                .id("ValidationException");
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")
