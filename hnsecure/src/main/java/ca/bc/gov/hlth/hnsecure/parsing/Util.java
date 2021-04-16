@@ -10,6 +10,7 @@ public final class Util {
 	public final static String R50_SPEC_CHAR = "^";
 	
 	public final static String RECEIVING_APP_PNP = "PNP";
+	
 
 
 	/**

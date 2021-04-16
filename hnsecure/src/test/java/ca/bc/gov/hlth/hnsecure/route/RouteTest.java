@@ -1,21 +1,21 @@
 package ca.bc.gov.hlth.hnsecure.route;
 
-import ca.bc.gov.hlth.hnsecure.Route;
-import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
-import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.camel.*;
+import org.apache.camel.EndpointInject;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spi.PropertiesComponent;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
+
+import ca.bc.gov.hlth.hnsecure.Route;
+import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
+import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class RouteTest extends CamelTestSupport {
 
@@ -45,8 +45,9 @@ public class RouteTest extends CamelTestSupport {
 				"D"));
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
-			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");
+			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");
 			a.weaveAddLast().to("mock:response");
 		});
 	}
@@ -94,5 +95,48 @@ public class RouteTest extends CamelTestSupport {
 
 		context.stop();
 	}
+	
+	@Test
+	public void testValidationPNPError() throws Exception {
+
+		String expectedErrorMsg = "MSH|dd\\&|HNSecure|PP|PLEXIAPNP|moh_hnclient_dev|2020/11/26 21:52:53|ACK|ZPN|18|D|2.1\n" +
+				"MSA|AR|18|HNPS002E  Invalid MSH segment format|";		
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:validationExceptionResponse").expectedMessageCount(1);
+		getMockEndpoint("mock:validationExceptionResponse").expectedBodiesReceived(expectedErrorMsg);
+
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonErrorMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullPharmanetMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:pharmanet").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
 
 }
