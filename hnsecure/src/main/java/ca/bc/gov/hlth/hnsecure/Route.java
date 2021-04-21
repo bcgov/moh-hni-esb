@@ -1,8 +1,10 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
+import ca.bc.gov.hlth.hnsecure.messagevalidation.AccessValidator;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
@@ -48,6 +50,11 @@ public class Route extends RouteBuilder {
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
+
+        // Handling custom exception  
+        onException(CustomHNSException.class)
+        	.process(new AccessValidator())
+        	.handled(true);
         
         onException(ValidationFailedException.class)
                 .log("Validation exception response: ${body}")
@@ -89,4 +96,6 @@ public class Route extends RouteBuilder {
             .end();
 
     }
+
+
 }

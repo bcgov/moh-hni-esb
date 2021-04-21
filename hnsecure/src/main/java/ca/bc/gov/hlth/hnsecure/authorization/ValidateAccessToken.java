@@ -1,5 +1,14 @@
 package ca.bc.gov.hlth.hnsecure.authorization;
 
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -13,14 +22,9 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
 
 public class ValidateAccessToken implements Processor {
 
@@ -28,6 +32,7 @@ public class ValidateAccessToken implements Processor {
 
     private AuthorizationProperties authorizationProperties;
     private String certsEndpoint;
+    private static String AUTH_HEADER_KEY = "Authorization";
 
     /**
      * Default Constructor
@@ -40,8 +45,14 @@ public class ValidateAccessToken implements Processor {
     @Override
     public void process(Exchange exchange)
             throws Exception {
-        AccessToken accessToken = AccessToken.parse(exchange.getIn().getHeader("Authorization").toString());
-        logger.info(String.format("Access token: %s", accessToken));
+    	String methodName = "process";
+    	String authorizationKey = (String) exchange.getIn().getHeader(AUTH_HEADER_KEY);
+    	if(authorizationKey==null) {
+    		logger.info("{} - No authorization key passed in request header.", methodName);
+            throw new CustomHNSException(CustomError_Msg_InvalidAuthKey.getErrorMessage());
+    	}
+        AccessToken accessToken = AccessToken.parse(authorizationKey);
+        logger.info("{} - Access token: {}", methodName,accessToken);
 
         // Create a JWT processor for the access tokens
         ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
@@ -88,4 +99,5 @@ public class ValidateAccessToken implements Processor {
         // Print out the token claims set
         logger.info("TOKEN PAYLOAD: " + claimsSet.toJSONObject());
     }
+
 }
