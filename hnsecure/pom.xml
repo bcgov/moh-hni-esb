@@ -13,6 +13,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <log4j2-version>2.13.3</log4j2-version>
+    <commons-lang3-version>3.12.0</commons-lang3-version>
+    <oauth2-oidc-sdk-version>8.18</oauth2-oidc-sdk-version>
+    <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
+    <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
+    <maven-shade-plugin-version>3.2.1</maven-shade-plugin-version>
+    <camel-maven-plugin-version>3.4.0</camel-maven-plugin-version>
+    
   </properties>
 
   <dependencyManagement>
@@ -59,7 +66,7 @@
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>oauth2-oidc-sdk</artifactId>
-      <version>8.18</version>
+      <version>${oauth2-oidc-sdk-version}</version>
     </dependency>
 
     <!-- logging -->
@@ -67,7 +74,7 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
       <scope>runtime</scope>
-      <version>2.13.3</version>
+      <version>${log4j2-version}</version>
     </dependency>
 
     <!-- testing -->
@@ -83,6 +90,14 @@
       <artifactId>camel-http</artifactId>
       <scope>test</scope>
     </dependency>
+    
+    <!-- for util classes-->
+	<dependency>
+	    <groupId>org.apache.commons</groupId>
+	    <artifactId>commons-lang3</artifactId>
+	    <version>${commons-lang3-version}</version>
+	</dependency>
+    
 
   </dependencies>
 
@@ -93,7 +108,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>${maven-compiler-plugin-version}</version>
         <configuration>
           <release>11</release>
         </configuration>
@@ -101,7 +116,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>${maven-resources-plugin-version}</version>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
@@ -109,7 +124,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.1</version>
+        <version>${maven-shade-plugin-version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -137,7 +152,7 @@
       <plugin>
         <groupId>org.apache.camel</groupId>
         <artifactId>camel-maven-plugin</artifactId>
-        <version>3.4.0</version>
+        <version>${camel-maven-plugin-version}</version>
         <configuration>
           <logClasspath>true</logClasspath>
           <mainClass>ca.bc.gov.hlth.hnsecure.MainMethod</mainClass>
