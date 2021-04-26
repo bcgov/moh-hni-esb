@@ -30,6 +30,8 @@ public class Route extends RouteBuilder {
     private String validReceivingFacility;
     @PropertyInject(value = "processing-domain")
     private String processingDomain;
+    @PropertyInject(value = "version")
+    private String version;
     
 
     public Route() {
@@ -46,7 +48,7 @@ public class Route extends RouteBuilder {
     @Override
     public void configure() {
 
-        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain);
+        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain,version);
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);

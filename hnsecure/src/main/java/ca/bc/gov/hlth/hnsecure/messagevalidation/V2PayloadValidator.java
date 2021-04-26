@@ -16,6 +16,7 @@ import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
+import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import net.minidev.json.JSONObject;
@@ -29,12 +30,14 @@ public class V2PayloadValidator {
 	private static String processingDomain;
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
+	private static String version;
 
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
 	public V2PayloadValidator(AuthorizationProperties authorizationProperties) {
 		validReceivingFacility = authorizationProperties.getValidReceivingFacility();
 		processingDomain = authorizationProperties.getProcessingDomain();
+		version = authorizationProperties.getVersion();
 	}
 
 	/**
@@ -44,7 +47,7 @@ public class V2PayloadValidator {
 	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
-	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
+	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
 
@@ -71,11 +74,12 @@ public class V2PayloadValidator {
 
 		// Validate encoding characters
 		if (StringUtil.isEmpty(messageObj.getEncodingCharacter())
-				|| messageObj.getEncodingCharacter().toCharArray().length !=4
-				|| !sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
-
+				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
-		}
+		} 
+		else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidMSHSegment, exchange);
+		}	
 
 		// Validate Sending facility
 		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
@@ -94,26 +98,90 @@ public class V2PayloadValidator {
 
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
-
-		// Validate the receiving facility is listed in application properties
-		if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-		}
-
-		// Validate the receiving application matches the one that is expected for the message transaction type
-		String receivingApplication = getReceivingApplication(messageObj.getMessageType());
-		if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
+		
+		// Validate the receiving application exists	
+		if (!validateReceivingApplication(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
+		
+
+		// Validate the receiving facility is listed in application properties 
+		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
+			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+			}else if(messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP) 
+					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+			}
+		}
+
+	
+		populateOptionalField(messageObj);
+
+		// Pharmanet validation for zcbsegment
+		if (messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP)) {
+			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
+			}
+		}
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 
 	}
 
-	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange) throws ValidationFailedException {
+	/**
+	 * Populate optional field from properties file if present
+	 * 
+	 * @param messageObj
+	 */
+	private void populateOptionalField(HL7Message messageObj) {
+
+		if (StringUtil.isEmpty(messageObj.getDateTime())) {
+			messageObj.setDateTime(Util.getGenericDateTime());
+		}
+
+		if (StringUtil.isEmpty(messageObj.getVersionId())) {
+			messageObj.setVersionId(version);
+		}
+
+		if (StringUtil.isEmpty(messageObj.getProcessingId())) {
+			messageObj.setProcessingId(processingDomain);
+		}
+	}
+
+	/**
+	 * @param messageObject
+	 * @param errorMessage
+	 * @param exchange
+	 * @throws ValidationFailedException
+	 */
+	private void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
+			throws ValidationFailedException {
 		messageObject.setProcessingId(processingDomain);
-		messageObject.setReceivingApplication("HNSecure");
+		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 
 		ErrorResponse errorResponse = new ErrorResponse();
-		// TODO could probably make the constructResponse Static but need to refactor the interface
+		// TODO could probably make the constructResponse Static but need to refactor
+		// the interface
+		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
+		logger.info(v2Response);
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		exchange.getIn().setBody(v2Response);
+		throw new ValidationFailedException(errorMessage.getErrorMessage());
+	}
+
+	/**
+	 * @param messageObject
+	 * @param errorMessage
+	 * @param exchange
+	 * @throws ValidationFailedException
+	 */
+	private void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
+			throws ValidationFailedException {
+		messageObject.setProcessingId(processingDomain);
+		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
+
+		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
+
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info(v2Response);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -122,31 +190,32 @@ public class V2PayloadValidator {
 	}
 
 	/*
-	The FacilityId is the legacy way to track connected clients and is now set as the ClientId of the client application
-	In the access token this is the 'azp' field
+	 * The FacilityId is the legacy way to track connected clients and is now set as
+	 * the ClientId of the client application In the access token this is the 'azp'
+	 * field
 	 */
-	private static String getSendingFacility(String auth) {
+	private String getSendingFacility(String auth) {
 		String clientId = "";
 		if (!StringUtil.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
-			String decodeBase1 = Util.decodeBase64(split[1]);
+			String decodeAuth = Util.decodeBase64(split[1]);
 
 			try {
-				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeBase1);
+				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeAuth);
 				clientId = (String) jsonObject.get("azp");
 			} catch (net.minidev.json.parser.ParseException e) {
-				e.printStackTrace();
+				logger.error(e.getMessage());
 			}
 		}
 		return clientId;
 	}
 
-	// Lookup the expected receiving application for a specific message type
-	private static String getReceivingApplication(String messageType) {
-		return MessageUtil.mTypeCollection.get(messageType);
+	private Boolean validateReceivingApplication(String receivingApp) {
+		return MessageUtil.mTypeCollection.containsValue(receivingApp);
+
 	}
 
-	private static boolean sameChars(String firstStr, String secondStr) {
+	private boolean sameChars(String firstStr, String secondStr) {
 		char[] first = firstStr.toCharArray();
 		char[] second = secondStr.toCharArray();
 		Arrays.sort(first);
