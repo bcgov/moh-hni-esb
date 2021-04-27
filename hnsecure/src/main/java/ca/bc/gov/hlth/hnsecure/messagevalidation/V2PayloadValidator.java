@@ -31,6 +31,7 @@ public class V2PayloadValidator {
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
 	private static String version;
+	
 
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
@@ -52,6 +53,8 @@ public class V2PayloadValidator {
 		HL7Message messageObj = new HL7Message();
 
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
+		
+		boolean isPharmanetMode = false;
 
 		// Validate v2Message format
 		if (!StringUtil.isEmpty(v2Message)) {
@@ -65,6 +68,10 @@ public class V2PayloadValidator {
 			}
 		} else {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+		}
+		
+		if((!StringUtil.isEmpty(messageObj.getMessageType()) && (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))){
+			isPharmanetMode = true;
 		}
 
 		// Validate segment identifier
@@ -86,9 +93,13 @@ public class V2PayloadValidator {
 
 			String facilityNameFromAccessToken = getSendingFacility(accessToken);
 
-			if (StringUtil.isEmpty(messageObj.getSendingFacility())
+			if (!isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
 					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+			} else if(isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
+					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)){
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+				
 			}
 		}
 
@@ -105,13 +116,14 @@ public class V2PayloadValidator {
 		}
 		
 
-		// Validate the receiving facility is listed in application properties 
+		// Validate the receiving facility for non-pharmanet messages.
+		// Message type must be 'ZPN' for Pharmanet messages
 		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
 			}else if(messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP) 
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
 			}
 		}
 
@@ -119,7 +131,7 @@ public class V2PayloadValidator {
 		populateOptionalField(messageObj);
 
 		// Pharmanet validation for zcbsegment
-		if (messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP)) {
+		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
 			}
