@@ -48,7 +48,7 @@ public class V2PayloadValidator {
 	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
-	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
+	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
 
@@ -145,7 +145,7 @@ public class V2PayloadValidator {
 	 * 
 	 * @param messageObj
 	 */
-	private void populateOptionalField(HL7Message messageObj) {
+	private static void populateOptionalField(HL7Message messageObj) {
 
 		if (StringUtil.isEmpty(messageObj.getDateTime())) {
 			messageObj.setDateTime(Util.getGenericDateTime());
@@ -166,7 +166,7 @@ public class V2PayloadValidator {
 	 * @param exchange
 	 * @throws ValidationFailedException
 	 */
-	private void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
+	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
 		messageObject.setProcessingId(processingDomain);
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
@@ -187,7 +187,7 @@ public class V2PayloadValidator {
 	 * @param exchange
 	 * @throws ValidationFailedException
 	 */
-	private void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
+	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
 		messageObject.setProcessingId(processingDomain);
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
@@ -206,7 +206,7 @@ public class V2PayloadValidator {
 	 * the ClientId of the client application In the access token this is the 'azp'
 	 * field
 	 */
-	private String getSendingFacility(String auth) {
+	private static String getSendingFacility(String auth) {
 		String clientId = "";
 		if (!StringUtil.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
@@ -222,12 +222,12 @@ public class V2PayloadValidator {
 		return clientId;
 	}
 
-	private Boolean validateReceivingApplication(String receivingApp) {
+	private static Boolean validateReceivingApplication(String receivingApp) {
 		return MessageUtil.mTypeCollection.containsValue(receivingApp);
 
 	}
 
-	private boolean sameChars(String firstStr, String secondStr) {
+	private static boolean sameChars(String firstStr, String secondStr) {
 		char[] first = firstStr.toCharArray();
 		char[] second = secondStr.toCharArray();
 		Arrays.sort(first);

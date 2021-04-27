@@ -42,7 +42,7 @@ public class RouteTest extends CamelTestSupport {
 
 		context.addRoutes(new Route("r03, r07, r09, R50^Z05, r15, e45, ZPN",
 				"BC00002041,BC00002047,BC00001013",
-				"D"));
+				"D","2,1"));
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
 			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");
@@ -75,9 +75,9 @@ public class RouteTest extends CamelTestSupport {
 	@Test
 	public void testValidationError() throws Exception {
 
-		String expectedErrorMsg = "MSH|^~\\&|HNSecure|BC00002041|HNWeb|BC01000030|20191108083244|ACK|R03|20191108083244|D|2.4\n" +
-				"MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match.|";
-
+		String expectedErrorMsg = "MSH|^~\\&|HNSECURE|BC00002041|HNWeb|BC01000030|20191108083244|train96|ACK|R03|20191108083244|D|2.4\n" +
+				"MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match.|";	
+		
 		context.start();
 
 		// Set expectations
