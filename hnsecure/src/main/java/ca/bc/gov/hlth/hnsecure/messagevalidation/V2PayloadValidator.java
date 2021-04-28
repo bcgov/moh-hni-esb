@@ -48,6 +48,7 @@ public class V2PayloadValidator {
 	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
+	// TODO This method is too long. We need to break it for understanding and maintainence.
 	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();

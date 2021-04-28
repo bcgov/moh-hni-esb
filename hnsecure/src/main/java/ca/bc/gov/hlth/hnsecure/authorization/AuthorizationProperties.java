@@ -1,6 +1,14 @@
 package ca.bc.gov.hlth.hnsecure.authorization;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+
 
 public class AuthorizationProperties {
 
@@ -15,7 +23,8 @@ public class AuthorizationProperties {
 
     public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes,
                                    String issuer, String validReceivingFacility,String processingDomain, String version) {
-        this.audiences = getPropertyAsSet(audiences);
+        this.audiences = null;
+		//this.audiences = getPropertyAsSet(audiences);
         this.authorizedParties = getPropertyAsSet(authorizedParties);
         this.scopes = getPropertyAsSet(scopes);
         this.validV2MessageTypes = getPropertyAsSet(validV2MessageTypes);
@@ -50,7 +59,9 @@ public class AuthorizationProperties {
     }
 
     public Set<String> getAudiences() {
-        return audiences;
+        //return audiences;
+    	String audience = ApplicationProperties.getInstance().getValue(ApplicationProperty.AUDIENCE);
+    	return getPropertyAsSet(audience);
     }
 
     public Set<String> getAuthorizedParties() {

@@ -1,21 +1,23 @@
 package ca.bc.gov.hlth.hnsecure.route;
 
-import ca.bc.gov.hlth.hnsecure.Route;
-import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
-import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.camel.*;
+import org.apache.camel.EndpointInject;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spi.PropertiesComponent;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
+
+import ca.bc.gov.hlth.hnsecure.Route;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
+import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class RouteTest extends CamelTestSupport {
 
@@ -93,6 +95,19 @@ public class RouteTest extends CamelTestSupport {
 		assertMockEndpointsSatisfied();
 
 		context.stop();
+	}
+	
+	//TODO add test method for Route.injectProperties()
+	
+	/*
+	 * This method is added here because we need to set context for Application properties
+	 * 
+	 */
+	@Test
+	public void testApplicationPropertiesLoader() throws Exception {
+		String actual = ApplicationProperties.getInstance().getValue(ApplicationProperty.CAMEL_MAIN_NAME);
+		String expected = "HNSecure";
+		assertTrue("Expected value "+expected+" is not as actual: "+actual, expected.contentEquals(actual));
 	}
 
 }
