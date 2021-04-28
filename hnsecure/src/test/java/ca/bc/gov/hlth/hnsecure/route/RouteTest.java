@@ -41,10 +41,12 @@ public class RouteTest extends CamelTestSupport {
 		// Since we're not running from the main we need to set the properties
 		PropertiesComponent pc = context.getPropertiesComponent();
 		pc.setLocation("classpath:application.properties");
-
+		ApplicationProperties.getInstance().injectProperties(pc.loadProperties());
+		
 		context.addRoutes(new Route("r03, r07, r09, R50^Z05, r15, e45, ZPN",
 				"BC00002041,BC00002047,BC00001013",
 				"D","2,1"));
+		
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
 			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");
