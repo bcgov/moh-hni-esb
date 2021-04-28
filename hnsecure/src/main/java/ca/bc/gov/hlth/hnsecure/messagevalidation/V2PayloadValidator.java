@@ -31,7 +31,6 @@ public class V2PayloadValidator {
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
 	private static String version;
-	
 
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
@@ -42,24 +41,138 @@ public class V2PayloadValidator {
 	}
 
 	/**
-	 * Validates the Hl7V2 transaction type (MSH.8) format and required fields
-	 * 
+	 *This method does generic validation and Pharmanet specific validation
 	 * @param v2Message the hl7v2 message to validate
 	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
-	// TODO This method is too long. We need to break it for understanding and maintainence.
+	// TODO This method is too long. We need to break it for understanding and
+	// maintainence.
 	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
 
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
-		
+
 		boolean isPharmanetMode = false;
 
 		// Validate v2Message format
+		validateMessageFormat(exchange, v2Message, messageObj);
+
+		if ((!StringUtil.isEmpty(messageObj.getMessageType())
+				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
+			isPharmanetMode = true;
+		}
+
+		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
+
+		validateReceivingApp(exchange, messageObj);
+		
+		validateReceivingFacility(exchange, messageObj);
+
+		populateOptionalField(messageObj);
+		
+		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
+
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+
+	}
+
+	/**
+	 * Validates the format of Pharmanet message
+	 * checks if zcb segment is present
+	 * @param exchange
+	 * @param v2Message
+	 * @param messageObj
+	 * @param isPharmanetMode
+	 * @throws ValidationFailedException
+	 */
+	protected static void validatePhanrmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
+			boolean isPharmanetMode) throws ValidationFailedException {
+		if (isPharmanetMode) {
+			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
+			}
+		}
+	}
+
+	/**
+	 * Validates the receiving facility for non-pharmanet messages.
+	 * Message type must be 'ZPN' for Pharmanet messages
+	 * @param exchange
+	 * @param messageObj
+	 * @throws ValidationFailedException
+	 */
+	protected static void validateReceivingFacility(Exchange exchange, HL7Message messageObj)
+			throws ValidationFailedException {
+		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
+
+			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+
+			} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
+					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+			}
+		}
+	}
+
+	/**
+	 * Validates receiving application
+	 * @param exchange
+	 * @param messageObj
+	 * @throws ValidationFailedException
+	 */
+	protected static void validateReceivingApp(Exchange exchange, HL7Message messageObj)
+			throws ValidationFailedException {
+		if ((StringUtil.isEmpty(messageObj.getReceivingApplication())
+				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
+
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+		}
+
+		// Check the validity
+		if (!validateReceivingApplication(messageObj.getReceivingApplication())) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
+		}
+	}
+
+	/**
+	 * @param exchange
+	 * @param messageObj
+	 * @param accessToken
+	 * @param isPharmanetMode
+	 * @throws ValidationFailedException
+	 */
+	protected static void validateSendingFacility(Exchange exchange, HL7Message messageObj, String accessToken,
+			boolean isPharmanetMode) throws ValidationFailedException {
+		// Validate Sending facility
+		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
+
+			String facilityNameFromAccessToken = getSendingFacility(accessToken);
+
+			if (!isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
+					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+			} else if (isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
+					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+
+			}
+		}
+	}
+
+	/**
+	 * This method checks the format of incoming message
+	 * @param exchange
+	 * @param v2Message
+	 * @param messageObj
+	 * @throws ValidationFailedException
+	 */
+	protected static void validateMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj)
+			throws ValidationFailedException {
 		if (!StringUtil.isEmpty(v2Message)) {
-			String[] v2DataLines = v2Message.split("\r\n");
+			String[] v2DataLines = v2Message.split("\n");
 			String[] v2Segments = v2DataLines[0].split("\\|");
 
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
@@ -69,10 +182,6 @@ public class V2PayloadValidator {
 			}
 		} else {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
-		}
-		
-		if((!StringUtil.isEmpty(messageObj.getMessageType()) && (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))){
-			isPharmanetMode = true;
 		}
 
 		// Validate segment identifier
@@ -84,66 +193,13 @@ public class V2PayloadValidator {
 		if (StringUtil.isEmpty(messageObj.getEncodingCharacter())
 				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
-		} 
-		else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
+		} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidMSHSegment, exchange);
-		}	
-
-		// Validate Sending facility
-		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
-
-			String facilityNameFromAccessToken = getSendingFacility(accessToken);
-
-			if (!isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-			} else if(isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)){
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-				
-			}
 		}
-
-		// Validate receiving application and receiving facility
-		if ((StringUtil.isEmpty(messageObj.getReceivingApplication())
-				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
-
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
-		}
-		
-		// Validate the receiving application exists	
-		if (!validateReceivingApplication(messageObj.getReceivingApplication())) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
-		}
-		
-
-		// Validate the receiving facility for non-pharmanet messages.
-		// Message type must be 'ZPN' for Pharmanet messages
-		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
-			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
-			}else if(messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP) 
-					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
-			}
-		}
-
-	
-		populateOptionalField(messageObj);
-
-		// Pharmanet validation for zcbsegment
-		if (isPharmanetMode) {
-			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
-			}
-		}
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-
 	}
 
 	/**
 	 * Populate optional field from properties file if present
-	 * 
 	 * @param messageObj
 	 */
 	private static void populateOptionalField(HL7Message messageObj) {

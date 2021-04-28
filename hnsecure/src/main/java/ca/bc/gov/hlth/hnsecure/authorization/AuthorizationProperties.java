@@ -11,7 +11,8 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 
 public class AuthorizationProperties {
-
+//TODO: This class will be removed with Application properties
+//TODO: Methhod will be moved to Util class
     private final Set<String> audiences;
     private final Set<String> authorizedParties;
     private final Set<String> scopes;

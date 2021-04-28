@@ -83,9 +83,9 @@ public class V2PayloadValidatorTest {
     @Test
     public void test_HL7Error_Msg_FacilityIdMismatch() {
     
-        String msgInput="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
-                "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
-                "PID||0000053655^^^BC^PH\r\n";
+        String msgInput="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\n" +
+                "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
+                "PID||0000053655^^^BC^PH\n";
     	String expectedResponse = "MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match.|";
 
     	assertThrows(ValidationFailedException.class, () -> {
@@ -100,9 +100,9 @@ public class V2PayloadValidatorTest {
     public void HL7Error_Msg_EncryptionError() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
     
-        String msgInput="MSH|^~\\&|HNWeb|moh_hnclient_dev|RAIGT-PRSN-DMGR|BC0002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
-                "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
-                "PID||0000053655^^^BC^PH\r\n";
+        String msgInput="MSH|^~\\&|HNWeb|moh_hnclient_dev|RAIGT-PRSN-DMGR|BC0002041|20191108083244|train96|R03|20191108083244|D|2.4||\n" +
+                "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
+                "PID||0000053655^^^BC^PH\n";
     	String expectedResponse = "MSA|AR|20191108083244|TXFR029E  Encryption protocols failed with remote facility.|";
 
     	assertThrows(ValidationFailedException.class, () -> {
@@ -118,10 +118,10 @@ public class V2PayloadValidatorTest {
     public void test_HL7Error_Msg_TransactionFromatError() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
     	
-        String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZPN|000008|D|2.1||\r\n"+
-        		"ZZZ|TRP|R|000008|P1|XXASD||||\r\n"+
-        		"ZCA|000001|03|00|AR|04|\r\n"+
-        		"ZCC||||||||||0009735391361|\r\n";
+        String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZPN|000008|D|2.1||\n"+
+        		"ZZZ|TRP|R|000008|P1|XXASD||||\n"+
+        		"ZCA|000001|03|00|AR|04|\n"+
+        		"ZCC||||||||||0009735391361|\n";
         
     	String expectedResponse = "ZZZ||1|||||PNPA004E  Transaction format error detected||";
 

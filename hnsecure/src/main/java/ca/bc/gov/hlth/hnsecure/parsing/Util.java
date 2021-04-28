@@ -18,12 +18,14 @@ import java.util.TimeZone;
 
 public final class Util {
 
-	public final static String HL7_DELIMITER = "\\|";
+	public final static String HL7_DELIMITER = "|";
 	public final static String R50_SPEC_CHAR = "^";
 	public final static String ZCB_SEGMENT = "ZCB";
 	public final static String RECEIVING_APP_PNP = "PNP";
 	public final static String MESSAGE_TYPE_PNP = "ZPN";
 	public final static String RECEIVING_APP_HNSECURE = "HNSECURE";
+	public final static String pharmaPattern = "yyyy/MM/dd HH:mm:ss";
+	public final static String genericPattern = "yyyyMMddHHmmss Z";
 
 	/**
 	 * return a Base64 encoding string
@@ -114,12 +116,12 @@ public final class Util {
 	 */
 	public static boolean isSegmentPresent(String v2Message, String segmentType) {
 
-		String[] v2DataLines_Pharmanet = v2Message.split("\r\n");
+		String[] v2DataLines_Pharmanet = v2Message.split("\n");
 
 		for (String segment : v2DataLines_Pharmanet) {
 
 			if (segment.startsWith(segmentType)) {
-				String[] messageSegments = v2Message.split("\\|");
+				String[] messageSegments = v2Message.split("|");
 				if (messageSegments[0].equalsIgnoreCase(segmentType)) {
 					return true;
 				}
@@ -128,14 +130,13 @@ public final class Util {
 		}
 		return false;
 	}
-	// yyyy/mm/dd_hh:mm:ss
 
 	/**
 	 * @return datetime in 'yyyy/mm/dd_hh:mm:ss' format for Pharmanet response
 	 */
 	public static String getPharmanetDateTime() {
 	
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(pharmaPattern);
 
 		LocalDateTime now = LocalDateTime.now();
 		return dtf.format(now);
@@ -146,7 +147,7 @@ public final class Util {
 	 */
 	public static String getGenericDateTime() {
 
-		DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss Z");
+		DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(genericPattern);
 
 		return ZonedDateTime.now().format(FORMATTER);
 
