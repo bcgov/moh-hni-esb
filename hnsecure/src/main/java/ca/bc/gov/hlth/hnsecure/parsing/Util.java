@@ -18,6 +18,7 @@ import java.util.TimeZone;
 
 public final class Util {
 
+	private final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public final static String HL7_DELIMITER = "|";
 	public final static String R50_SPEC_CHAR = "^";
 	public final static String ZCB_SEGMENT = "ZCB";
@@ -71,7 +72,7 @@ public final class Util {
 		if (hlMsg == null || hlMsg.isEmpty()) {
 			return recApp;
 		}
-		String[] hl7Fields = hlMsg.split(HL7_DELIMITER);
+		String[] hl7Fields = hlMsg.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 		if (hl7Fields.length > 4) {
 			recApp = hl7Fields[4];
 		}
@@ -94,7 +95,7 @@ public final class Util {
 			return msgType;
 		}
 
-		String[] hl7MessageAtt = hlMsg.split(HL7_DELIMITER);
+		String[] hl7MessageAtt = hlMsg.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 		if (hl7MessageAtt.length > 8) {
 			msgType = hl7MessageAtt[8];
 		}
@@ -121,7 +122,7 @@ public final class Util {
 		for (String segment : v2DataLines_Pharmanet) {
 
 			if (segment.startsWith(segmentType)) {
-				String[] messageSegments = v2Message.split("|");
+				String[] messageSegments = v2Message.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 				if (messageSegments[0].equalsIgnoreCase(segmentType)) {
 					return true;
 				}
