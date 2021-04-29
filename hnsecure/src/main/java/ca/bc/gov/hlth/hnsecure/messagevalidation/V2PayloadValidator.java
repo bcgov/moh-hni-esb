@@ -46,23 +46,16 @@ public class V2PayloadValidator {
 	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
-	// TODO This method is too long. We need to break it for understanding and
-	// maintainence.
 	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
 
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
 
-		boolean isPharmanetMode = false;
-
 		// Validate v2Message format
 		validateMessageFormat(exchange, v2Message, messageObj);
 
-		if ((!StringUtil.isEmpty(messageObj.getMessageType())
-				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
-			isPharmanetMode = true;
-		}
+		boolean isPharmanetMode = isPharmanet(messageObj);
 
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 
@@ -132,7 +125,7 @@ public class V2PayloadValidator {
 		}
 
 		// Check the validity
-		if (!validateReceivingApplication(messageObj.getReceivingApplication())) {
+		if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 	}
@@ -196,6 +189,19 @@ public class V2PayloadValidator {
 		} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidMSHSegment, exchange);
 		}
+	}
+	
+	/**
+	 * This method checks if it is a Pharmanet message
+	 * @param messageObj
+	 * @return
+	 */
+	protected static boolean isPharmanet(HL7Message messageObj) {
+		if ((!StringUtil.isEmpty(messageObj.getMessageType())
+				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -279,10 +285,6 @@ public class V2PayloadValidator {
 		return clientId;
 	}
 
-	private static Boolean validateReceivingApplication(String receivingApp) {
-		return MessageUtil.mTypeCollection.containsValue(receivingApp);
-
-	}
 
 	private static boolean sameChars(String firstStr, String secondStr) {
 		char[] first = firstStr.toCharArray();
