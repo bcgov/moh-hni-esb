@@ -40,12 +40,16 @@ public class RouteTest extends CamelTestSupport {
 
 		// Since we're not running from the main we need to set the properties
 		PropertiesComponent pc = context.getPropertiesComponent();
-		pc.setLocation("classpath:application.properties");
-		ApplicationProperties.getInstance().injectProperties(pc.loadProperties());
+		pc.setLocation("classpath:application.properties"); // laoding properties in test/resources
+		ApplicationProperties properties = ApplicationProperties.getInstance() ;
+		properties.injectProperties(pc.loadProperties());
 		
-		context.addRoutes(new Route("r03, r07, r09, R50^Z05, r15, e45, ZPN",
-				"BC00002041,BC00002047,BC00001013",
-				"D","2,1"));
+		
+		String validV2MessageTypes = properties.getValue(ApplicationProperty.VALID_V2_MSG_TYPES);
+		String validReceivingFacility = properties.getValue(ApplicationProperty.VALID_RECIEVING_FACILITY); 
+		String processingDomain = properties.getValue(ApplicationProperty.PROCESSING_DOMAIN);
+		String version = properties.getValue(ApplicationProperty.VERSION);
+		context.addRoutes(new Route( validV2MessageTypes,  validReceivingFacility,  processingDomain,  version));
 		
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
@@ -99,16 +103,17 @@ public class RouteTest extends CamelTestSupport {
 		context.stop();
 	}
 	
-	//TODO add test method for Route.injectProperties()
 	
+
 	/*
-	 * This method is added here because we need to set context for Application properties
-	 * 
+	 * Properties are injected in @Before method.
+	 * Here, we are validating if correct values are loaded. 
+	 * @throws Exception
 	 */
 	@Test
-	public void testApplicationPropertiesLoader() throws Exception {
-		String actual = ApplicationProperties.getInstance().getValue(ApplicationProperty.CAMEL_MAIN_NAME);
-		String expected = "HNSecure";
+	public void testInjectProperties() throws Exception {
+		String actual = ApplicationProperties.getInstance().getValue(ApplicationProperty.ENDPOINT);
+		String expected = "hl7v2-test";
 		assertTrue("Expected value "+expected+" is not as actual: "+actual, expected.contentEquals(actual));
 	}
 

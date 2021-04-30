@@ -1,7 +1,10 @@
 package ca.bc.gov.hlth.hnsecure.properties;
 
-import lombok.Getter;
-
+/**
+ * Enum to map all the properties from application.properties 
+ * @author pankaj.kathuria
+ *
+ */
 public enum ApplicationProperty {
 	
 	CAMEL_MAIN_NAME("camel.main.name"),
@@ -22,12 +25,15 @@ public enum ApplicationProperty {
 	HIBC_R15_ENDPOINT("hibc-r15-endpoint"),
 	HIBC_R50_ENDPOINT("hibc-r50-endpoint")
 	;
-
-	@Getter
+	// Key should be same as the key in application.properties
 	private String key;
 	
 	private ApplicationProperty(String key) {
 		this.key = key;
+	}
+	
+	public String getKey() {
+		return key;
 	}
 
 }

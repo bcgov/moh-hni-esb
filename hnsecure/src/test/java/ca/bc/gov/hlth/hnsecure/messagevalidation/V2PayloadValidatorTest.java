@@ -31,7 +31,7 @@ public class V2PayloadValidatorTest {
     
     
     @Test
-    public void test_HL7Error_Msg_InvalidHL7Format() {
+    public void testHL7ErrorMsgInvalidHL7Format() {
     	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
         assertThrows(ValidationFailedException.class, () -> {
@@ -44,7 +44,7 @@ public class V2PayloadValidatorTest {
     }
     
     @Test
-    public void test_HL7Error_Msg_InvalidHL7Format_MissingEncodingChar() throws ValidationFailedException {
+    public void testHL7ErrorMsgInvalidHL7FormatMissingEncodingChar() throws ValidationFailedException {
     	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
         assertThrows(ValidationFailedException.class, () -> {
@@ -56,7 +56,7 @@ public class V2PayloadValidatorTest {
     }
     
     @Test
-    public void test_HL7Error_Msg_NoInputHL7() throws ValidationFailedException {
+    public void testHL7ErrorMsgNoInputHL7() throws ValidationFailedException {
     	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
         assertThrows(ValidationFailedException.class, () -> {
@@ -68,7 +68,7 @@ public class V2PayloadValidatorTest {
     }
     
     @Test
-    public void test_HL7Error_Msg_MSHSegmentMissing() {
+    public void testHL7ErrorMsgMSHSegmentMissing() {
     	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
 
     	assertThrows(ValidationFailedException.class, () -> {
@@ -82,7 +82,7 @@ public class V2PayloadValidatorTest {
 
 
     @Test
-    public void test_HL7Error_Msg_FacilityIdMismatch() {
+    public void testHL7ErrorMsgFacilityIdMismatch() {
     
         String msgInput="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\n" +
                 "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
@@ -98,7 +98,7 @@ public class V2PayloadValidatorTest {
     }
     
     @Test
-    public void HL7Error_Msg_EncryptionError() {
+    public void testHL7ErrorMsgEncryptionError() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
     
         String msgInput="MSH|^~\\&|HNWeb|moh_hnclient_dev|RAIGT-PRSN-DMGR|BC0002041|20191108083244|train96|R03|20191108083244|D|2.4||\n" +
@@ -115,7 +115,7 @@ public class V2PayloadValidatorTest {
     }
     
     @Test
-    public void HL7Error_Msg_EncryptionError_Pharmanet() {
+    public void testHL7ErrorMsgEncryptionErrorPharmanet() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
     
         String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZP|000008|D|2.1||\r\n"+
@@ -135,7 +135,7 @@ public class V2PayloadValidatorTest {
     
     
     @Test
-    public void test_HL7Error_Msg_TransactionFromatError() {
+    public void testHL7ErrorMsgTransactionFromatError() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
     	
         String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZPN|000008|D|2.1||\n"+
@@ -156,7 +156,7 @@ public class V2PayloadValidatorTest {
     
     
     @Test
-    public void test_PNP_MessageFormat() {
+    public void testPNPMessageFormat() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
         String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZPN|000008|D|2.1||\r\n"+
         		"ZZZ|TRP|R|000008|P1|XXASD||||\r\n"+
@@ -184,7 +184,7 @@ public class V2PayloadValidatorTest {
 
 
     @Test  
-    public void test_validMessage() throws ValidationFailedException {
+    public void testValidMessage() throws ValidationFailedException {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
         v2PayloadValidator.validate(exchange, SamplesToSend.msgR03);
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);

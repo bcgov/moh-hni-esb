@@ -31,6 +31,9 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 * This method builds ZCA segment for Pharmanet Error response
 	 * @return ZCA segment to build pharmanet response
 	 */
+	/*TODO This message is building a constant string:  "ZCA|||50|||\n".
+	 *We are expecting a custom message in future, thats why using StringBuilder here  
+	 */
 	public String buildZCA() {
 		StringBuilder sb = new StringBuilder(ZCA_IDENTIFIER );
 		sb.append(getFieldseperator());
@@ -48,6 +51,10 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 * This method builds ZCB segment for Pharmanet Error response
 	 * @return ZCB segment to build pharmanet response
 	 */
+	/*TODO This message is building a constant string:  "ZCB|||\n".
+	 *We are expecting a custom message in future, thats why using StringBuilder here  
+	 */
+
 	public String buildZCB() {
 		StringBuilder sb = new StringBuilder(ZCB_IDENTIFIER );
 		sb.append(getFieldseperator());
