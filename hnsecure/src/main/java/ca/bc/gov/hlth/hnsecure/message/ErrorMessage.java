@@ -26,7 +26,10 @@ public enum ErrorMessage {
 	HL7Error_Msg_Unknown("VLDT011E","An unknown error has occurred."),
 	
 	//Pharmanet error message
-	HL7Error_Msg_TransactionFromatError("PNPA004E","Transaction format error detected");
+	HL7Error_Msg_TransactionFromatError("PNPA004E","Transaction format error detected"),
+	
+	// Custom error message. No sequence required
+	CustomError_Msg_InvalidAuthKey("", "No authorization key passed in request header.");
 
 	private final String errorSequence;
 	private final String errorMessage;

@@ -8,7 +8,11 @@ import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
+
+import java.util.Properties;
+
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 
@@ -48,7 +52,7 @@ public class Route extends RouteBuilder {
 
     @Override
     public void configure() {
-
+    	injectProperties();
         AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain,version);
         //TODO just pass auth properties into the method
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
@@ -100,5 +104,17 @@ public class Route extends RouteBuilder {
 
     }
 
+    
+	/**
+     * This method injects application properties set in the context to ApplicationProperties class
+     * This helps in using the properties across the application without extending classes as RouteBuilder.
+     * Sample test code to use application properties: RouteTest.testApplicationPropertiesLoader()
+     */
+    public void injectProperties() {
+    	Properties properties  = getContext().getPropertiesComponent().loadProperties();
+    	ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
+    	applicationProperties.injectProperties(properties);
+
+    }
 
 }
