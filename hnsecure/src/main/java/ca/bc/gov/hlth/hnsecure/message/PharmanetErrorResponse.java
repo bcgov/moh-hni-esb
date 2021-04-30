@@ -15,16 +15,12 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	private static final String ZZZ_IDENTIFIER  = "ZZZ";
 	private static final String RESPONSE_STATUS = "1";
 	private static final String TRANSACTION_CODE = "50";
-	
-	
 
-	/*
-	 * MSH|^~\&|HNCLIENT|BC01000161|PLEXIAPNP|BC01000161|2021/04/26
-	 * 17:07:45|ANUMEHA.SRIVASTAVA|ZPN|18|D|2.1|| ZCA||03|00|PE|02|
-	 * ZCB|BCXX000024|201126|18 ZZZ|TID|1|18|91|XYACA|0|TXFR029E Encryption
-	 * protocols failed with remote facility.||
-	 */
 
+	/**
+	 * Builds error response for Pharmanet
+	 * @return formatted message in MSH+ZCA+ZCB+ZZZ format
+	 */ 
 	@Override
 	public String constructResponse(HL7Message messageObj, ErrorMessage error) {
 		
@@ -33,7 +29,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	
 	/**
 	 * This method builds ZCA segment for Pharmanet Error response
-	 * @return 
+	 * @return ZCA segment to build pharmanet response
 	 */
 	public String buildZCA() {
 		StringBuilder sb = new StringBuilder(ZCA_IDENTIFIER );
@@ -50,7 +46,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 
 	/**
 	 * This method builds ZCB segment for Pharmanet Error response
-	 * @return 
+	 * @return ZCB segment to build pharmanet response
 	 */
 	public String buildZCB() {
 		StringBuilder sb = new StringBuilder(ZCB_IDENTIFIER );
@@ -63,7 +59,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	
 	/**
 	 * This method builds ZZZ segment for Pharmanet Error response
-	 * @return 
+	 * @return ZZZ segment to build pharmanet response
 	 */
 	public String buildZZZ(ErrorMessage errorMessage) {
 		StringBuilder sb = new StringBuilder(ZZZ_IDENTIFIER );
