@@ -4,3 +4,6 @@
 hnsecure/target/
 hnsecure/.idea/*
 hnsecure/.settings
+hnsecure/bin/
+hnsecure/.project
+.project
