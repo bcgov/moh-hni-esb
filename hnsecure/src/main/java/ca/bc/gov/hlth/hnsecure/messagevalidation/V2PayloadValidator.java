@@ -103,12 +103,13 @@ public class V2PayloadValidator {
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
 
-			} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
+			}
+		}else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
 			}
-		}
 	}
+	
 
 	/**
 	 * Validates receiving application
@@ -166,7 +167,7 @@ public class V2PayloadValidator {
 			throws ValidationFailedException {
 		if (!StringUtil.isEmpty(v2Message)) {
 			String[] v2DataLines = v2Message.split("\n");
-			String[] v2Segments = v2DataLines[0].split("\\|");
+			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
 
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
 				ErrorResponse.initSegment(v2Segments, messageObj);
@@ -231,7 +232,7 @@ public class V2PayloadValidator {
 	 */
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		messageObject.setProcessingId(processingDomain);
+		
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 
 		ErrorResponse errorResponse = new ErrorResponse();
@@ -252,7 +253,7 @@ public class V2PayloadValidator {
 	 */
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		messageObject.setProcessingId(processingDomain);
+		
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();

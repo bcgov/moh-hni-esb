@@ -18,15 +18,16 @@ import java.util.TimeZone;
 
 public final class Util {
 
-	private final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
+	public final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public final static String HL7_DELIMITER = "|";
 	public final static String R50_SPEC_CHAR = "^";
 	public final static String ZCB_SEGMENT = "ZCB";
 	public final static String RECEIVING_APP_PNP = "PNP";
 	public final static String MESSAGE_TYPE_PNP = "ZPN";
 	public final static String RECEIVING_APP_HNSECURE = "HNSECURE";
-	public final static String pharmaPattern = "yyyy/MM/dd HH:mm:ss";
-	public final static String genericPattern = "yyyyMMddHHmmss Z";
+	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
+	public final static String GENERIC_PATTERN = "yyyyMMddHHmmss Z";
+	public final static String LINE_BREAK = "\n";
 
 	/**
 	 * return a Base64 encoding string
@@ -117,7 +118,7 @@ public final class Util {
 	 */
 	public static boolean isSegmentPresent(String v2Message, String segmentType) {
 
-		String[] v2DataLines_Pharmanet = v2Message.split("\n");
+		String[] v2DataLines_Pharmanet = v2Message.split(LINE_BREAK);
 
 		for (String segment : v2DataLines_Pharmanet) {
 
@@ -137,7 +138,7 @@ public final class Util {
 	 */
 	public static String getPharmanetDateTime() {
 	
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(pharmaPattern);
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(PHARMA_PATTERN);
 
 		LocalDateTime now = LocalDateTime.now();
 		return dtf.format(now);
@@ -148,7 +149,7 @@ public final class Util {
 	 */
 	public static String getGenericDateTime() {
 
-		DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(genericPattern);
+		DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(GENERIC_PATTERN);
 
 		return ZonedDateTime.now().format(FORMATTER);
 

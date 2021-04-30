@@ -2,6 +2,7 @@ package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 import org.apache.camel.Exchange;
@@ -113,6 +114,25 @@ public class V2PayloadValidatorTest {
         assertEquals(response,expectedResponse);       
     }
     
+    @Test
+    public void HL7Error_Msg_EncryptionError_Pharmanet() {
+    	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
+    
+        String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZP|000008|D|2.1||\r\n"+
+        		"ZZZ|TRP|R|000008|P1|XXASD||||\r\n"+
+        		"ZCA|000001|03|00|AR|04|\r\n"+
+        		"ZCB|BC000001AB|210405|000008\n"+
+        		"ZCC||||||||||0009735391361|\r\n";
+    	String expectedResponse = "ZZZ||1|||||TXFR029E  Encryption protocols failed with remote facility.||";
+
+    	assertThrows(ValidationFailedException.class, () -> {
+            v2PayloadValidator.validate(exchange, msgInput);
+        });
+        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        String response = ((String) exchange.getIn().getBody()).split("\n")[3];
+        assertEquals(response,expectedResponse);       
+    }
+    
     
     @Test
     public void test_HL7Error_Msg_TransactionFromatError() {
@@ -161,10 +181,10 @@ public class V2PayloadValidatorTest {
         assertEquals(zzz,expectedZZZ);
         
     }
-    
+
 
     @Test  
-    public void validMessage() throws ValidationFailedException {
+    public void test_validMessage() throws ValidationFailedException {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
         v2PayloadValidator.validate(exchange, SamplesToSend.msgR03);
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
