@@ -14,7 +14,8 @@ public class ValidateAccessTokenTest {
             "r03, r07, r09",
             "https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos",
             "",
-            "D");
+            "D"
+            ,"2.1");
     private String certsEndpoint = null;
 
     private String jwtInvalidAud;
