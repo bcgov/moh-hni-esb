@@ -31,7 +31,7 @@ public class PopulateReqHeader {
 	 * @throws Exception
 	 */
 	@Handler
-	public static void populateReqHeader(Exchange exchange, @Headers Map<String, String> hm, String v2Message)
+	public void populateReqHeader(Exchange exchange, @Headers Map<String, String> hm, String v2Message)
 			throws Exception {
 		String recApp = Util.getReceivingApp(v2Message);
 		String msgType = Util.getMsgType(v2Message);

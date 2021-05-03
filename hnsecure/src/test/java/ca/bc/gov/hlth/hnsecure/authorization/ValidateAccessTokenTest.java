@@ -23,7 +23,7 @@ public class ValidateAccessTokenTest {
     private String jwtInvalidScopes;
     private String jwtInvalidIssuer;
 
-    private final ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProps, certsEndpoint);
+    private final ValidateAccessToken validateAccessToken = new ValidateAccessToken();
     private Exchange exchange = new DefaultExchange(new DefaultCamelContext());
 
     @Test

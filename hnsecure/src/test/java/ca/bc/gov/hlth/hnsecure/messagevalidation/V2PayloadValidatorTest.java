@@ -1,33 +1,44 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
-import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
-import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
-
-import org.apache.camel.Exchange;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.support.DefaultExchange;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.spi.PropertiesComponent;
+import org.apache.camel.support.DefaultExchange;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
+
 public class V2PayloadValidatorTest {
 
-    private AuthorizationProperties authProps = new AuthorizationProperties(
-            "account",
-            "moh_hnclient_dev",
-            "system/*.write",
-            "r03",
-            "",
-            "BC00002041"
-            ,"D"
-            ,"2.1");
-
-    private final V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProps);
- 
-    private Exchange exchange = new DefaultExchange(new DefaultCamelContext());
+    private V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
+    private static CamelContext context = new DefaultCamelContext();
+    private Exchange exchange = new DefaultExchange(context);
+    
+    
+    
+    @BeforeClass
+	public static void loadProperties() throws Exception {
+    	// Since we're not running from the main we need to set the properties
+		PropertiesComponent pc = context.getPropertiesComponent();
+		pc.setLocation("classpath:application.properties"); // laoding properties in test/resources
+		ApplicationProperties properties = ApplicationProperties.getInstance() ;
+		properties.injectProperties(pc.loadProperties());
+		
+	}
+    
+    @AfterClass
+	public static void cleanUp() throws Exception {
+    	context.close();
+    	
+    }
     
     
     @Test
@@ -100,7 +111,7 @@ public class V2PayloadValidatorTest {
     @Test
     public void testHL7ErrorMsgEncryptionError() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
-    
+    	
         String msgInput="MSH|^~\\&|HNWeb|moh_hnclient_dev|RAIGT-PRSN-DMGR|BC0002041|20191108083244|train96|R03|20191108083244|D|2.4||\n" +
                 "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
                 "PID||0000053655^^^BC^PH\n";

@@ -6,12 +6,10 @@ import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
-
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
@@ -19,26 +17,24 @@ import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
 public class V2PayloadValidator {
 
 	private static final Logger logger = LoggerFactory.getLogger(V2PayloadValidator.class);
-
-	private static Set<String> validReceivingFacility;
-	private static String processingDomain;
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
-	private static String version;
+	private ApplicationProperties properties = ApplicationProperties.getInstance();
+	
+ 
 
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
-	public V2PayloadValidator(AuthorizationProperties authorizationProperties) {
-		validReceivingFacility = authorizationProperties.getValidReceivingFacility();
-		processingDomain = authorizationProperties.getProcessingDomain();
-		version = authorizationProperties.getVersion();
-	}
 
 	/**
 	 *This method does generic validation and Pharmanet specific validation
@@ -46,7 +42,7 @@ public class V2PayloadValidator {
 	 * @throws ValidationFailedException if a validation step fails
 	 */
 	@Handler
-	public static void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
+	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
 
@@ -80,7 +76,7 @@ public class V2PayloadValidator {
 	 * @param isPharmanetMode
 	 * @throws ValidationFailedException
 	 */
-	protected static void validatePhanrmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
+	protected  void validatePhanrmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
@@ -96,10 +92,10 @@ public class V2PayloadValidator {
 	 * @param messageObj
 	 * @throws ValidationFailedException
 	 */
-	protected static void validateReceivingFacility(Exchange exchange, HL7Message messageObj)
+	protected  void validateReceivingFacility(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
 		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
-
+			Set<String> validReceivingFacility = Util.getPropertyAsSet(properties.getValue(VALID_RECIEVING_FACILITY));
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
 
@@ -117,7 +113,7 @@ public class V2PayloadValidator {
 	 * @param messageObj
 	 * @throws ValidationFailedException
 	 */
-	protected static void validateReceivingApp(Exchange exchange, HL7Message messageObj)
+	protected  void validateReceivingApp(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
 		if ((StringUtil.isEmpty(messageObj.getReceivingApplication())
 				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
@@ -138,7 +134,7 @@ public class V2PayloadValidator {
 	 * @param isPharmanetMode
 	 * @throws ValidationFailedException
 	 */
-	protected static void validateSendingFacility(Exchange exchange, HL7Message messageObj, String accessToken,
+	protected  void validateSendingFacility(Exchange exchange, HL7Message messageObj, String accessToken,
 			boolean isPharmanetMode) throws ValidationFailedException {
 		// Validate Sending facility
 		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
@@ -163,7 +159,7 @@ public class V2PayloadValidator {
 	 * @param messageObj
 	 * @throws ValidationFailedException
 	 */
-	protected static void validateMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj)
+	protected  void validateMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj)
 			throws ValidationFailedException {
 		if (!StringUtil.isEmpty(v2Message)) {
 			String[] v2DataLines = v2Message.split("\n");
@@ -209,18 +205,18 @@ public class V2PayloadValidator {
 	 * Populate optional field from properties file if present
 	 * @param messageObj
 	 */
-	private static void populateOptionalField(HL7Message messageObj) {
+	private void populateOptionalField(HL7Message messageObj) {
 
 		if (StringUtil.isEmpty(messageObj.getDateTime())) {
 			messageObj.setDateTime(Util.getGenericDateTime());
 		}
 
 		if (StringUtil.isEmpty(messageObj.getVersionId())) {
-			messageObj.setVersionId(version);
+			messageObj.setVersionId(properties.getValue(VERSION));
 		}
 
 		if (StringUtil.isEmpty(messageObj.getProcessingId())) {
-			messageObj.setProcessingId(processingDomain);
+			messageObj.setProcessingId(properties.getValue(PROCESSING_DOMAIN));
 		}
 	}
 

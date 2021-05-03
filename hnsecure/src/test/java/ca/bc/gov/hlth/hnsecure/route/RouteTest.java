@@ -40,17 +40,11 @@ public class RouteTest extends CamelTestSupport {
 
 		// Since we're not running from the main we need to set the properties
 		PropertiesComponent pc = context.getPropertiesComponent();
-		pc.setLocation("classpath:application.properties"); // laoding properties in test/resources
+		pc.setLocation("classpath:application.properties"); // loading properties in test/resources
 		ApplicationProperties properties = ApplicationProperties.getInstance() ;
 		properties.injectProperties(pc.loadProperties());
 		
-		
-		String validV2MessageTypes = properties.getValue(ApplicationProperty.VALID_V2_MSG_TYPES);
-		String validReceivingFacility = properties.getValue(ApplicationProperty.VALID_RECIEVING_FACILITY); 
-		String processingDomain = properties.getValue(ApplicationProperty.PROCESSING_DOMAIN);
-		String version = properties.getValue(ApplicationProperty.VERSION);
-		context.addRoutes(new Route( validV2MessageTypes,  validReceivingFacility,  processingDomain,  version));
-		
+		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
 			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");

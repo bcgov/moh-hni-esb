@@ -25,6 +25,9 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
 
 public class ValidateAccessToken implements Processor {
@@ -32,17 +35,9 @@ public class ValidateAccessToken implements Processor {
 	private static final Logger logger = LoggerFactory.getLogger(ValidateAccessToken.class);
 	private static final String AUTH_HEADER_KEY = "Authorization";
 
+	private ApplicationProperties properties = ApplicationProperties.getInstance();
 	private AuthorizationProperties authorizationProperties;
-	private String certsEndpoint;
-
-
-	/**
-	 * Default Constructor
-	 */
-	public ValidateAccessToken(AuthorizationProperties authorizationProperties, String certsEndpoint) {
-		this.authorizationProperties = authorizationProperties;
-		this.certsEndpoint = certsEndpoint;
-	}
+	
 
 	@Override
 	public void process(Exchange exchange)
@@ -59,13 +54,15 @@ public class ValidateAccessToken implements Processor {
 		// Create a JWT processor for the access tokens
 		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
 		jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier(new JOSEObjectType("JWT")));
+		
+		String certEndpoints = properties.getValue(ApplicationProperty.CERTS_ENDPOINT);
 
 		// The public RSA keys to validate the signatures
 		// The RemoteJWKSet caches the retrieved keys to speed up subsequent look-ups
 		// TODO this should be moved into the constructor to make use of the JWK caching
 		JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
 		JWKSource<SecurityContext> keySource = new RemoteJWKSet<>(
-				new URL(certsEndpoint),
+				new URL(certEndpoints),
 				// Overrides the DefaultResourceRetriever to up the timeouts to 5 seconds
 				new DefaultResourceRetriever(5000, 5000, 51200)
 				);
