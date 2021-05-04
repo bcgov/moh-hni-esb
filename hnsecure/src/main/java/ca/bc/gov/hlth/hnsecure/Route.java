@@ -8,7 +8,7 @@ import org.apache.camel.builder.RouteBuilder;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.messagevalidation.AccessValidator;
+import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
@@ -16,52 +16,20 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class Route extends RouteBuilder {
-	/*
-
-    @PropertyInject(value = "audience")
-    private String audiences;
-    @PropertyInject(value = "authorized-parties")
-    private String authorizedParties;
-    @PropertyInject(value = "scopes")
-    private String scopes;
-    @PropertyInject(value = "issuer")
-    private String issuer;
-    @PropertyInject(value = "valid-v2-message-types")
-    private String validV2MessageTypes;
-    @PropertyInject(value = "certs-endpoint")
-    private String certsEndpoint;
-    @PropertyInject(value = "valid-receiving-facility")
-    private String validReceivingFacility;
-    @PropertyInject(value = "processing-domain")
-    private String processingDomain;
-    @PropertyInject(value = "version")
-    private String version;
-    */
-
-
-    // PropertyInject doesn't seem to work in the unit tests, allows creation of the route setting this value
-	/*
-    public Route(String validV2MessageTypes, String validReceivingFacility, String processingDomain, String version) {
-        this.validV2MessageTypes = validV2MessageTypes;
-        this.validReceivingFacility = validReceivingFacility;
-        this.processingDomain = processingDomain;
-        this.version = version;
-    }
-    */
 
     @Override
     public void configure() {
     	injectProperties();
         //AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain,version);
-        //TODO just pass auth properties into the method
-    	// TODO completed by using injecting properties    
+        // TODO just pass auth properties into the method
+    	// completed by using injecting properties    
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
         ValidateAccessToken validateAccessToken = new ValidateAccessToken();
         
 
         // Handling custom exception  
         onException(CustomHNSException.class)
-        	.process(new AccessValidator())
+        	.process(new ExceptionHandler())
         	.handled(true);
         
         onException(ValidationFailedException.class)

@@ -3,6 +3,7 @@ package ca.bc.gov.hlth.hnsecure.authorization;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -25,8 +26,14 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_PARTIES;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.ISSUER;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.SCOPES;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
+
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
 
@@ -36,13 +43,14 @@ public class ValidateAccessToken implements Processor {
 	private static final String AUTH_HEADER_KEY = "Authorization";
 
 	private ApplicationProperties properties = ApplicationProperties.getInstance();
-	private AuthorizationProperties authorizationProperties;
 	
 
 	@Override
 	public void process(Exchange exchange)
 			throws Exception {
 		String methodName = "process";
+		
+		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTH_HEADER_KEY);
 		if(StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - No authorization key passed in request header.", methodName);
@@ -55,7 +63,7 @@ public class ValidateAccessToken implements Processor {
 		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
 		jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier(new JOSEObjectType("JWT")));
 		
-		String certEndpoints = properties.getValue(ApplicationProperty.CERTS_ENDPOINT);
+		String certEndpoints = properties.getValue(CERTS_ENDPOINT);
 
 		// The public RSA keys to validate the signatures
 		// The RemoteJWKSet caches the retrieved keys to speed up subsequent look-ups
@@ -71,19 +79,26 @@ public class ValidateAccessToken implements Processor {
 		// RSA keys sourced from the JWK set URL
 		JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
 		jwtProcessor.setJWSKeySelector(keySelector);
+		
+
+        //return audiences;
+    	String audience = properties.getValue(AUDIENCE);
+    	Set<String> audiences =  Util.getPropertyAsSet(audience);
+    	Set<String> authorizedParties = Util.getPropertyAsSet(properties.getValue(AUTHORIZED_PARTIES));
+    	Set <String> scopes = Util.getPropertyAsSet(properties.getValue(SCOPES));
 
 		// Set the required JWT claims - these must all be available in the token payload
 		jwtProcessor.setJWTClaimsSetVerifier(
 				new CustomJWTClaimsVerifier(
 						// Accepted Audience -> aud
-						authorizationProperties.getAudiences(),
+						audiences,
 						// Accepted Authorized Parties -> azp
-						authorizationProperties.getAuthorizedParties(),
+						authorizedParties,
 						// Accepted Scopes -> scope
-						authorizationProperties.getScopes(),
+						scopes,
 						// Exact Match Claims -> iss
 						new JWTClaimsSet.Builder()
-						.issuer(authorizationProperties.getIssuer())
+						.issuer(properties.getValue(ISSUER))
 						.build(),
 						// Required Claims -> azp, scope, iat, exp, jti
 						new HashSet<>(Arrays.asList("azp", "scope", "iat", "exp", "jti")),

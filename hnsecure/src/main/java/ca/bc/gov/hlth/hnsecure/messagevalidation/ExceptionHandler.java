@@ -6,11 +6,11 @@ import org.apache.camel.Processor;
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
 
 /**
- * Custom validator added to verify access token in request
+ * Custom ExceptionHandler added to verify access token in request
  * @author pankaj.kathuria
  *
  */
-public class AccessValidator implements Processor {
+public class ExceptionHandler implements Processor {
 
 
     /**
