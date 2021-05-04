@@ -1,5 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.authorization;
 
+
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -81,9 +82,7 @@ public class ValidateAccessToken implements Processor {
 		jwtProcessor.setJWSKeySelector(keySelector);
 		
 
-        //return audiences;
-    	String audience = properties.getValue(AUDIENCE);
-    	Set<String> audiences =  Util.getPropertyAsSet(audience);
+        Set<String> audiences =  Util.getPropertyAsSet(properties.getValue(AUDIENCE));
     	Set<String> authorizedParties = Util.getPropertyAsSet(properties.getValue(AUTHORIZED_PARTIES));
     	Set <String> scopes = Util.getPropertyAsSet(properties.getValue(SCOPES));
 
