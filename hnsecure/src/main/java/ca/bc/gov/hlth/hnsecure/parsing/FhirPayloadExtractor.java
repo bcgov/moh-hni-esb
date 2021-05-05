@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ca.bc.gov.hlth.hnsecure.json.FHIRJsonMessage;
 import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
 import net.minidev.json.JSONObject;
@@ -25,7 +26,7 @@ public class FhirPayloadExtractor {
 
         // TODO we may need to check somewhere in the message to verify the base 64 encoding
         String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
-        logger.debug("The decode HL7 message is:"+extractedMessage);
+        logger.debug("The decoded HL7 message is:"+extractedMessage);
         return extractedMessage;
     }    
 }

@@ -83,12 +83,6 @@
       <artifactId>camel-http</artifactId>
     </dependency>
 
-    <dependency>
-	  <groupId>ca.bc.gov.hlth</groupId>
-	  <artifactId>hns-common</artifactId>
-	  <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    
   </dependencies>
 
   <build>

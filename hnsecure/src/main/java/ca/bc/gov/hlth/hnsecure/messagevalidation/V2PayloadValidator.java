@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
-
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +83,7 @@ public class V2PayloadValidator {
 			String facilityNameFromAccessToken = getSendingFacility(accessToken);
 
 			if (StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+					|| !messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}
 		}
