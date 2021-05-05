@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
  *
  */
 @SpringBootApplication
-@ComponentScan(basePackages = { "com.cgi.mockendpoints.rest.api" })
+@ComponentScan(basePackages = { "com.cgi.mockendpoints.rest.api", "com.cgi.mockendpoints.config", "com.cgi.mockendpoints.listener" })
 public class MockEndpointsSpringBoot {
 
     public static void main(String[] args) {
