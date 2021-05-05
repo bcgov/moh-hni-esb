@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 public class ProcessV2ToPharmaNetJson implements Processor {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ProcessV2ToPharmaNetJson.class);
-
 	
 	public void process(Exchange exchange) throws Exception {
 
@@ -22,7 +21,6 @@ public class ProcessV2ToPharmaNetJson implements Processor {
 		if (exchangeBody == null || StringUtils.isBlank(exchangeBody.toString())) {
 			throw new IllegalArgumentException("v2Message can't be null or empty");
 		} else {
-			exchange.getIn().setHeader(Exchange.CONTENT_TYPE, "application/json");
 			String message = exchangeBody.toString();							
 			String transactionUUID = UUID.randomUUID().toString();
 			logger.info(String.format("Transaction UUID: %s", transactionUUID));
