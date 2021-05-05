@@ -55,6 +55,10 @@ public class Route extends RouteBuilder {
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
         ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
         
+    	onException(org.apache.http.conn.HttpHostConnectException.class)
+		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
+		.log("Failed to connect remote server");
+        
         onException(ValidationFailedException.class)
                 .log("Validation exception response: ${body}")
                 .handled(true)

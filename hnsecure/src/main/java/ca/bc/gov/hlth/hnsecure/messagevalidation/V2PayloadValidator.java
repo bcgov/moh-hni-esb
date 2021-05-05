@@ -71,11 +71,12 @@ public class V2PayloadValidator {
 
 		// Validate encoding characters
 		if (StringUtil.isEmpty(messageObj.getEncodingCharacter())
-				|| messageObj.getEncodingCharacter().toCharArray().length !=4
-				|| !sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
-
+				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
-		}
+		} 
+		else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidMSHSegment, exchange);
+		}	
 
 		// Validate Sending facility
 		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
@@ -96,24 +97,27 @@ public class V2PayloadValidator {
 		}
 
 		// Validate the receiving facility is listed in application properties
-		if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
+			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+			}
 		}
 
-		// Validate the receiving application matches the one that is expected for the message transaction type
-		String receivingApplication = getReceivingApplication(messageObj.getMessageType());
-		if (!messageObj.getReceivingApplication().equals(receivingApplication)) {
+		// Validate the receiving application exists	
+		if (!validateReceivingApplication(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 
 	}
 
-	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange) throws ValidationFailedException {
+	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
+			throws ValidationFailedException {
 		messageObject.setProcessingId(processingDomain);
 		messageObject.setReceivingApplication("HNSecure");
 
 		ErrorResponse errorResponse = new ErrorResponse();
-		// TODO could probably make the constructResponse Static but need to refactor the interface
+		// TODO could probably make the constructResponse Static but need to refactor
+		// the interface
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info(v2Response);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -122,8 +126,9 @@ public class V2PayloadValidator {
 	}
 
 	/*
-	The FacilityId is the legacy way to track connected clients and is now set as the ClientId of the client application
-	In the access token this is the 'azp' field
+	 * The FacilityId is the legacy way to track connected clients and is now set as
+	 * the ClientId of the client application In the access token this is the 'azp'
+	 * field
 	 */
 	private static String getSendingFacility(String auth) {
 		String clientId = "";
@@ -141,9 +146,11 @@ public class V2PayloadValidator {
 		return clientId;
 	}
 
-	// Lookup the expected receiving application for a specific message type
-	private static String getReceivingApplication(String messageType) {
-		return MessageUtil.mTypeCollection.get(messageType);
+
+	
+	private static Boolean validateReceivingApplication(String receivingApp) {
+		return MessageUtil.mTypeCollection.containsValue(receivingApp);
+		
 	}
 
 	private static boolean sameChars(String firstStr, String secondStr) {

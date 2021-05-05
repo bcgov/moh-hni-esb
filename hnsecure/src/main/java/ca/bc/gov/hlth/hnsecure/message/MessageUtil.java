@@ -59,6 +59,7 @@ public class MessageUtil {
 		mTypeCollection.put("R53", "RAIEMP-FIND");
 		mTypeCollection.put("R54", "RAIEXT-VISA-DEP");
 		mTypeCollection.put("R55", "RAIEMP-LIST");
+		mTypeCollection.put("*", "PNP");
 		
 		
 
