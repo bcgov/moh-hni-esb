@@ -42,6 +42,7 @@ public class ValidateAccessToken implements Processor {
 
 	private static final Logger logger = LoggerFactory.getLogger(ValidateAccessToken.class);
 	private static final String AUTH_HEADER_KEY = "Authorization";
+	private static final String OBJECT_TYPE_JWT = "JWT";
 
 	private ApplicationProperties properties = ApplicationProperties.getInstance();
 	
@@ -62,7 +63,7 @@ public class ValidateAccessToken implements Processor {
 
 		// Create a JWT processor for the access tokens
 		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-		jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier(new JOSEObjectType("JWT")));
+		jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier<>(new JOSEObjectType(OBJECT_TYPE_JWT)));
 		
 		String certEndpoints = properties.getValue(CERTS_ENDPOINT);
 
@@ -88,7 +89,7 @@ public class ValidateAccessToken implements Processor {
 
 		// Set the required JWT claims - these must all be available in the token payload
 		jwtProcessor.setJWTClaimsSetVerifier(
-				new CustomJWTClaimsVerifier(
+				new CustomJWTClaimsVerifier<>(
 						// Accepted Audience -> aud
 						audiences,
 						// Accepted Authorized Parties -> azp

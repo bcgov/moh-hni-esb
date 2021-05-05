@@ -20,14 +20,11 @@ public class Route extends RouteBuilder {
     @Override
     public void configure() {
     	injectProperties();
-        //AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain,version);
-        // TODO just pass auth properties into the method
-    	// completed by using injecting properties    
+
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
         ValidateAccessToken validateAccessToken = new ValidateAccessToken();
         
-
-        // Handling custom exception  
+        // TODO Exception class name is not inline with other exception. It is generic name as compared to ValidationFailedException 
         onException(CustomHNSException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
@@ -42,6 +39,7 @@ public class Route extends RouteBuilder {
             .process(validateAccessToken).id("ValidateAccessToken")
             .setBody().method(new FhirPayloadExtractor())
             .log("Decoded V2: ${body}")            
+            // TODO if Payload validator is called beforeFhirPayloadExtractor(), no need of separate validator in validateAccessToken 
             .bean(v2PayloadValidator).id("V2PayloadValidator")
             //set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")

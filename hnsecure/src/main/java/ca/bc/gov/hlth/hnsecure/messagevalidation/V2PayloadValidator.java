@@ -29,13 +29,9 @@ public class V2PayloadValidator {
 	private static final Logger logger = LoggerFactory.getLogger(V2PayloadValidator.class);
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
+	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 	private ApplicationProperties properties = ApplicationProperties.getInstance();
 	
- 
-
-	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
-
-
 	/**
 	 *This method does generic validation and Pharmanet specific validation
 	 * @param v2Message the hl7v2 message to validate
@@ -45,24 +41,16 @@ public class V2PayloadValidator {
 	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
-
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
-
 		// Validate v2Message format
 		validateMessageFormat(exchange, v2Message, messageObj);
-
 		boolean isPharmanetMode = isPharmanet(messageObj);
-
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
-
 		validateReceivingApp(exchange, messageObj);
-		
 		validateReceivingFacility(exchange, messageObj);
-
+		// TODO <REVIEW> Do we need to populate fields in validator? Should this be done after validation is complete?
 		populateOptionalField(messageObj);
-		
 		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
-
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 
 	}
@@ -138,9 +126,7 @@ public class V2PayloadValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {
 		// Validate Sending facility
 		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
-
 			String facilityNameFromAccessToken = getSendingFacility(accessToken);
-
 			if (!isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
 					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
@@ -164,7 +150,6 @@ public class V2PayloadValidator {
 		if (!StringUtil.isEmpty(v2Message)) {
 			String[] v2DataLines = v2Message.split("\n");
 			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
-
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
 				ErrorResponse.initSegment(v2Segments, messageObj);
 			} else {
@@ -230,7 +215,6 @@ public class V2PayloadValidator {
 			throws ValidationFailedException {
 		
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
-
 		ErrorResponse errorResponse = new ErrorResponse();
 		// TODO could probably make the constructResponse Static but need to refactor
 		// the interface
@@ -251,9 +235,7 @@ public class V2PayloadValidator {
 			throws ValidationFailedException {
 		
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
-
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
-
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info(v2Response);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -271,7 +253,6 @@ public class V2PayloadValidator {
 		if (!StringUtil.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
 			String decodeAuth = Util.decodeBase64(split[1]);
-
 			try {
 				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeAuth);
 				clientId = (String) jsonObject.get("azp");

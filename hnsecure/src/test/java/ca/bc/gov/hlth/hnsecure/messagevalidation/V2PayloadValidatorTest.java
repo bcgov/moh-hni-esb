@@ -15,30 +15,11 @@ import org.junit.Test;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
+import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 
-public class V2PayloadValidatorTest {
+public class V2PayloadValidatorTest extends TestPropertiesLoader{
 
     private V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
-    private static CamelContext context = new DefaultCamelContext();
-    private Exchange exchange = new DefaultExchange(context);
-    
-    
-    
-    @BeforeClass
-	public static void loadProperties() throws Exception {
-    	// Since we're not running from the main we need to set the properties
-		PropertiesComponent pc = context.getPropertiesComponent();
-		pc.setLocation("classpath:application.properties"); // laoding properties in test/resources
-		ApplicationProperties properties = ApplicationProperties.getInstance() ;
-		properties.injectProperties(pc.loadProperties());
-		
-	}
-    
-    @AfterClass
-	public static void cleanUp() throws Exception {
-    	context.close();
-    	
-    }
     
     
     @Test
