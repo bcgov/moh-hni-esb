@@ -1,20 +1,17 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public final class Util {
 
@@ -154,5 +151,29 @@ public final class Util {
 		return ZonedDateTime.now().format(FORMATTER);
 
 	}
+	
+    /**
+     * Return a list of values from a comma delimited property
+     * If string does not have 
+     * @param commaDelimitedProperties a String of comma delimited values
+     * @return List
+     */
+    public static List<String> getPropertyAsList(String commaDelimitedProperties) {
+        List<String> propertyList = Collections.emptyList();
+        if (commaDelimitedProperties != null && !commaDelimitedProperties.isBlank()) {
+            propertyList = Arrays.asList(commaDelimitedProperties.split("\\s*,\\s*"));
+        }
+        return propertyList;
+    }
+
+    /**
+     * Return a set of values from a comma delimited property
+     *
+     * @param commaDelimitedProperties a String of comma delimited values
+     * @return Set
+     */
+    public static Set<String> getPropertyAsSet(String commaDelimitedProperties) {
+        return new HashSet<>(getPropertyAsList(commaDelimitedProperties));
+    }
 
 }

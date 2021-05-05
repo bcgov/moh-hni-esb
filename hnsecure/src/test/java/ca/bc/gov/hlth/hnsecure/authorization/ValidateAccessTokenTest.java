@@ -7,23 +7,12 @@ import org.junit.Test;
 
 public class ValidateAccessTokenTest {
 
-    private AuthorizationProperties authProps = new AuthorizationProperties(
-            "account",
-            "moh_hnclient_dev",
-            "system/*.write",
-            "r03, r07, r09",
-            "https://common-logon-dev.hlth.gov.bc.ca/auth/realms/v2_pos",
-            "",
-            "D"
-            ,"2.1");
-    private String certsEndpoint = null;
 
     private String jwtInvalidAud;
     private String jwtInvalidAuthParties;
     private String jwtInvalidScopes;
     private String jwtInvalidIssuer;
 
-    private final ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProps, certsEndpoint);
     private Exchange exchange = new DefaultExchange(new DefaultCamelContext());
 
     @Test
