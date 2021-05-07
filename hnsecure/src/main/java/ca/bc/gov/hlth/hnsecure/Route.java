@@ -20,6 +20,8 @@ public class Route extends RouteBuilder {
     @Override
     public void configure() {
     	injectProperties();
+    	//The purpose is to set custom unique id for logging
+    	getContext().setUuidGenerator(new IDGenerator());
 
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
         ValidateAccessToken validateAccessToken = new ValidateAccessToken();

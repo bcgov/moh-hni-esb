@@ -124,17 +124,15 @@ public class V2PayloadValidator {
 	 */
 	protected  void validateSendingFacility(Exchange exchange, HL7Message messageObj, String accessToken,
 			boolean isPharmanetMode) throws ValidationFailedException {
-		// Validate Sending facility
-		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
-			String facilityNameFromAccessToken = getSendingFacility(accessToken);
-			if (!isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-			} else if (isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+		// Validate Sending facility	
+		String facilityNameFromAccessToken = getSendingFacility(accessToken);
+		if (StringUtil.isEmpty(messageObj.getSendingFacility())) {
+			messageObj.setSendingFacility(facilityNameFromAccessToken);
 
-			}
+		} else if (!isPharmanetMode && !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+		} else if (isPharmanetMode && !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+			generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 		}
 	}
 
@@ -213,13 +211,11 @@ public class V2PayloadValidator {
 	 */
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		
+		String methodName = "generateError";
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
-		ErrorResponse errorResponse = new ErrorResponse();
-		// TODO could probably make the constructResponse Static but need to refactor
-		// the interface
+		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info(v2Response);
+		logger.info("{} - TransactionId: {}, Facility: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
@@ -233,11 +229,11 @@ public class V2PayloadValidator {
 	 */
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		
+		String methodName = "generatePharmanetError";
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info(v2Response);
+		logger.info("{} - TransactionId: {}, Facility: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
