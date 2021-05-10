@@ -21,7 +21,7 @@ public class Route extends RouteBuilder {
     public void configure() {
     	injectProperties();
     	//The purpose is to set custom unique id for logging
-    	getContext().setUuidGenerator(new IDGenerator());
+    	getContext().setUuidGenerator(new TransactionIdGenerator());
 
         V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
         ValidateAccessToken validateAccessToken = new ValidateAccessToken();

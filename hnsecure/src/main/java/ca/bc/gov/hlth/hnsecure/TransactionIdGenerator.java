@@ -10,18 +10,14 @@ import org.slf4j.LoggerFactory;
  * This implementation uses a Java.util.UUID to generate a unique Id
  * for logging and tracing
  */
-public class IDGenerator implements UuidGenerator {
+public class TransactionIdGenerator implements UuidGenerator {
 	
-	private static final Logger logger = LoggerFactory.getLogger(IDGenerator.class);
+	private static final Logger logger = LoggerFactory.getLogger(TransactionIdGenerator.class);
 
 	@Override
 	public String generateUuid() {
 	    UUID uuid = UUID.randomUUID();		
-        String id=""+uuid;        
-        int uid=id.hashCode();
-        String transactionId=String.valueOf(uid);
-        id=transactionId.replaceAll("-", "");
-        return id;
+        return uuid.toString();
 	}
 
 }

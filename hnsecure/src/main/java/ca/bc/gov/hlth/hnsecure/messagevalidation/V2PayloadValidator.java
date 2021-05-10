@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
-import org.eclipse.jetty.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +103,8 @@ public class V2PayloadValidator {
 	 */
 	protected  void validateReceivingApp(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
-		if ((StringUtil.isEmpty(messageObj.getReceivingApplication())
-				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
+		if ((StringUtils.isEmpty(messageObj.getReceivingApplication())
+				|| StringUtils.isEmpty(messageObj.getReceivingFacility()))) {
 
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
@@ -126,7 +126,7 @@ public class V2PayloadValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {
 		// Validate Sending facility	
 		String facilityNameFromAccessToken = getSendingFacility(accessToken);
-		if (StringUtil.isEmpty(messageObj.getSendingFacility())) {
+		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 
 		} else if (!isPharmanetMode && !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
@@ -145,7 +145,7 @@ public class V2PayloadValidator {
 	 */
 	protected  void validateMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj)
 			throws ValidationFailedException {
-		if (!StringUtil.isEmpty(v2Message)) {
+		if (!StringUtils.isEmpty(v2Message)) {
 			String[] v2DataLines = v2Message.split("\n");
 			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
@@ -163,7 +163,7 @@ public class V2PayloadValidator {
 		}
 
 		// Validate encoding characters
-		if (StringUtil.isEmpty(messageObj.getEncodingCharacter())
+		if (StringUtils.isEmpty(messageObj.getEncodingCharacter())
 				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
@@ -177,7 +177,7 @@ public class V2PayloadValidator {
 	 * @return
 	 */
 	protected static boolean isPharmanet(HL7Message messageObj) {
-		if ((!StringUtil.isEmpty(messageObj.getMessageType())
+		if ((!StringUtils.isEmpty(messageObj.getMessageType())
 				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
 			return true;
 		}
@@ -190,15 +190,15 @@ public class V2PayloadValidator {
 	 */
 	private void populateOptionalField(HL7Message messageObj) {
 
-		if (StringUtil.isEmpty(messageObj.getDateTime())) {
+		if (StringUtils.isEmpty(messageObj.getDateTime())) {
 			messageObj.setDateTime(Util.getGenericDateTime());
 		}
 
-		if (StringUtil.isEmpty(messageObj.getVersionId())) {
+		if (StringUtils.isEmpty(messageObj.getVersionId())) {
 			messageObj.setVersionId(properties.getValue(VERSION));
 		}
 
-		if (StringUtil.isEmpty(messageObj.getProcessingId())) {
+		if (StringUtils.isEmpty(messageObj.getProcessingId())) {
 			messageObj.setProcessingId(properties.getValue(PROCESSING_DOMAIN));
 		}
 	}
@@ -246,7 +246,7 @@ public class V2PayloadValidator {
 	 */
 	private static String getSendingFacility(String auth) {
 		String clientId = "";
-		if (!StringUtil.isEmpty(auth)) {
+		if (!StringUtils.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
 			String decodeAuth = Util.decodeBase64(split[1]);
 			try {
