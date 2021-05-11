@@ -55,11 +55,11 @@ public class ValidateAccessToken implements Processor {
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTH_HEADER_KEY);
 		if(StringUtils.isBlank(authorizationKey)) {
-			logger.info("{} - No authorization key passed in request header.", methodName);
+			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
 			throw new CustomHNSException(CustomError_Msg_InvalidAuthKey.getErrorMessage());
 		}
 		AccessToken accessToken = AccessToken.parse(authorizationKey);
-		logger.info("{} - Access token: {}", methodName,accessToken);
+		logger.info("{} - TransactionId: {}, Access token: {}", methodName,exchange.getIn().getMessageId(),accessToken);
 
 		// Create a JWT processor for the access tokens
 		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
@@ -111,7 +111,7 @@ public class ValidateAccessToken implements Processor {
 		JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
 
 		// Print out the token claims set
-		logger.info("{} - TOKEN PAYLOAD: {}", methodName, claimsSet.toJSONObject());
+		logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getIn().getMessageId(), claimsSet.toJSONObject());
 	}
 
 }

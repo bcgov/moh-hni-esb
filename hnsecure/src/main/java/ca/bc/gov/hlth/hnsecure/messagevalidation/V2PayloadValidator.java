@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
-import org.eclipse.jetty.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +103,8 @@ public class V2PayloadValidator {
 	 */
 	protected  void validateReceivingApp(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
-		if ((StringUtil.isEmpty(messageObj.getReceivingApplication())
-				|| StringUtil.isEmpty(messageObj.getReceivingFacility()))) {
+		if ((StringUtils.isEmpty(messageObj.getReceivingApplication())
+				|| StringUtils.isEmpty(messageObj.getReceivingFacility()))) {
 
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
@@ -116,6 +116,9 @@ public class V2PayloadValidator {
 	}
 
 	/**
+	 * This method checks if the sending facility provided in message is same as the facility in access token
+	 * If sending facility is not provided in the message, retrieve the facility from access token
+	 * Validation fails if the sending facility is not same as the facility in access token
 	 * @param exchange
 	 * @param messageObj
 	 * @param accessToken
@@ -124,17 +127,20 @@ public class V2PayloadValidator {
 	 */
 	protected  void validateSendingFacility(Exchange exchange, HL7Message messageObj, String accessToken,
 			boolean isPharmanetMode) throws ValidationFailedException {
-		// Validate Sending facility
-		if (!StringUtil.isEmpty(messageObj.getSendingFacility())) {
-			String facilityNameFromAccessToken = getSendingFacility(accessToken);
-			if (!isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-			} else if (isPharmanetMode && StringUtil.isEmpty(messageObj.getSendingFacility())
-					|| !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+		// Validate Sending facility	
+		String facilityNameFromAccessToken = getSendingFacility(accessToken);
+		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
+			messageObj.setSendingFacility(facilityNameFromAccessToken);
+		} 
+		else if(!messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-
+			}else {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}
+		}
+		else {
+			//do nothing
 		}
 	}
 
@@ -147,7 +153,7 @@ public class V2PayloadValidator {
 	 */
 	protected  void validateMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj)
 			throws ValidationFailedException {
-		if (!StringUtil.isEmpty(v2Message)) {
+		if (!StringUtils.isEmpty(v2Message)) {
 			String[] v2DataLines = v2Message.split("\n");
 			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
@@ -165,7 +171,7 @@ public class V2PayloadValidator {
 		}
 
 		// Validate encoding characters
-		if (StringUtil.isEmpty(messageObj.getEncodingCharacter())
+		if (StringUtils.isEmpty(messageObj.getEncodingCharacter())
 				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
@@ -179,7 +185,7 @@ public class V2PayloadValidator {
 	 * @return
 	 */
 	protected static boolean isPharmanet(HL7Message messageObj) {
-		if ((!StringUtil.isEmpty(messageObj.getMessageType())
+		if ((!StringUtils.isEmpty(messageObj.getMessageType())
 				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
 			return true;
 		}
@@ -192,15 +198,15 @@ public class V2PayloadValidator {
 	 */
 	private void populateOptionalField(HL7Message messageObj) {
 
-		if (StringUtil.isEmpty(messageObj.getDateTime())) {
+		if (StringUtils.isEmpty(messageObj.getDateTime())) {
 			messageObj.setDateTime(Util.getGenericDateTime());
 		}
 
-		if (StringUtil.isEmpty(messageObj.getVersionId())) {
+		if (StringUtils.isEmpty(messageObj.getVersionId())) {
 			messageObj.setVersionId(properties.getValue(VERSION));
 		}
 
-		if (StringUtil.isEmpty(messageObj.getProcessingId())) {
+		if (StringUtils.isEmpty(messageObj.getProcessingId())) {
 			messageObj.setProcessingId(properties.getValue(PROCESSING_DOMAIN));
 		}
 	}
@@ -213,13 +219,11 @@ public class V2PayloadValidator {
 	 */
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		
+		String methodName = "generateError";
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
-		ErrorResponse errorResponse = new ErrorResponse();
-		// TODO could probably make the constructResponse Static but need to refactor
-		// the interface
+		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info(v2Response);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
@@ -233,11 +237,11 @@ public class V2PayloadValidator {
 	 */
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		
+		String methodName = "generatePharmanetError";
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info(v2Response);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
@@ -250,7 +254,7 @@ public class V2PayloadValidator {
 	 */
 	private static String getSendingFacility(String auth) {
 		String clientId = "";
-		if (!StringUtil.isEmpty(auth)) {
+		if (!StringUtils.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
 			String decodeAuth = Util.decodeBase64(split[1]);
 			try {
