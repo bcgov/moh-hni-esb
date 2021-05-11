@@ -116,6 +116,9 @@ public class V2PayloadValidator {
 	}
 
 	/**
+	 * This method checks if the sending facility provided in message is same as the facility in access token
+	 * If sending facility is not provided in the message, retrieve the facility from access token
+	 * Validation fails if the sending facility is not same as the facility in access token
 	 * @param exchange
 	 * @param messageObj
 	 * @param accessToken
@@ -128,11 +131,16 @@ public class V2PayloadValidator {
 		String facilityNameFromAccessToken = getSendingFacility(accessToken);
 		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
-
-		} else if (!isPharmanetMode && !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
-		} else if (isPharmanetMode && !messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
-			generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+		} 
+		else if(!messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+			if(isPharmanetMode) {
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+			}else {
+				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+			}
+		}
+		else {
+			//do nothing
 		}
 	}
 
