@@ -27,7 +27,7 @@ public class FhirPayloadExtractor {
 
         // TODO we may need to check somewhere in the message to verify the base 64 encoding
         String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
-        logger.debug("{} - TransactionId: {},The decode HL7 message is:{} {}", methodName, exchange.getIn().getMessageId(),System.lineSeparator(),extractedMessage);
+        logger.debug("{} - TransactionId: {},{}", methodName, exchange.getIn().getMessageId(), "Message extracted successfully");
         
         return extractedMessage;
     }    

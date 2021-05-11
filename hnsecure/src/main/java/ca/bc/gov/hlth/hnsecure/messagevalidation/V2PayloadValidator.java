@@ -223,7 +223,7 @@ public class V2PayloadValidator {
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, Facility: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
@@ -241,7 +241,7 @@ public class V2PayloadValidator {
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, Facility: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());

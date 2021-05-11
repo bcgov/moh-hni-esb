@@ -31,7 +31,7 @@ public final class FHIRJsonUtil {
 	 * @param hl7 - the hl7v2 message
 	 * @return JSONObject
 	 */
-	
+	//TODO: This method is not being called. Do we need it?
 	public static JSONObject createFHIRJsonObj(final String hl7) {
 		String methodName = "createFHIRJsonObj";
 		// if the content of HL7 message is null/empty, return null;
@@ -56,7 +56,7 @@ public final class FHIRJsonUtil {
 		v2JsonObj.put(FHIR_JSONMESSAGE_RESOURCETYPE, "DocumentReference");
 		v2JsonObj.put(FHIR_JSONMESSAGE_STATUS, "current");
 		v2JsonObj.put(FHIR_JSONMESSAGE_CONTENT, contentArray);
-		logger.debug("{} - TransactionId: {}, The JSON Message is:", methodName, v2JsonObj.toJSONString());
+		logger.debug("{} - The JSON Message is: {}", methodName, v2JsonObj.toJSONString());
 
 		return v2JsonObj; 
 		
