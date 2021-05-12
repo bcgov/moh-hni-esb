@@ -42,26 +42,6 @@ public class CustomWebSecurityConfigurerAdapter extends WebSecurityConfigurerAda
         http.addFilterAfter(new CustomFilter(), BasicAuthenticationFilter.class);
     }
     
-//    @Override
-//    protected void configure(HttpSecurity httpSecurity) throws Exception
-//    {
-//        httpSecurity
-//                .csrf().disable()
-//                .authorizeRequests().anyRequest().authenticated()
-//                .and()
-//                .httpBasic();
-//    }
-//
-//    @Autowired
-//    public void configureGlobal(AuthenticationManagerBuilder auth)
-//            throws Exception
-//    {
-//        auth.inMemoryAuthentication()
-//                .withUser("adminuser")
-//                .password("{noop}adminpassword")
-//                .roles("USER");
-//    }
-    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
