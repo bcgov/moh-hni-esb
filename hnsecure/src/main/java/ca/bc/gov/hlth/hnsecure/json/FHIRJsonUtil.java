@@ -31,7 +31,9 @@ public final class FHIRJsonUtil {
 	 * @param hl7 - the hl7v2 message
 	 * @return JSONObject
 	 */
-	//TODO: This method is not being called. Do we need it?
+	//TODO: REVIEWED - This method is not being called. Do we need it?
+	// REVIEW comment: This code is used in HNClient and next method is used in HNSecure
+	// These methods are good client for common code repository story
 	public static JSONObject createFHIRJsonObj(final String hl7) {
 		String methodName = "createFHIRJsonObj";
 		// if the content of HL7 message is null/empty, return null;

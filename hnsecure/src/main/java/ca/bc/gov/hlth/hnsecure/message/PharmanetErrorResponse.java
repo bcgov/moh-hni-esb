@@ -51,7 +51,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 * This method builds ZCB segment for Pharmanet Error response
 	 * @return ZCB segment to build pharmanet response
 	 */
-	/*TODO This message is building a constant string:  "ZCB|||\n".
+	/*REVIEW This message is building a constant string:  "ZCB|||\n".
 	 *We are expecting a custom message in future, thats why using StringBuilder here  
 	 */
 

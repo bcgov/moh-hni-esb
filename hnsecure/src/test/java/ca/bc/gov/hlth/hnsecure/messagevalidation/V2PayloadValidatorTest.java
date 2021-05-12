@@ -3,17 +3,10 @@ package ca.bc.gov.hlth.hnsecure.messagevalidation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.spi.PropertiesComponent;
-import org.apache.camel.support.DefaultExchange;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 

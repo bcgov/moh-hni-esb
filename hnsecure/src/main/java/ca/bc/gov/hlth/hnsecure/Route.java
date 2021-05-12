@@ -1,33 +1,40 @@
 package ca.bc.gov.hlth.hnsecure;
 
 
+import java.net.MalformedURLException;
 import java.util.Properties;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
+import ca.bc.gov.hlth.hnsecure.validation.ValidatePayLoad;
+import ca.bc.gov.hlth.hnsecure.validation.ValidateToken;
+import ca.bc.gov.hlth.hnsecure.validation.Validator;
+import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 
 public class Route extends RouteBuilder {
+	
+	private V2PayloadValidator v2PayloadValidator; 
+    private ValidateAccessToken validateAccessToken;
+    private Validator validator;
+    private static final Logger logger = LoggerFactory.getLogger(Route.class);
+	
 
     @Override
     public void configure() {
-    	injectProperties();
-    	//The purpose is to set custom unique id for logging
-    	getContext().setUuidGenerator(new TransactionIdGenerator());
+    	init();
 
-        V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
-        ValidateAccessToken validateAccessToken = new ValidateAccessToken();
-        
-        // TODO Exception class name is not inline with other exception. It is generic name as compared to ValidationFailedException 
-        onException(CustomHNSException.class)
+    	onException(CustomHNSException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
         
@@ -38,6 +45,7 @@ public class Route extends RouteBuilder {
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")
+            //.process(validator)
             .process(validateAccessToken).id("ValidateAccessToken")
             .setBody().method(new FhirPayloadExtractor())
             .log("Decoded V2: ${body}")            
@@ -74,6 +82,20 @@ public class Route extends RouteBuilder {
     }
 
     
+    /**
+     * This method performs the steps required before configuring the route
+     * 1. Set the transaction id generator for messages
+     * 2. Load application properties
+     * 3. Initializes the validator classes
+     */
+    private void init() {
+    	//The purpose is to set custom unique id for logging
+    	getContext().setUuidGenerator(new TransactionIdGenerator());
+    	injectProperties();
+    	loadValidator();
+    	
+    }
+    
 	/**
      * This method injects application properties set in the context to ApplicationProperties class
      * This helps in using the properties across the application without extending classes as RouteBuilder.
@@ -84,6 +106,22 @@ public class Route extends RouteBuilder {
     	ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
     	applicationProperties.injectProperties(properties);
 
+    }
+    
+	/**
+     * This method initializes the Validators. 
+     * It is done in this method to handle exceptions.
+     */
+    public void loadValidator() {
+    	v2PayloadValidator = new V2PayloadValidator();
+    	try {
+    		validateAccessToken = new ValidateAccessToken();
+    	} catch(MalformedURLException t) {
+    		logger.error("Error in starting server: ", t);
+    		System.exit(0);
+    	}
+    	//validator = new ValidateToken(new ValidatePayLoad(new ValidatorImpl()));
+    			
     }
 
 }

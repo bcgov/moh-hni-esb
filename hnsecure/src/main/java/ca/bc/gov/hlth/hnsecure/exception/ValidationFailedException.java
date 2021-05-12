@@ -1,4 +1,4 @@
-package ca.bc.gov.hlth.hnsecure.message;
+package ca.bc.gov.hlth.hnsecure.exception;
 
 public class ValidationFailedException extends Exception {
 
