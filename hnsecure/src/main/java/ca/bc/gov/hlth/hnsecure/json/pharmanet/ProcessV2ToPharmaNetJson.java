@@ -1,10 +1,10 @@
-package ca.bc.gov.hlth.hnscommon.json;
+package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
 import java.util.UUID;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +16,9 @@ public class ProcessV2ToPharmaNetJson implements Processor {
 
 		Object exchangeBody = exchange.getIn().getBody();
 
-		// TODO it should be impossible for the body to be empty here (the handshake server or base64 encoder should catch that)
-		// if we keep this, then we should throw an exception that causes an HL7Error_Msg_NoInputHL7 response if it is empty
-		if (exchangeBody == null || StringUtils.isBlank(exchangeBody.toString())) {
+		// It should be impossible for the body to be empty here (the handshake server or base64 encoder should catch that) but handle it just in case
+		if (exchangeBody == null || StringUtil.isBlank(exchangeBody.toString())) {
+			// TODO (dbarrett) change to throw an exception that causes an HL7Error_Msg_NoInputHL7 response if it is empty. ca.bc.gov.hlth.hnclientv2.error.NoInputHL7Exception can be used when it is moved to common code project
 			throw new IllegalArgumentException("v2Message can't be null or empty");
 		} else {
 			String message = exchangeBody.toString();							

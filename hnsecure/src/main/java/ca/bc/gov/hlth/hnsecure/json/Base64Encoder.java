@@ -1,12 +1,12 @@
 /**
  *
  */
-package ca.bc.gov.hlth.hnscommon.json;
+package ca.bc.gov.hlth.hnsecure.json;
 
 import java.util.Base64;
 
 import org.apache.camel.Handler;
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +24,7 @@ public class Base64Encoder {
 
         // TODO it should be impossible for the body to be empty here (the handshake server should catch that)
         // if we keep this we should throw an exception that causes an HL7Error_Msg_NoInputHL7 response if it is
-        if (StringUtils.isBlank(v2Message)) {
+        if (StringUtil.isBlank(v2Message)) {
             throw new IllegalArgumentException("v2Message can't be null or empty");
         } else {
             return new String(Base64.getEncoder().encode(v2Message.getBytes()));

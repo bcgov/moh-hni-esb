@@ -1,6 +1,6 @@
-package ca.bc.gov.hlth.hnscommon.json;
+package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,12 +21,14 @@ public class PharmaNetJsonUtil {
 		}
 	 * hl7Message value is a Base64 formatted hl7 message. The content-type is 'application/json'.
 	 * 
+	 * @param transactionUUID the value of the Transaction UUID associated with this message transfer
 	 * @param hl7Message the HL7 message to be set as the hl7Message value
-	 * @return a {@link JSONObject} containing the provided HL7 message or null if the HL7 Message was empty
+	 * 
+	 * @return a {@link JSONObject} containing the provided Transaction UUID and HL7 message or null if the HL7 Message was empty
 	 */
 	public static JSONObject createJsonObjectPharmanet(final String transactionUUID, final String hl7Message) {
 
-		if (StringUtils.isBlank(hl7Message)) {
+		if (StringUtil.isBlank(hl7Message)) {
 			return null;
 		}
 

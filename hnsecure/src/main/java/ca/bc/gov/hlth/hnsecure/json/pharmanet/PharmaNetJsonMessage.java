@@ -1,7 +1,7 @@
-package ca.bc.gov.hlth.hnscommon.json;
+package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
 /**
- *	Represents the PhamraNet message as a java object
+ *	Represents the JSON PhamraNet message as a java object
  *
  *	@author dave.p.barrett
  *

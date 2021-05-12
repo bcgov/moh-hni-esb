@@ -33,15 +33,9 @@
     <!-- lets use the minimal camel-core -->
     <dependency>
       <groupId>org.apache.camel</groupId>
-      <artifactId>camel-core</artifactId>
+      <artifactId>camel-core-engine</artifactId>
     </dependency>
 
- 	<dependency>
-        <groupId>org.apache.camel</groupId>
-        <artifactId>camel-stream</artifactId>
-        <version>2.15.1</version>
-    </dependency>
-        
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-main</artifactId>
@@ -89,12 +83,6 @@
       <artifactId>camel-http</artifactId>
     </dependency>
 
-    <dependency>
-	  <groupId>ca.bc.gov.hlth</groupId>
-	  <artifactId>hns-common</artifactId>
-	  <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    
   </dependencies>
 
   <build>

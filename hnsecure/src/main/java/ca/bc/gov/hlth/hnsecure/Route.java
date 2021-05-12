@@ -14,10 +14,10 @@ import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
-import ca.bc.gov.hlth.hnscommon.json.Base64Encoder;
-import ca.bc.gov.hlth.hnscommon.json.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
+import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
+import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
@@ -54,14 +54,11 @@ public class Route extends RouteBuilder {
 	@PropertyInject(value = "pharmanet.cert")
     private String pharmanetCert;
     
-    @PropertyInject(value = "pharmanet.cert.password")
-    private String 	pharmanetCertPassword;
+    private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
-	@PropertyInject(value = "pharmanet.user")
-    private String pharmanetUser;
-    
-	@PropertyInject(value = "pharmanet.password")
-    private String pharmanetPassword;    
+    private static final String pharmanetUser = System.getenv("PHARMANET_USER");
+
+    private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
     public Route() {
     }
@@ -89,6 +86,10 @@ public class Route extends RouteBuilder {
                 .handled(true)
                 .id("ValidationException");
         
+        log.info("Pharmanet Cert Password: " + pharmanetCertPassword);
+        log.info("Pharmanet User: " + pharmanetUser);
+        log.info("Pharmanet Password: " + pharmanetPassword);
+
         setupSSLConextPharmanetRegistry(getContext());
         String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#ssl&authMethod=Basic&authUsername=%s&authPassword=%s", pharmanetUser, pharmanetPassword);
         String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);

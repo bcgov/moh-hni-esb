@@ -5,8 +5,8 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnscommon.json.PharmaNetJsonMessage;
-import ca.bc.gov.hlth.hnscommon.json.PharmaNetJsonUtil;
+import ca.bc.gov.hlth.hnsecure.json.pharmanet.PharmaNetJsonMessage;
+import ca.bc.gov.hlth.hnsecure.json.pharmanet.PharmaNetJsonUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
