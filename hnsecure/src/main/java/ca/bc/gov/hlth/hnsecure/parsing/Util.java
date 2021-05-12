@@ -1,7 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -45,7 +44,7 @@ public final class Util {
 	 * 
 	 * @param stringToDecode
 	 * @return 64Encoding String
-	 * @throws UnsupportedEncodingException
+	 * @throws IllegalArgumentException
 	 */
 	public static String decodeBase64(String stringToDecode) {
 		if (stringToDecode == null || stringToDecode.isEmpty()) {

@@ -15,12 +15,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import net.minidev.json.JSONObject;
