@@ -6,6 +6,12 @@ import org.slf4j.LoggerFactory;
 
 import net.minidev.json.JSONObject;
 
+/**
+ * Utilities to convert to and from JSON Object
+ * 
+ * @author dave.p.barrett
+ *
+ */
 public class PharmaNetJsonUtil {
 
 	private static final Logger logger = LoggerFactory.getLogger(PharmaNetJsonUtil.class);
@@ -40,6 +46,13 @@ public class PharmaNetJsonUtil {
 		return jsonObj;		
 	}	
 	
+	/**
+	 * Extracts the fields from a JSON object and populates a PharmaNetJsonMessage
+	 * 
+	 * @param json the JSON Object to extract the data from
+	 * 
+	 * @return the PharmaNetJsonMessage populated with the JSON object data
+	 */
 	public static PharmaNetJsonMessage parseJsonToPharmanetMsg(JSONObject json) {
 		
 		if (json == null) {

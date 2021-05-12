@@ -8,10 +8,23 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Camel Processor to set the exchange body with json for PharmaNet
+ * 
+ * @author dave.p.barrett
+ *
+ */
 public class ProcessV2ToPharmaNetJson implements Processor {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ProcessV2ToPharmaNetJson.class);
 	
+	/**
+	 * Processes the message exchange by setting the exchange body with json for PharmaNet using the incoming exchange body and generating a UUID
+	 * 
+     * @param exchange the message exchange
+     * @throws Exception if an internal processing error has occurred.
+	 */
+	@Override
 	public void process(Exchange exchange) throws Exception {
 
 		Object exchangeBody = exchange.getIn().getBody();
