@@ -1,26 +1,38 @@
 package ca.bc.gov.hlth.hnsecure.authorization;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+
 
 public class AuthorizationProperties {
-
+//TODO: This class will be removed with Application properties
+//TODO: Methhod will be moved to Util class
     private final Set<String> audiences;
     private final Set<String> authorizedParties;
     private final Set<String> scopes;
     private final Set<String> validV2MessageTypes;
     private final String issuer;
     private final String processingDomain;
+    private final String version;
     private final Set<String> validReceivingFacility;
 
     public AuthorizationProperties(String audiences, String authorizedParties, String scopes, String validV2MessageTypes,
-                                   String issuer, String validReceivingFacility,String processingDomain) {
-        this.audiences = getPropertyAsSet(audiences);
+                                   String issuer, String validReceivingFacility,String processingDomain, String version) {
+        this.audiences = null;
+		//this.audiences = getPropertyAsSet(audiences);
         this.authorizedParties = getPropertyAsSet(authorizedParties);
         this.scopes = getPropertyAsSet(scopes);
         this.validV2MessageTypes = getPropertyAsSet(validV2MessageTypes);
         this.issuer = issuer;
         this.validReceivingFacility = getPropertyAsSet(validReceivingFacility);
         this.processingDomain = processingDomain;
+        this.version = version;
     }
 
     /**
@@ -48,7 +60,9 @@ public class AuthorizationProperties {
     }
 
     public Set<String> getAudiences() {
-        return audiences;
+        //return audiences;
+    	String audience = ApplicationProperties.getInstance().getValue(ApplicationProperty.AUDIENCE);
+    	return getPropertyAsSet(audience);
     }
 
     public Set<String> getAuthorizedParties() {
@@ -71,5 +85,9 @@ public class AuthorizationProperties {
 
 	public String getProcessingDomain() {
 		return processingDomain;
+	}
+
+	public String getVersion() {
+		return version;
 	}
 }

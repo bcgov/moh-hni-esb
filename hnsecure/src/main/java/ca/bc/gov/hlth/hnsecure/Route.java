@@ -2,6 +2,7 @@ package ca.bc.gov.hlth.hnsecure;
 
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.Properties;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -14,38 +15,23 @@ import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
-import ca.bc.gov.hlth.hnsecure.authorization.AuthorizationProperties;
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class Route extends RouteBuilder {
 
     private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
-    
-	@PropertyInject(value = "audience")
-    private String audiences;
-    @PropertyInject(value = "authorized-parties")
-    private String authorizedParties;
-    @PropertyInject(value = "scopes")
-    private String scopes;
-    @PropertyInject(value = "issuer")
-    private String issuer;
-    @PropertyInject(value = "valid-v2-message-types")
-    private String validV2MessageTypes;
-    @PropertyInject(value = "certs-endpoint")
-    private String certsEndpoint;
-    @PropertyInject(value = "valid-receiving-facility")
-    private String validReceivingFacility;
-    @PropertyInject(value = "processing-domain")
-    private String processingDomain;
     
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
@@ -63,19 +49,19 @@ public class Route extends RouteBuilder {
     public Route() {
     }
 
-    // PropertyInject doesn't seem to work in the unit tests, allows creation of the route setting this value
-    public Route(String validV2MessageTypes, String validReceivingFacility, String processingDomain) {
-        this.validV2MessageTypes = validV2MessageTypes;
-        this.validReceivingFacility = validReceivingFacility;
-        this.processingDomain = processingDomain;
-    }
-
     @Override
     public void configure() throws Exception {
-        AuthorizationProperties authProperties = new AuthorizationProperties(audiences, authorizedParties, scopes, validV2MessageTypes, issuer, validReceivingFacility,processingDomain);
-        //TODO just pass auth properties into the method
-        V2PayloadValidator v2PayloadValidator = new V2PayloadValidator(authProperties);
-        ValidateAccessToken validateAccessToken = new ValidateAccessToken(authProperties, certsEndpoint);
+    	injectProperties();
+    	//The purpose is to set custom unique id for logging
+    	getContext().setUuidGenerator(new TransactionIdGenerator());
+
+        V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
+        ValidateAccessToken validateAccessToken = new ValidateAccessToken();
+        
+        // TODO Exception class name is not inline with other exception. It is generic name as compared to ValidationFailedException 
+        onException(CustomHNSException.class)
+        	.process(new ExceptionHandler())
+        	.handled(true);
         
     	onException(org.apache.http.conn.HttpHostConnectException.class)
 		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
@@ -100,7 +86,8 @@ public class Route extends RouteBuilder {
             .process(validateAccessToken).id("ValidateAccessToken")
             .setBody().method(new FhirPayloadExtractor())
             .log("Decoded V2: ${body}")            
-            .bean(V2PayloadValidator.class).id("V2PayloadValidator")
+            // TODO if Payload validator is called beforeFhirPayloadExtractor(), no need of separate validator in validateAccessToken 
+            .bean(v2PayloadValidator).id("V2PayloadValidator")
             //set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
@@ -173,4 +160,17 @@ public class Route extends RouteBuilder {
         registry.bind("ssl", sslContextParameters);
         registry.bind("ssl2", new SSLContextParameters()); //If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this. 
 	}
+    
+	/**
+     * This method injects application properties set in the context to ApplicationProperties class
+     * This helps in using the properties across the application without extending classes as RouteBuilder.
+     * Sample test code to use application properties: RouteTest.testApplicationPropertiesLoader()
+     */
+    public void injectProperties() {
+    	Properties properties  = getContext().getPropertiesComponent().loadProperties();
+    	ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
+    	applicationProperties.injectProperties(properties);
+
+    }
+
 }

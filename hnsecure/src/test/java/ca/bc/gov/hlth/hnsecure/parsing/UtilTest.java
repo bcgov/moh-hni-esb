@@ -5,9 +5,7 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import java.io.UnsupportedEncodingException;
 
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import org.junit.Test;
 
 /**
