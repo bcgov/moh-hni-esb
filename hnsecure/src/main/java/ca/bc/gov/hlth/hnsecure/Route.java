@@ -110,7 +110,7 @@ public class Route extends RouteBuilder {
     
 	/**
      * This method initializes the Validators. 
-     * It is done in this method to handle exceptions.
+     * If there was an error in intializing jwt processor, HNSecure server will not start
      */
     public void loadValidator() {
     	v2PayloadValidator = new V2PayloadValidator();
@@ -120,7 +120,7 @@ public class Route extends RouteBuilder {
     		logger.error("Error in starting server: ", t);
     		System.exit(0);
     	}
-    	//validator = new ValidateToken(new ValidatePayLoad(new ValidatorImpl()));
+
     			
     }
 
