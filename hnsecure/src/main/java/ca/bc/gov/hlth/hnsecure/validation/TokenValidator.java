@@ -96,7 +96,7 @@ public class TokenValidator extends AbstractValidator {
 	 * @throws MalformedURLException 
 	 */
 	protected ConfigurableJWTProcessor<SecurityContext> initJwtProcessor() throws MalformedURLException {
-		String methodName = "initJwtProcessor";
+		String methodName = Util.getMethodName();
 		logger.info("{} - Loading JWT processor started.",methodName);
 		// Create a JWT processor for the access tokens
 		jwtProcessor = new DefaultJWTProcessor<>();

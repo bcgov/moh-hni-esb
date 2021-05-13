@@ -49,7 +49,8 @@ public class PayLoadValidator extends AbstractValidator {
 
 	@Override
 	public boolean validate(Exchange exchange) throws Exception {
-		logger.info("PayLoadValidator Validation started");
+		String methodName = Util.getMethodName();
+		logger.info("{} - PayLoadValidator Validation started",methodName);
 		HL7Message messageObj = new HL7Message();
 		String accessToken = (String) exchange.getIn().getHeader("Authorization"); 
 		// Validate v2Message format
@@ -64,7 +65,7 @@ public class PayLoadValidator extends AbstractValidator {
 		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
 		// To ensure validation in wrapper class is called.
 		validator.validate(exchange);
-		logger.info("PayLoadValidator Validation completed");
+		logger.info("{} - PayLoadValidator Validation completed",methodName);
 		return true;
 	}
 
@@ -234,7 +235,7 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		String methodName = "generateError";
+		String methodName = Util.getMethodName();
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
@@ -252,7 +253,7 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		String methodName = "generatePharmanetError";
+		String methodName = Util.getMethodName();
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
