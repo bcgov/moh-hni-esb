@@ -167,11 +167,10 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
         
     }
 
-
-    @Test  
+    // Validate that No exception is thrown 
+    @Test (expected = Test.None.class) 
     public void testValidMessage() throws ValidationFailedException {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
         v2PayloadValidator.validate(exchange, SamplesToSend.msgR03);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
     }
 }

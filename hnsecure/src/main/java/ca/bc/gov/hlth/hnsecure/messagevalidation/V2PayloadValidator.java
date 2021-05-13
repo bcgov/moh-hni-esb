@@ -50,10 +50,11 @@ public class V2PayloadValidator {
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 		validateReceivingApp(exchange, messageObj);
 		validateReceivingFacility(exchange, messageObj);
-		// TODO <REVIEW> Do we need to populate fields in validator? Should this be done after validation is complete?
-		populateOptionalField(messageObj);
-		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		// TODO  ADDRESSED Do we need to populate fields in validator? Should this be done after validation is complete?
+		// This call was required to populate fields for error response message. Updated method name to "populateFieldsForErrorResponse" and moved call to method that needs these fields  
+		validatePharmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
+		// Moved this call to PopulateHeader class to keep it all together
+		//exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 
 	}
 
@@ -66,10 +67,11 @@ public class V2PayloadValidator {
 	 * @param isPharmanetMode
 	 * @throws ValidationFailedException
 	 */
-	protected  void validatePhanrmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
+	protected  void validatePharmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
+				populateFieldsForErrorResponse(messageObj);
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
 			}
 		}
@@ -198,7 +200,7 @@ public class V2PayloadValidator {
 	 * Populate optional field from properties file if present
 	 * @param messageObj
 	 */
-	private void populateOptionalField(HL7Message messageObj) {
+	private void populateFieldsForErrorResponse(HL7Message messageObj) {
 
 		if (StringUtils.isEmpty(messageObj.getDateTime())) {
 			messageObj.setDateTime(Util.getGenericDateTime());
