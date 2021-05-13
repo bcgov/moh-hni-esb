@@ -49,7 +49,7 @@ public class ValidateAccessToken implements Processor {
 	
 	
 	public ValidateAccessToken() throws MalformedURLException  {
-		initJwtProcessor();
+		jwtProcessor = initJwtProcessor();
 	}
 
 	@Override
@@ -79,11 +79,11 @@ public class ValidateAccessToken implements Processor {
 	 * This token processor will validate the access token passed in the request 
 	 * @throws MalformedURLException 
 	 */
-	protected void initJwtProcessor() throws MalformedURLException {
+	protected ConfigurableJWTProcessor<SecurityContext> initJwtProcessor() throws MalformedURLException {
 		String methodName = "initJwtProcessor";
 		logger.info("{} - Loading JWT processor started.",methodName);
 		// Create a JWT processor for the access tokens
-		jwtProcessor = new DefaultJWTProcessor<>();
+		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
 		jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier<>(new JOSEObjectType(OBJECT_TYPE_JWT)));
 		
 		String certEndpoints = properties.getValue(CERTS_ENDPOINT);
@@ -127,6 +127,6 @@ public class ValidateAccessToken implements Processor {
 						)
 				);
 		logger.info("{} - Loading JWT processor completed.",methodName);
-
+		return jwtProcessor;
 	}
 }

@@ -37,8 +37,12 @@ public class PopulateReqHeader {
 		String msgType = Util.getMsgType(v2Message);
 		hm.put(RECEIVING_APP, recApp);
 		hm.put(MESSAGE_TYPE, msgType);
+		hm.put(Exchange.HTTP_RESPONSE_CODE, "200");
+
 		logger.info("{} - TransactionId: {}, The exchange id is : {}, The receiving application is : {},The transaction type is :{} ", 
 				methodName, exchange.getExchangeId(),
 				exchange.getIn().getMessageId(),  recApp , msgType);
 	}
+	
+	
 }
