@@ -28,8 +28,9 @@ public enum ErrorMessage {
 	//Pharmanet error message
 	HL7Error_Msg_TransactionFromatError("PNPA004E","Transaction format error detected"),
 	
-	// Custom error message. No sequence required
-	CustomError_Msg_InvalidAuthKey("", "No authorization key passed in request header.");
+	// Custom error message so custom sequence added
+	CustomError_Msg_InvalidAuthKey("001", "No authorization key passed in request header."),
+	CustomError_Msg_InvalidRequest("002", "Invalid request was submitted.");
 
 	private final String errorSequence;
 	private final String errorMessage;

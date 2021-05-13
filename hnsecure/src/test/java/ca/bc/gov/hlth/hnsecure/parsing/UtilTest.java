@@ -38,14 +38,19 @@ public class UtilTest {
 		Util.decodeBase64(invalidBase64Characters);
 	}
 
-	// TODO it might be better just to split this into two methods testing each method
 	@Test
-	public void testBothEncode_Decode64() {
-		String expectedValue = MSG_E45;
-		System.out.println(Util.encodeBase64(MSG_E45));
-		// When a message is encoded and then decoded
-		String	actualValue = Util.decodeBase64(Util.encodeBase64(MSG_E45));
-		// Expect the decoded message to match the original message
+	public void testEncode64() {
+		String input = "test string";
+		String expectedValue = "dGVzdCBzdHJpbmc=";
+		String actualValue = Util.encodeBase64(input); 
+		assertEquals(expectedValue, actualValue);
+	}
+	
+	@Test
+	public void testDecode64() {
+		String input = "dGVzdCBzdHJpbmc=";
+		String expectedValue = "test string";
+		String actualValue = Util.decodeBase64(input); 
 		assertEquals(expectedValue, actualValue);
 	}
 

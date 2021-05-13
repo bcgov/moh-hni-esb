@@ -3,7 +3,7 @@ package ca.bc.gov.hlth.hnsecure.messagevalidation;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidRequest;;
 
 /**
  * Custom ExceptionHandler added to verify access token in request
@@ -22,7 +22,7 @@ public class ExceptionHandler implements Processor {
 	public void process(Exchange exchange) throws Exception {
 
         exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 403);
-        exchange.getIn().setBody("{ \"error\": \""+CustomError_Msg_InvalidAuthKey.getErrorMessage()+"\" }");
+        exchange.getIn().setBody("{ \"error\": \""+CustomError_Msg_InvalidRequest+"\" }");
         return;
     
 		

@@ -17,16 +17,11 @@ import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
-import ca.bc.gov.hlth.hnsecure.validation.ValidatePayLoad;
-import ca.bc.gov.hlth.hnsecure.validation.ValidateToken;
-import ca.bc.gov.hlth.hnsecure.validation.Validator;
-import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 
 public class Route extends RouteBuilder {
 	
 	private V2PayloadValidator v2PayloadValidator; 
     private ValidateAccessToken validateAccessToken;
-    private Validator validator;
     private static final Logger logger = LoggerFactory.getLogger(Route.class);
 	
 
@@ -49,7 +44,8 @@ public class Route extends RouteBuilder {
             .process(validateAccessToken).id("ValidateAccessToken")
             .setBody().method(new FhirPayloadExtractor())
             .log("Decoded V2: ${body}")            
-            // TODO if Payload validator is called beforeFhirPayloadExtractor(), no need of separate validator in validateAccessToken 
+            // TODO ADDRESSED if Payload validator is called beforeFhirPayloadExtractor(), no need of separate validator in validateAccessToken
+            // Added new validator framework to consolidate validations. Currenlty in review.
             .bean(v2PayloadValidator).id("V2PayloadValidator")
             //set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
