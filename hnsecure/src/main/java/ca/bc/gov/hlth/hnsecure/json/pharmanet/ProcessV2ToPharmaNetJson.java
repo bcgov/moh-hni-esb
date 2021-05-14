@@ -29,6 +29,7 @@ public class ProcessV2ToPharmaNetJson {
 	 */
 	@Handler
 	public String processV2ToPharmaNetJson(Exchange exchange) throws Exception {
+		final String methodName = "processV2ToPharmaNetJson";
 
 		Object exchangeBody = exchange.getIn().getBody();
 
@@ -38,7 +39,7 @@ public class ProcessV2ToPharmaNetJson {
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();
-			logger.info(String.format("Transaction UUID: %s", transactionUUID));
+			logger.info("{} - Transaction UUID: {}", methodName, transactionUUID);
 			return PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString();
 		}
 	}

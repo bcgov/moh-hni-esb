@@ -1,5 +1,12 @@
 package ca.bc.gov.hlth.hnsecure.authorization;
 
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_PARTIES;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.ISSUER;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.SCOPES;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -29,19 +36,10 @@ import com.nimbusds.oauth2.sdk.token.AccessToken;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_PARTIES;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.ISSUER;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.SCOPES;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
-
-
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
 
 public class ValidateAccessToken implements Processor {
 
 	private static final Logger logger = LoggerFactory.getLogger(ValidateAccessToken.class);
-	private static final String AUTH_HEADER_KEY = "Authorization";
 	private static final String OBJECT_TYPE_JWT = "JWT";
 
 	private ApplicationProperties properties = ApplicationProperties.getInstance();
@@ -53,7 +51,7 @@ public class ValidateAccessToken implements Processor {
 		String methodName = "process";
 		
 		// If more validataion is required for exchange message, we should create a new bean
-		String authorizationKey = (String) exchange.getIn().getHeader(AUTH_HEADER_KEY);
+		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if(StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
 			throw new CustomHNSException(CustomError_Msg_InvalidAuthKey.getErrorMessage());

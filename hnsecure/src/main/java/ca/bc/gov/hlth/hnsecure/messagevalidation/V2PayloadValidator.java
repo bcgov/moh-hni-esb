@@ -1,5 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
@@ -42,7 +43,7 @@ public class V2PayloadValidator {
 	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
-		String accessToken = (String) exchange.getIn().getHeader("Authorization");
+		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		// Validate v2Message format
 		validateMessageFormat(exchange, v2Message, messageObj);
 		boolean isPharmanetMode = isPharmanet(messageObj);

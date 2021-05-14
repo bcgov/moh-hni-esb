@@ -30,6 +30,8 @@ public class PharmaNetPayloadExtractor implements Processor {
      */
 	@Override
 	public void process(Exchange exchange) throws Exception {
+		final String methodName = "process";
+		
 		Object body = exchange.getIn().getBody(String.class);
 		
         JSONObject pharmaNetJSON = (JSONObject) jsonParser.parse(body.toString());
@@ -37,7 +39,7 @@ public class PharmaNetPayloadExtractor implements Processor {
         PharmaNetJsonMessage encodedExtractedMessage = PharmaNetJsonUtil.parseJsonToPharmanetMsg(pharmaNetJSON); 
 
         String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getHl7Message());
-        logger.info("The decoded PharmaNet HL7 message response is:"+extractedMessage);
+        logger.info("{} - The decoded PharmaNet HL7 message response is: {}", methodName, extractedMessage);
         exchange.getIn().setBody(extractedMessage);
 	}    
 }

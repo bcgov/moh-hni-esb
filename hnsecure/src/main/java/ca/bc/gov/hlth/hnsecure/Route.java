@@ -1,5 +1,8 @@
 package ca.bc.gov.hlth.hnsecure;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static org.apache.camel.component.http.HttpMethods.POST;
+
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
@@ -31,8 +34,14 @@ import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class Route extends RouteBuilder {
 
-    private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
+	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
     
+    private static final String SSL_CONTEXT_PHARMANET = "ssl_context_pharmanet";
+
+	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
+
+	private static final String BASIC = "Basic ";
+
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
     private String pharmanetUri;
@@ -46,9 +55,6 @@ public class Route extends RouteBuilder {
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
-    public Route() {
-    }
-
     @Override
     public void configure() {
     	injectProperties();
@@ -73,7 +79,7 @@ public class Route extends RouteBuilder {
                 .id("ValidationException");
         
         setupSSLConextPharmanetRegistry(getContext());
-        String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#ssl&authMethod=Basic&authUsername=%s&authPassword=%s", pharmanetUser, pharmanetPassword);
+        String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
         String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
         log.info("Using pharmNetUrl: " + pharmNetUrl);
 
@@ -101,8 +107,8 @@ public class Route extends RouteBuilder {
 		            .log("Sending to Pharmanet")
 		            .removeHeader(Exchange.HTTP_URI) //clean this header as it has been set in the "from" section
 		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))		            
-		            .setHeader("CamelHttpMethod", constant("POST"))
-		            .setHeader("Authorization", simple(basicToken))
+		            .setHeader(CAMEL_HTTP_METHOD, POST)
+		            .setHeader(AUTHORIZATION, simple(basicToken))
 		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 		            .to(pharmNetUrl).id("ToPharmaNet")
 		            .log("Received response from Pharmanet")
@@ -131,7 +137,7 @@ public class Route extends RouteBuilder {
 		String usernamePassword = username + ":" + password;
 		Charset charSet = Charset.forName("UTF-8");
 		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(charSet)));
-		String basicToken = "Basic " + token;
+		String basicToken = BASIC + token;
 		return basicToken;
 	}
 
@@ -153,8 +159,8 @@ public class Route extends RouteBuilder {
         httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
 
         Registry registry = camelContext.getRegistry();
-        registry.bind("ssl", sslContextParameters);
-        registry.bind("ssl2", new SSLContextParameters()); //If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this. 
+        registry.bind(SSL_CONTEXT_PHARMANET, sslContextParameters);
+        registry.bind("ssl2", new SSLContextParameters()); //TODO (dbarrett) If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this for now. Can be removed when another endpoint is configured with it's context. 
 	}
     
 	/**

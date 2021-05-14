@@ -33,6 +33,7 @@ public class PharmaNetJsonUtil {
 	 * @return a {@link JSONObject} containing the provided Transaction UUID and HL7 message or null if the HL7 Message was empty
 	 */
 	public static JSONObject createJsonObjectPharmanet(final String transactionUUID, final String hl7Message) {
+		final String methodName = "createJsonObjectPharmanet";
 
 		if (StringUtil.isBlank(hl7Message)) {
 			return null;
@@ -41,7 +42,7 @@ public class PharmaNetJsonUtil {
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put(TRANSACTION_UUID, transactionUUID);
 		jsonObj.put(HL7_MESSAGE, hl7Message);
-		logger.debug("The JSON Message is:"+jsonObj.toJSONString());
+		logger.debug("{} - The JSON Message is: {}", methodName, jsonObj.toJSONString());
 
 		return jsonObj;		
 	}	

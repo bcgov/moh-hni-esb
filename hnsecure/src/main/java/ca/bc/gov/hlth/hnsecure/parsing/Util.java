@@ -25,6 +25,7 @@ public final class Util {
 	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
 	public final static String GENERIC_PATTERN = "yyyyMMddHHmmss Z";
 	public final static String LINE_BREAK = "\n";
+	public static final String AUTHORIZATION = "Authorization";
 
 	/**
 	 * return a Base64 encoding string
