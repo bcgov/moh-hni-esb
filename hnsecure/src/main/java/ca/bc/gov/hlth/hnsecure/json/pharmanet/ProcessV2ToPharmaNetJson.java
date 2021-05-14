@@ -1,10 +1,14 @@
 package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 /**
  * Class to set the exchange body with JSON for PharmaNet
@@ -30,8 +34,7 @@ public class ProcessV2ToPharmaNetJson {
 
 		// It should be impossible for the body to be empty here (the handshake server or base64 encoder should catch that) but handle it just in case
 		if (exchangeBody == null || StringUtil.isBlank(exchangeBody.toString())) {
-			// TODO (dbarrett) change to throw an exception that causes an HL7Error_Msg_NoInputHL7 response if it is empty. ca.bc.gov.hlth.hnclientv2.error.NoInputHL7Exception can be used when it is moved to common code project
-			throw new IllegalArgumentException("v2Message can't be null or empty");
+			throw new CustomHNSException(HL7Error_Msg_NoInputHL7.getErrorMessage());
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();

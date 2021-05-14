@@ -120,7 +120,7 @@ public final class Util {
 		for (String segment : v2DataLines_Pharmanet) {
 
 			if (segment.startsWith(segmentType)) {
-				String[] messageSegments = v2Message.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
+				String[] messageSegments = segment.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 				if (messageSegments[0].equalsIgnoreCase(segmentType)) {
 					return true;
 				}

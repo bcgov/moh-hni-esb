@@ -72,10 +72,6 @@ public class Route extends RouteBuilder {
                 .handled(true)
                 .id("ValidationException");
         
-        log.info("Pharmanet Cert Password: " + pharmanetCertPassword);
-        log.info("Pharmanet User: " + pharmanetUser);
-        log.info("Pharmanet Password: " + pharmanetPassword);
-
         setupSSLConextPharmanetRegistry(getContext());
         String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#ssl&authMethod=Basic&authUsername=%s&authPassword=%s", pharmanetUser, pharmanetPassword);
         String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
