@@ -50,7 +50,7 @@ public class Route extends RouteBuilder {
     }
 
     @Override
-    public void configure() throws Exception {
+    public void configure() {
     	injectProperties();
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
@@ -135,7 +135,7 @@ public class Route extends RouteBuilder {
 		return basicToken;
 	}
 
-	private void setupSSLConextPharmanetRegistry(CamelContext camelContext) throws Exception {
+	private void setupSSLConextPharmanetRegistry(CamelContext camelContext) {
 		KeyStoreParameters ksp = new KeyStoreParameters();
         ksp.setResource(pharmanetCert);
         ksp.setPassword(pharmanetCertPassword);
