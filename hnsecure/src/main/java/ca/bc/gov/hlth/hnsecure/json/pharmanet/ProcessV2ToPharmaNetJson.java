@@ -1,31 +1,30 @@
 package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
-import java.util.UUID;
-
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
+import org.apache.camel.Handler;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Camel Processor to set the exchange body with json for PharmaNet
+ * Class to set the exchange body with JSON for PharmaNet
  * 
  * @author dave.p.barrett
  *
  */
-public class ProcessV2ToPharmaNetJson implements Processor {
+public class ProcessV2ToPharmaNetJson {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ProcessV2ToPharmaNetJson.class);
 	
 	/**
-	 * Processes the message exchange by setting the exchange body with json for PharmaNet using the incoming exchange body and generating a UUID
+	 * Processes the message exchange by setting the exchange body with JSON for PharmaNet using the incoming exchange body and the exchange ID as the transaction UUID
 	 * 
      * @param exchange the message exchange
+	 * @return 
      * @throws Exception if an internal processing error has occurred.
 	 */
-	@Override
-	public void process(Exchange exchange) throws Exception {
+	@Handler
+	public String processV2ToPharmaNetJson(Exchange exchange) throws Exception {
 
 		Object exchangeBody = exchange.getIn().getBody();
 
@@ -35,9 +34,9 @@ public class ProcessV2ToPharmaNetJson implements Processor {
 			throw new IllegalArgumentException("v2Message can't be null or empty");
 		} else {
 			String message = exchangeBody.toString();							
-			String transactionUUID = UUID.randomUUID().toString();
+			String transactionUUID = exchange.getExchangeId();
 			logger.info(String.format("Transaction UUID: %s", transactionUUID));
-			exchange.getIn().setBody(PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString());
+			return PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString();
 		}
 	}
 	

@@ -99,9 +99,9 @@ public class Route extends RouteBuilder {
             	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
                 	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
             		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
-            		.setBody(body().regexReplaceAll("\r\n","\r").regexReplaceAll("moh_hnclient_dev", "MOH_HNCLIENT_DEV"))
+            		.setBody(body().regexReplaceAll("\r\n","\r"))
                     .setBody().method(new Base64Encoder())
-		            .process(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
+		            .setBody().method(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
 		            .log("Sending to Pharmanet")
 		            .removeHeader(Exchange.HTTP_URI) //clean this header as it has been set in the "from" section
 		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))		            
