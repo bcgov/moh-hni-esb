@@ -47,8 +47,9 @@ public class RouteTest extends CamelTestSupport {
 		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
-			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");
+			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");
 			a.weaveAddLast().to("mock:response");
 		});
 	}
@@ -97,8 +98,48 @@ public class RouteTest extends CamelTestSupport {
 		context.stop();
 	}
 	
-	
+	@Test
+	public void testValidationPNPError() throws Exception {
 
+		String expectedErrorMsg = "MSH|dd\\&|HNSecure|PP|PLEXIAPNP|moh_hnclient_dev|2020/11/26 21:52:53|ACK|ZPN|18|D|2.1\n" +
+				"MSA|AR|18|HNPS002E  Invalid MSH segment format|";		
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:validationExceptionResponse").expectedMessageCount(1);
+		getMockEndpoint("mock:validationExceptionResponse").expectedBodiesReceived(expectedErrorMsg);
+
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonErrorMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullPharmanetMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:pharmanet").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
 	/*
 	 * Properties are injected in @Before method.
 	 * Here, we are validating if correct values are loaded. 

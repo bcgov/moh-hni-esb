@@ -1,22 +1,60 @@
 package ca.bc.gov.hlth.hnsecure;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static org.apache.camel.component.http.HttpMethods.POST;
 
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.Properties;
 
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.http.HttpComponent;
+import org.apache.camel.spi.Registry;
+import org.apache.camel.support.jsse.KeyManagersParameters;
+import org.apache.camel.support.jsse.KeyStoreParameters;
+import org.apache.camel.support.jsse.SSLContextParameters;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
 import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
+import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class Route extends RouteBuilder {
 
+	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
+    
+    private static final String SSL_CONTEXT_PHARMANET = "ssl_context_pharmanet";
+
+	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
+
+	private static final String BASIC = "Basic ";
+
+    // PharmaNet Endpoint values
+	@PropertyInject(value = "pharmanet.uri")
+    private String pharmanetUri;
+
+	@PropertyInject(value = "pharmanet.cert")
+    private String pharmanetCert;
+    
+    private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
+    
+    private static final String pharmanetUser = System.getenv("PHARMANET_USER");
+
+    private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
+    
     @Override
     public void configure() {
     	injectProperties();
@@ -31,10 +69,19 @@ public class Route extends RouteBuilder {
         	.process(new ExceptionHandler())
         	.handled(true);
         
+    	onException(org.apache.http.conn.HttpHostConnectException.class)
+		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
+		.log("Failed to connect remote server");
+        
         onException(ValidationFailedException.class)
                 .log("Validation exception response: ${body}")
                 .handled(true)
                 .id("ValidationException");
+        
+        setupSSLConextPharmanetRegistry(getContext());
+        String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
+        String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
+        log.info("Using pharmNetUrl: " + pharmNetUrl);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")
@@ -51,10 +98,23 @@ public class Route extends RouteBuilder {
             //dispatch the message based on the receiving application code and message type
             .choice()
 	            //sending message to pharmaNet
-	            .when(simple("${in.header.receivingApp} == {{pharmanet-endpoint}}"))
-                    .log("The pharmaNet endpoint(${in.header.receivingApp}) is reached and message will be sent to PharmaNet webservices")
-                    .setBody(simple(SampleMessages.pnpResponseMessage))
-	            
+            	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
+                	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
+            		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
+            		.setBody(body().regexReplaceAll("\r\n","\r"))
+                    .setBody().method(new Base64Encoder())
+		            .setBody().method(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
+		            .log("Sending to Pharmanet")
+		            .removeHeader(Exchange.HTTP_URI) //clean this header as it has been set in the "from" section
+		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))		            
+		            .setHeader(CAMEL_HTTP_METHOD, POST)
+		            .setHeader(AUTHORIZATION, simple(basicToken))
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+		            .to(pharmNetUrl).id("ToPharmaNet")
+		            .log("Received response from Pharmanet")
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+		            .process(new PharmaNetPayloadExtractor())
+		            
 	            //sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
 	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
@@ -73,6 +133,35 @@ public class Route extends RouteBuilder {
 
     }
 
+	private String buildBasicToken(String username, String password) {
+		String usernamePassword = username + ":" + password;
+		Charset charSet = Charset.forName("UTF-8");
+		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(charSet)));
+		String basicToken = BASIC + token;
+		return basicToken;
+	}
+
+	private void setupSSLConextPharmanetRegistry(CamelContext camelContext) {
+		KeyStoreParameters ksp = new KeyStoreParameters();
+        ksp.setResource(pharmanetCert);
+        ksp.setPassword(pharmanetCertPassword);
+        ksp.setType(KEY_STORE_TYPE_PKCS12);
+
+        KeyManagersParameters kmp = new KeyManagersParameters();
+        kmp.setKeyStore(ksp);
+        kmp.setKeyPassword(pharmanetCertPassword);
+
+        SSLContextParameters sslContextParameters = new SSLContextParameters();
+        sslContextParameters.setKeyManagers(kmp);
+
+        HttpComponent httpComponent = camelContext.getComponent("https", HttpComponent.class);
+        //This is important to make your cert skip CN/Hostname checks
+        httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
+
+        Registry registry = camelContext.getRegistry();
+        registry.bind(SSL_CONTEXT_PHARMANET, sslContextParameters);
+        registry.bind("ssl2", new SSLContextParameters()); //TODO (dbarrett) If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this for now. Can be removed when another endpoint is configured with it's context. 
+	}
     
 	/**
      * This method injects application properties set in the context to ApplicationProperties class

@@ -1,9 +1,11 @@
 .idea/*
 *.iml
 *.class
-hnsecure/target/
-hnsecure/.idea/*
-hnsecure/.settings
-hnsecure/bin/
-hnsecure/.project
-.project
+*/target/
+*/.idea/*
+*.project
+*.classpath
+*/.settings/*
+*/bin/*
+*/keystore/*
+*/logs/*

@@ -1,5 +1,10 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -18,9 +23,6 @@ import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
@@ -41,7 +43,7 @@ public class V2PayloadValidator {
 	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
 
 		HL7Message messageObj = new HL7Message();
-		String accessToken = (String) exchange.getIn().getHeader("Authorization");
+		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		// Validate v2Message format
 		validateMessageFormat(exchange, v2Message, messageObj);
 		boolean isPharmanetMode = isPharmanet(messageObj);
@@ -132,7 +134,7 @@ public class V2PayloadValidator {
 		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 		} 
-		else if(!messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
 			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}else {
@@ -267,7 +269,11 @@ public class V2PayloadValidator {
 		return clientId;
 	}
 
-
+	private static Boolean validateReceivingApplication(String receivingApp) {
+		return MessageUtil.mTypeCollection.containsValue(receivingApp);
+		
+	}
+	
 	private static boolean sameChars(String firstStr, String secondStr) {
 		char[] first = firstStr.toCharArray();
 		char[] second = secondStr.toCharArray();
