@@ -30,7 +30,7 @@ public class PharmaNetPayloadExtractor implements Processor {
      */
 	@Override
 	public void process(Exchange exchange) throws Exception {
-		final String methodName = "process";
+		final String methodName = Util.getMethodName();
 		
 		Object body = exchange.getIn().getBody(String.class);
 		

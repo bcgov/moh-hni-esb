@@ -22,7 +22,7 @@ public class FhirPayloadExtractor {
     @Handler
     public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, UnsupportedEncodingException, CustomHNSException {
     	
-    	String methodName = "extractFhirPayload";
+    	String methodName = Util.getMethodName();
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property

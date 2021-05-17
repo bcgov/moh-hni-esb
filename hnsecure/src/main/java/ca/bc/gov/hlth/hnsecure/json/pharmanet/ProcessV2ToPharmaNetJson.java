@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 /**
  * Class to set the exchange body with JSON for PharmaNet
@@ -29,7 +30,7 @@ public class ProcessV2ToPharmaNetJson {
 	 */
 	@Handler
 	public String processV2ToPharmaNetJson(Exchange exchange) throws Exception {
-		final String methodName = "processV2ToPharmaNetJson";
+		final String methodName = Util.getMethodName();
 
 		Object exchangeBody = exchange.getIn().getBody();
 

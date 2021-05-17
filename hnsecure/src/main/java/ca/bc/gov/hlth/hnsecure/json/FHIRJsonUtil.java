@@ -4,6 +4,8 @@ import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
@@ -34,7 +36,7 @@ public final class FHIRJsonUtil {
 	// REVIEW comment: This code is used in HNClient and next method is used in HNSecure
 	// These methods are good client for common code repository story
 	public static JSONObject createFHIRJsonObj(final String hl7) {
-		String methodName = "createFHIRJsonObj";
+		final String methodName = Util.getMethodName();
 		// if the content of HL7 message is null/empty, return null;
 		if (hl7 == null || hl7.isEmpty()) {
 			return null;
