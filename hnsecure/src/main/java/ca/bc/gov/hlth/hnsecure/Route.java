@@ -8,20 +8,21 @@ import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
-import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
+import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
+import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
+import ca.bc.gov.hlth.hnsecure.validation.Validator;
+import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 
 public class Route extends RouteBuilder {
 	
-	private V2PayloadValidator v2PayloadValidator; 
-    private ValidateAccessToken validateAccessToken;
+    private Validator validator;
     private static final Logger logger = LoggerFactory.getLogger(Route.class);
 	
 
@@ -40,13 +41,10 @@ public class Route extends RouteBuilder {
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
             .log("HNSecure received a request")
-            //.process(validator)
-            .process(validateAccessToken).id("ValidateAccessToken")
-            .setBody().method(new FhirPayloadExtractor())
-            .log("Decoded V2: ${body}")            
-            // TODO ADDRESSED if Payload validator is called beforeFhirPayloadExtractor(), no need of separate validator in validateAccessToken
-            // Added new validator framework to consolidate validations. Currenlty in review.
-            .bean(v2PayloadValidator).id("V2PayloadValidator")
+	         // Extract the message using custom extractor and log 
+	         .setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
+	         // Validate the message
+	         .process(validator)
             //set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
@@ -106,18 +104,18 @@ public class Route extends RouteBuilder {
     
 	/**
      * This method initializes the Validators. 
-     * If there was an error in intializing jwt processor, HNSecure server will not start
+     * If there was an error in loading validators, HNSecure server will not start
+     * Currently only TokenValidator is throwing error. 
      */
     public void loadValidator() {
-    	v2PayloadValidator = new V2PayloadValidator();
     	try {
-    		validateAccessToken = new ValidateAccessToken();
-    	} catch(MalformedURLException t) {
-    		logger.error("Error in starting server: ", t);
-    		System.exit(0);
-    	}
-
-    			
+    		// This syntax will make sure validation is happening in the order of First Token validation then Payload validation then  ValidatorImpl
+			validator = new TokenValidator(new PayLoadValidator(new ValidatorImpl()));
+		} catch (MalformedURLException e) {
+			logger.error("Error in server startup: ", e);
+			logger.error("Stopping HNSecure Server. ");
+		}
+    	
     }
 
 }

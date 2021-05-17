@@ -16,4 +16,9 @@ public class CustomHNSException extends Exception {
 		super(msg);
 	}
 	
+	
+	public CustomHNSException(String msg, Throwable t) {
+		super(msg, t);
+	}
+	
 }
