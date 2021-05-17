@@ -36,7 +36,7 @@ public class PayLoadValidator extends AbstractValidator {
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
-	private ApplicationProperties properties = ApplicationProperties.getInstance();
+	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 	
 	private Validator validator;
 	

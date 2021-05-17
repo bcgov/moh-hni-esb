@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class ValidatorImpl implements Validator {
 	
-	Logger logger = LoggerFactory.getLogger(ValidatorImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ValidatorImpl.class);
 	
 	@Override
 	public void process(Exchange exchange) throws Exception {
