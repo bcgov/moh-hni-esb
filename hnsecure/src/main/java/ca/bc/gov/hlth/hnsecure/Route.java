@@ -3,6 +3,7 @@ package ca.bc.gov.hlth.hnsecure;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
@@ -17,22 +18,28 @@ import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.authorization.ValidateAccessToken;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
-import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
+import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
+import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
+import ca.bc.gov.hlth.hnsecure.validation.Validator;
+import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 
 public class Route extends RouteBuilder {
+	
+	private static final Logger logger = LoggerFactory.getLogger(Route.class);
 
 	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
     
@@ -55,17 +62,13 @@ public class Route extends RouteBuilder {
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
+    private Validator validator;
+    
     @Override
     public void configure() {
-    	injectProperties();
-    	//The purpose is to set custom unique id for logging
-    	getContext().setUuidGenerator(new TransactionIdGenerator());
+    	init();
 
-        V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
-        ValidateAccessToken validateAccessToken = new ValidateAccessToken();
-        
-        // TODO Exception class name is not inline with other exception. It is generic name as compared to ValidationFailedException 
-        onException(CustomHNSException.class)
+    	onException(CustomHNSException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
         
@@ -84,12 +87,11 @@ public class Route extends RouteBuilder {
         log.info("Using pharmNetUrl: " + pharmNetUrl);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
-            .log("HNSecure received a request")
-            .process(validateAccessToken).id("ValidateAccessToken")
-            .setBody().method(new FhirPayloadExtractor())
-            .log("Decoded V2: ${body}")            
-            // TODO if Payload validator is called beforeFhirPayloadExtractor(), no need of separate validator in validateAccessToken 
-            .bean(v2PayloadValidator).id("V2PayloadValidator")
+        	.log("HNSecure received a request")
+        	// Extract the message using custom extractor and log 
+        	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
+        	// Validate the message
+        	.process(validator).id("Validator")
             //set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
@@ -162,6 +164,20 @@ public class Route extends RouteBuilder {
         registry.bind(SSL_CONTEXT_PHARMANET, sslContextParameters);
         registry.bind("ssl2", new SSLContextParameters()); //TODO (dbarrett) If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this for now. Can be removed when another endpoint is configured with it's context. 
 	}
+	
+    /**
+     * This method performs the steps required before configuring the route
+     * 1. Set the transaction id generator for messages
+     * 2. Load application properties
+     * 3. Initializes the validator classes
+     */
+    private void init() {
+    	//The purpose is to set custom unique id for logging
+    	getContext().setUuidGenerator(new TransactionIdGenerator());
+    	injectProperties();
+    	loadValidator();
+    	
+    }
     
 	/**
      * This method injects application properties set in the context to ApplicationProperties class
@@ -174,5 +190,21 @@ public class Route extends RouteBuilder {
     	applicationProperties.injectProperties(properties);
 
     }
-
+    
+	/**
+     * This method initializes the Validators. 
+     * If there was an error in loading validators, HNSecure server will not start
+     * Currently only TokenValidator is throwing error. 
+     */
+    public void loadValidator() {
+    	try {
+    		// This syntax will make sure validation is happening in the order of First Token validation then Payload validation then  ValidatorImpl
+			validator = new TokenValidator(new PayLoadValidator(new ValidatorImpl()));
+		} catch (MalformedURLException e) {
+			logger.error("Error in server startup: ", e);
+			logger.error("Stopping HNSecure Server. ");
+			System.exit(0);
+		}
+    	
+    }
 }

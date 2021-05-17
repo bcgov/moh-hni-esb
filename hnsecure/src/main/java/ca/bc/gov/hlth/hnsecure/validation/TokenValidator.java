@@ -6,6 +6,7 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.ISSUER;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.SCOPES;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -47,7 +48,6 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
  */
 public class TokenValidator extends AbstractValidator {
 	private static final Logger logger = LoggerFactory.getLogger(TokenValidator.class);
-	private static final String AUTH_HEADER_KEY = "Authorization";
 	private static final String OBJECT_TYPE_JWT = "JWT";
 	private ApplicationProperties properties = ApplicationProperties.getInstance();
 	
@@ -70,7 +70,7 @@ public class TokenValidator extends AbstractValidator {
 		String methodName = Util.getMethodName();
 		
 		// If more validataion is required for exchange message, we should create a new bean
-		String authorizationKey = (String) exchange.getIn().getHeader(AUTH_HEADER_KEY);
+		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if(StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
 			throw new CustomHNSException(CustomError_Msg_InvalidAuthKey.getErrorMessage());

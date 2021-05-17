@@ -3,7 +3,7 @@ package ca.bc.gov.hlth.hnsecure.validation;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
-
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -52,7 +52,7 @@ public class PayLoadValidator extends AbstractValidator {
 		String methodName = Util.getMethodName();
 		logger.info("{} - PayLoadValidator Validation started",methodName);
 		HL7Message messageObj = new HL7Message();
-		String accessToken = (String) exchange.getIn().getHeader("Authorization"); 
+		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
 		String v2Message = (String) exchange.getIn().getBody();
 		validateMessageFormat(exchange, v2Message, messageObj);
@@ -146,7 +146,7 @@ public class PayLoadValidator extends AbstractValidator {
 		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 		} 
-		else if(!messageObj.getSendingFacility().equals(facilityNameFromAccessToken)) {
+		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
 			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}else {
