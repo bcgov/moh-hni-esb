@@ -1,62 +1,73 @@
-package ca.bc.gov.hlth.hnsecure.messagevalidation;
+package ca.bc.gov.hlth.hnsecure.validation;
 
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
-
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Handler;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
-public class V2PayloadValidator {
-
-	private static final Logger logger = LoggerFactory.getLogger(V2PayloadValidator.class);
+/**
+ * This validator validates the payload i.e. HL7 V2 message It performs different types of validations on the message. 
+ * For instance vlaidation message format, valdating contents of the message etc If the validation fails, it generates ValidationFailedException
+ * This class is using decorator pattern. So validate method also makes a call to validate method of wrapped class passed in constructor.    
+ * @author pankaj.kathuria
+ *
+ */
+public class PayLoadValidator extends AbstractValidator {
+	private static final Logger logger = LoggerFactory.getLogger(PayLoadValidator.class);
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
 	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
-	private ApplicationProperties properties = ApplicationProperties.getInstance();
+	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 	
-	/**
-	 *This method does generic validation and Pharmanet specific validation
-	 * @param v2Message the hl7v2 message to validate
-	 * @throws ValidationFailedException if a validation step fails
-	 */
-	@Handler
-	public void validate(Exchange exchange, String v2Message) throws ValidationFailedException {
+	private Validator validator;
+	
+	public PayLoadValidator(Validator validator) {
+		super();
+		this.validator = validator;
+	}
 
+
+
+	@Override
+	public boolean validate(Exchange exchange) throws Exception {
+		String methodName = Util.getMethodName();
+		logger.info("{} - PayLoadValidator Validation started",methodName);
 		HL7Message messageObj = new HL7Message();
-		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
+		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
+		String v2Message = (String) exchange.getIn().getBody();
 		validateMessageFormat(exchange, v2Message, messageObj);
 		boolean isPharmanetMode = isPharmanet(messageObj);
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 		validateReceivingApp(exchange, messageObj);
 		validateReceivingFacility(exchange, messageObj);
-		// TODO <REVIEW> Do we need to populate fields in validator? Should this be done after validation is complete?
-		populateOptionalField(messageObj);
 		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-
+		// To ensure validation in wrapper class is called.
+		validator.validate(exchange);
+		logger.info("{} - PayLoadValidator Validation completed",methodName);
+		return true;
 	}
 
+	
 	/**
 	 * Validates the format of Pharmanet message
 	 * checks if zcb segment is present
@@ -70,6 +81,7 @@ public class V2PayloadValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
+				populateFieldsForErrorResponse(messageObj);
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
 			}
 		}
@@ -198,7 +210,7 @@ public class V2PayloadValidator {
 	 * Populate optional field from properties file if present
 	 * @param messageObj
 	 */
-	private void populateOptionalField(HL7Message messageObj) {
+	private void populateFieldsForErrorResponse(HL7Message messageObj) {
 
 		if (StringUtils.isEmpty(messageObj.getDateTime())) {
 			messageObj.setDateTime(Util.getGenericDateTime());
@@ -221,7 +233,7 @@ public class V2PayloadValidator {
 	 */
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		String methodName = "generateError";
+		String methodName = Util.getMethodName();
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
@@ -239,7 +251,7 @@ public class V2PayloadValidator {
 	 */
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		String methodName = "generatePharmanetError";
+		String methodName = Util.getMethodName();
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
@@ -269,11 +281,7 @@ public class V2PayloadValidator {
 		return clientId;
 	}
 
-	private static Boolean validateReceivingApplication(String receivingApp) {
-		return MessageUtil.mTypeCollection.containsValue(receivingApp);
-		
-	}
-	
+
 	private static boolean sameChars(String firstStr, String secondStr) {
 		char[] first = firstStr.toCharArray();
 		char[] second = secondStr.toCharArray();
@@ -281,5 +289,4 @@ public class V2PayloadValidator {
 		Arrays.sort(second);
 		return Arrays.equals(first, second);
 	}
-
 }

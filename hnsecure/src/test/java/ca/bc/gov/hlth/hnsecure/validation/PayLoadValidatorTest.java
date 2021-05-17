@@ -1,33 +1,27 @@
-package ca.bc.gov.hlth.hnsecure.messagevalidation;
+package ca.bc.gov.hlth.hnsecure.validation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.spi.PropertiesComponent;
-import org.apache.camel.support.DefaultExchange;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ca.bc.gov.hlth.hnsecure.message.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 
-public class V2PayloadValidatorTest extends TestPropertiesLoader{
+public class PayLoadValidatorTest extends TestPropertiesLoader {
 
-    private V2PayloadValidator v2PayloadValidator = new V2PayloadValidator();
+    private PayLoadValidator v2PayloadValidator = new PayLoadValidator(new ValidatorImpl());
     
     
     @Test
     public void testHL7ErrorMsgInvalidHL7Format() {
     	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
-
+    	exchange.getIn().setBody(SamplesToSend.msgInvalidFormat);
         assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, SamplesToSend.msgInvalidFormat);
+            v2PayloadValidator.validate(exchange);
         });
 
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
@@ -38,9 +32,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
     @Test
     public void testHL7ErrorMsgInvalidHL7FormatMissingEncodingChar() throws ValidationFailedException {
     	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
-
+    	exchange.getIn().setBody(SamplesToSend.msgMissingEncodingChar);
         assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange,SamplesToSend.msgMissingEncodingChar );
+            v2PayloadValidator.validate(exchange );
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
@@ -50,9 +44,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
     @Test
     public void testHL7ErrorMsgNoInputHL7() throws ValidationFailedException {
     	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
-
+    	exchange.getIn().setBody(null);
         assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, null);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
@@ -62,9 +56,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
     @Test
     public void testHL7ErrorMsgMSHSegmentMissing() {
     	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
-
+    	exchange.getIn().setBody(SamplesToSend.msgInvalidMSH);
     	assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, SamplesToSend.msgInvalidMSH);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
@@ -80,9 +74,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
                 "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
                 "PID||0000053655^^^BC^PH\n";
     	String expectedResponse = "MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match.|";
-
+    	exchange.getIn().setBody(msgInput);
     	assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, msgInput);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
@@ -97,9 +91,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
                 "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
                 "PID||0000053655^^^BC^PH\n";
     	String expectedResponse = "MSA|AR|20191108083244|TXFR029E  Encryption protocols failed with remote facility.|";
-
+    	exchange.getIn().setBody(msgInput);
     	assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, msgInput);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
@@ -116,9 +110,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
         		"ZCB|BC000001AB|210405|000008\n"+
         		"ZCC||||||||||0009735391361|\r\n";
     	String expectedResponse = "ZZZ||1|||||TXFR029E  Encryption protocols failed with remote facility.||";
-
+    	exchange.getIn().setBody(msgInput);
     	assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, msgInput);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[3];
@@ -136,9 +130,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
         		"ZCC||||||||||0009735391361|\n";
         
     	String expectedResponse = "ZZZ||1|||||PNPA004E  Transaction format error detected||";
-
+    	exchange.getIn().setBody(msgInput);
     	assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, msgInput);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String response = ((String) exchange.getIn().getBody()).split("\n")[3];
@@ -158,9 +152,9 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
     	String expectedZCA ="ZCA|||50|||" ;
     	String expectedZCB ="ZCB|||" ; 
     	String expectedZZZ ="ZZZ||1|||||PNPA004E  Transaction format error detected||" ; 
-    			
+    	exchange.getIn().setBody(msgInput);		
     	assertThrows(ValidationFailedException.class, () -> {
-            v2PayloadValidator.validate(exchange, msgInput);
+            v2PayloadValidator.validate(exchange);
         });
         assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
         String zca = ((String) exchange.getIn().getBody()).split("\n")[1];
@@ -174,11 +168,15 @@ public class V2PayloadValidatorTest extends TestPropertiesLoader{
         
     }
 
-
+    // Validate no exception is thrown
     @Test  
-    public void testValidMessage() throws ValidationFailedException {
+    public void testValidMessage() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
-        v2PayloadValidator.validate(exchange, SamplesToSend.msgR03);
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	exchange.getIn().setBody(SamplesToSend.msgR03);
+    	try {
+    		v2PayloadValidator.validate(exchange);
+    	}catch(Exception e) {
+    		fail("Not expecting exception ");
+    	}
     }
 }

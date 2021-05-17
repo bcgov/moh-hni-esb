@@ -7,6 +7,7 @@ import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.json.FHIRJsonMessage;
 import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
 import net.minidev.json.JSONObject;
@@ -19,16 +20,22 @@ public class FhirPayloadExtractor {
     private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
     @Handler
-    public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, UnsupportedEncodingException {
+    public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, UnsupportedEncodingException, CustomHNSException {
     	
-    	String methodName = "extractFhirPayload";
+    	String methodName = Util.getMethodName();
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
 
-        // TODO we may need to check somewhere in the message to verify the base 64 encoding
-        String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
-
+        // Only way to verify if message is base64 encoded is to decode and check for no exception
+        // In case string is not Base 64, decoder throws IllegalArgumentException. Handled that exception.
+        String extractedMessage;
+        try{
+        	extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
+        }catch(IllegalArgumentException e) {
+        	logger.error("Exception while decoding message ", e);
+        	throw new CustomHNSException(e.getMessage());
+        }
         logger.debug("{} - TransactionId: {},{}", methodName, exchange.getIn().getMessageId(), "Message extracted successfully");
 		logger.debug("The decoded HL7 message is:"+extractedMessage);
         

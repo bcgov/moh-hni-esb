@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.apache.camel.Headers;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +31,19 @@ public class PopulateReqHeader {
 	 * @throws Exception
 	 */
 	@Handler
-	public void populateReqHeader(Exchange exchange, @Headers Map<String, String> hm, String v2Message)
+	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message)
 			throws Exception {
-		String methodName = "populateReqHeader";
+		final String methodName = Util.getMethodName();
 		String recApp = Util.getReceivingApp(v2Message);
 		String msgType = Util.getMsgType(v2Message);
 		hm.put(RECEIVING_APP, recApp);
 		hm.put(MESSAGE_TYPE, msgType);
+		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
+
 		logger.info("{} - TransactionId: {}, The exchange id is : {}, The receiving application is : {},The transaction type is :{} ", 
 				methodName, exchange.getExchangeId(),
 				exchange.getIn().getMessageId(),  recApp , msgType);
 	}
+	
+	
 }
