@@ -49,10 +49,11 @@ public class TokenValidator extends AbstractValidator {
 	private static final Logger logger = LoggerFactory.getLogger(TokenValidator.class);
 	private static final String AUTH_HEADER_KEY = "Authorization";
 	private static final String OBJECT_TYPE_JWT = "JWT";
+	private ApplicationProperties properties = ApplicationProperties.getInstance();
 	
 	private ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
-	private ApplicationProperties properties = ApplicationProperties.getInstance();
+	
 	private Validator validator;
 	
 	
@@ -66,7 +67,7 @@ public class TokenValidator extends AbstractValidator {
 	public boolean validate(Exchange exchange) throws Exception {
 		logger.info("TokenValidator validation started");
 
-		String methodName = "validate";
+		String methodName = Util.getMethodName();
 		
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTH_HEADER_KEY);
