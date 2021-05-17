@@ -47,7 +47,7 @@ public class RouteTest extends CamelTestSupport {
 		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:start");
-			a.weaveById("ValidateAccessToken").replace().to("mock:ValidateAccessToken");
+			//a.weaveById("Validator").replace().to("mock:TokenValidator");
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
 			a.weaveAddLast().to("mock:response");
 		});

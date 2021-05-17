@@ -44,7 +44,7 @@ public class Route extends RouteBuilder {
 	         // Extract the message using custom extractor and log 
 	         .setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
 	         // Validate the message
-	         .process(validator)
+	         .process(validator).id("Validator")
             //set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
@@ -114,6 +114,7 @@ public class Route extends RouteBuilder {
 		} catch (MalformedURLException e) {
 			logger.error("Error in server startup: ", e);
 			logger.error("Stopping HNSecure Server. ");
+			System.exit(0);
 		}
     	
     }

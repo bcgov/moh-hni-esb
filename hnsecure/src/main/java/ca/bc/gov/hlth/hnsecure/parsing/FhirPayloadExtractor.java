@@ -27,7 +27,6 @@ public class FhirPayloadExtractor {
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
 
-        // TODO ADDRESSED we may need to check somewhere in the message to verify the base 64 encoding
         // Only way to verify if message is base64 encoded is to decode and check for no exception
         // In case string is not Base 64, decoder throws IllegalArgumentException. Handled that exception.
         String extractedMessage;

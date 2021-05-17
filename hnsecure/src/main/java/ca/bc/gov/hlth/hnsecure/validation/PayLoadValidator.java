@@ -60,8 +60,6 @@ public class PayLoadValidator extends AbstractValidator {
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 		validateReceivingApp(exchange, messageObj);
 		validateReceivingFacility(exchange, messageObj);
-		// TODO ADDRESSED  Do we need to populate fields in validator? Should this be done after validation is complete?
-		// This was populating fields for generating error message. So renamed the method and moved the call of populating extra fields where error generation is happening 
 		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
 		// To ensure validation in wrapper class is called.
 		validator.validate(exchange);
