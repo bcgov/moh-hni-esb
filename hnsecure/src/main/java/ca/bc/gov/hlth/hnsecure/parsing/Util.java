@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
+
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
@@ -117,10 +117,7 @@ public final class Util {
 	}
 	
 	/**
-	 * returns the message type based on the HL7 message.
-	 * 
-	 * Note: the pharmaNet message with the message type ZPN
-	 * 
+	 * returns the message id based on the HL7 message.
 	 * @param hlMsg
 	 * @return
 	 */

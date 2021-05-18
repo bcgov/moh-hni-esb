@@ -27,19 +27,35 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 public class V2FileDrops {
 	
 	private static final Logger logger = LoggerFactory.getLogger(V2FileDrops.class);
-	public final static String DOUBLE_LINE_BREAK = "%n%n";
+	
+	public final static String REQUEST_FILE = "request.txt";
+	public final static String RESPONSE_FILE = "response.txt";
 	
 	@Handler
-	public void createFileDrops(Exchange exchange) {
-		String methodName = "createFileDrops";
+	public void createFileDrops(Exchange exchange) {		
 		String v2MsgRequest = exchange.getProperty("origInBody", String.class);
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
 		String fileName = buildFileName(v2MsgRequest,accessToken );
-	    Path p = Paths.get("./"+ fileName);
+	    writeRequest(exchange,fileName);
+	    writeResponse(exchange,fileName);
+	}
+
+	/**
+	 * writes v2 request message to file
+	 * @param exchange
+	 * @param fileName
+	 */
+	private void writeRequest(Exchange exchange, String fileName) {
+		String requestFileName = fileName+REQUEST_FILE;
+		Path p = Paths.get("./"+ requestFileName);
 
 	    try (OutputStream out = new BufferedOutputStream(
 	      Files.newOutputStream(p, CREATE))) {    	
-	        writeFile(exchange, methodName, fileName, out);
+	        //writeRequestFile(exchange, methodName, fileName, out);
+	    	PrintWriter printWriter = new PrintWriter(out);	
+			printWriter.printf(exchange.getProperty("origInBody", String.class));		
+			printWriter.close();
+			logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",Util.getMethodName(), exchange.getIn().getMessageId(), requestFileName);	        
 	    
 	    } catch (IOException ioe) {
 	      logger.error(ioe.getMessage());
@@ -47,37 +63,37 @@ public class V2FileDrops {
 	}
 
 	/**
+	 *writes v2 response message to file
 	 * @param exchange
-	 * @param methodName
 	 * @param fileName
-	 * @param out
 	 */
-	private void writeFile(Exchange exchange, String methodName, String fileName, OutputStream out) {
-		PrintWriter printWriter = new PrintWriter(out);
-		printWriter.printf("Transaction Id: %s", exchange.getIn().getMessageId());
-		printWriter.printf(DOUBLE_LINE_BREAK );
-		printWriter.printf("TimeStamp: %s", Util.getPharmanetDateTime());
-		printWriter.printf(DOUBLE_LINE_BREAK );
-		printWriter.printf("Request: %n%s", exchange.getProperty("origInBody", String.class));
-		printWriter.printf(DOUBLE_LINE_BREAK );;
-		printWriter.printf("Response: %n%s", exchange.getIn().getBody());
-		printWriter.close();
-		logger.info("{} - TransactionId: {}, Successfully created file drops: {}",methodName, exchange.getIn().getMessageId(), fileName);
-	}
+	private void writeResponse(Exchange exchange, String fileName) {
+		String responseFileName = fileName+RESPONSE_FILE;
+		
+		Path p = Paths.get("./"+ responseFileName);
 
+	    try (OutputStream out = new BufferedOutputStream(
+	      Files.newOutputStream(p, CREATE))) {    		        
+	    	PrintWriter printWriter = new PrintWriter(out);						
+			printWriter.print(exchange.getIn().getBody());
+			printWriter.close();
+			logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",Util.getMethodName(), exchange.getIn().getMessageId(), responseFileName);	        
+	    
+	    } catch (IOException ioe) {
+	      logger.error(ioe.getMessage());
+	    }
+	}
+	
 	/**
 	 * @param exchange
 	 * @return filename in the format {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
 	 */
-	public String buildFileName(String v2MsgRequest, String accessToken) {
-		
+	public String buildFileName(String v2MsgRequest, String accessToken) {		
 		String msgId = Util.getMsgId(v2MsgRequest);
-		String msgType = Util.getMsgType(v2MsgRequest);
-		
+		String msgType = Util.getMsgType(v2MsgRequest);		
 		String sendingFacility = Util.getSendingFacility(accessToken);
-		String dateTime = Util.getDateTime();
-		
-		String fileName = msgId+"-"+msgType+"-"+sendingFacility+"-"+dateTime+"-"+"request.txt";
+		String dateTime = Util.getDateTime();		
+		String fileName = msgId+"-"+msgType+"-"+sendingFacility+"-"+dateTime+"-";
 		return fileName;
 	}
 	

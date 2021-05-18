@@ -60,9 +60,9 @@ public abstract class ResponseSegment {
 		sb.append(messageObj.getFieldSeparator());
 
 		if (messageObj.getMessageType() == null || !messageObj.getMessageType().equals(Util.MESSAGE_TYPE_PNP))
-			sb.append(Optional.ofNullable(messageObj.getDateTime()).orElse(Util.getGenericDateTime()));
+			sb.append(Util.getGenericDateTime());
 		else
-			sb.append(Optional.ofNullable(messageObj.getDateTime()).orElse(Util.getPharmanetDateTime()));
+			sb.append(Util.getPharmanetDateTime());
 
 		sb.append(messageObj.getFieldSeparator());
 

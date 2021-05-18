@@ -22,8 +22,7 @@ public class V2FileDropsTest extends TestPropertiesLoader{
 		String[] sections = fileName.split("-");
 		assertEquals(sections[0],"20191108083244");
 		assertEquals(sections[1],"R03");
-		assertEquals(sections[2],"moh_hnclient_dev");
-		assertEquals(sections[4],"request.txt");	
+		assertEquals(sections[2],"moh_hnclient_dev");	
 	}
 	
 }
