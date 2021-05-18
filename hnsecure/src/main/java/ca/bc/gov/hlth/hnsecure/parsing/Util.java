@@ -12,8 +12,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class Util {
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.messagevalidation.V2PayloadValidator;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+
+public final class Util {
+	private static final Logger logger = LoggerFactory.getLogger(Util.class);
+	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 	public final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public final static String HL7_DELIMITER = "|";
 	public final static String R50_SPEC_CHAR = "^";
@@ -22,6 +31,7 @@ public final class Util {
 	public final static String MESSAGE_TYPE_PNP = "ZPN";
 	public final static String RECEIVING_APP_HNSECURE = "HNSECURE";
 	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
+	public final static String DATE_PATTERN = "yyyyMMddHHmmss";
 	public final static String GENERIC_PATTERN = "yyyyMMddHHmmss Z";
 	public final static String LINE_BREAK = "\n";
 	public static final String AUTHORIZATION = "Authorization";
@@ -105,6 +115,50 @@ public final class Util {
 		}
 		return msgType;
 	}
+	
+	/**
+	 * returns the message type based on the HL7 message.
+	 * 
+	 * Note: the pharmaNet message with the message type ZPN
+	 * 
+	 * @param hlMsg
+	 * @return
+	 */
+	public static String getMsgId(String hlMsg) {
+
+		String msgId = "";
+
+		if (hlMsg == null || hlMsg.isEmpty()) {
+			return msgId;
+		}
+
+		String[] hl7MessageAtt = hlMsg.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
+		if (hl7MessageAtt.length > 9) {
+			msgId = hl7MessageAtt[9];
+		}
+	
+		return msgId;
+	}
+	
+	/*
+	 * The FacilityId is the legacy way to track connected clients and is now set as
+	 * the ClientId of the client application In the access token this is the 'azp'
+	 * field
+	 */
+	public static String getSendingFacility(String auth) {
+		String clientId = "";
+		if (!StringUtils.isEmpty(auth)) {
+			String[] split = auth.split("\\.");
+			String decodeAuth = Util.decodeBase64(split[1]);
+			try {
+				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeAuth);
+				clientId = (String) jsonObject.get("azp");
+			} catch (net.minidev.json.parser.ParseException e) {
+				logger.error(e.getMessage());
+			}
+		}
+		return clientId;
+	}
 
 	/**
 	 * Checks if a segment is present in incoming HL7v2 message
@@ -129,6 +183,18 @@ public final class Util {
 		}
 		return false;
 	}
+	
+	/**
+	 * @return datetime in 'yyyymmddhhmmss' format for file drops
+	 */
+	public static String getDateTime() {
+	
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(DATE_PATTERN);
+
+		LocalDateTime now = LocalDateTime.now();
+		return dtf.format(now);
+	}
+
 
 	/**
 	 * @return datetime in 'yyyy/mm/dd_hh:mm:ss' format for Pharmanet response
