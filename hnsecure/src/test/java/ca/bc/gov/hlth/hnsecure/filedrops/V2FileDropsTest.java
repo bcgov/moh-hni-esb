@@ -1,11 +1,8 @@
 package ca.bc.gov.hlth.hnsecure.filedrops;
 
-import static org.junit.Assert.*;
-
-import java.io.BufferedOutputStream;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
 
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
