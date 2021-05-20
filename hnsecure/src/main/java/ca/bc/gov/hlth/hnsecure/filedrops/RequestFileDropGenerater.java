@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.filedrops;
 
 
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.FILE_DROPS_LOCATION;
 import static java.nio.file.StandardOpenOption.CREATE;
 
 import java.io.BufferedOutputStream;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 
 /**
  * This implementation logs each HL7v2 request/response message in a file in its raw/text form.
@@ -28,7 +30,8 @@ public class RequestFileDropGenerater {
 	
 private static final Logger logger = LoggerFactory.getLogger(RequestFileDropGenerater.class);
 	
-	public final static String REQUEST_FILE = "request.txt";
+	private static final String REQUEST_FILE = "request.txt";
+	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 	
 	
 	@Handler
@@ -37,7 +40,7 @@ private static final Logger logger = LoggerFactory.getLogger(RequestFileDropGene
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
 		String msgType = Util.getMsgType(v2MsgRequest);
 		String sendingFacility = Util.getSendingFacility(accessToken);
-		String fileName = Util.buildFileName(v2MsgRequest,sendingFacility,exchange.getIn().getMessageId(), msgType);
+		String fileName = Util.buildFileName(sendingFacility,exchange.getIn().getMessageId(), msgType);
 	    writeRequest(exchange,fileName);   
 	}
 
@@ -47,8 +50,9 @@ private static final Logger logger = LoggerFactory.getLogger(RequestFileDropGene
 	 * @param fileName
 	 */
 	private void writeRequest(Exchange exchange, String fileName) {
-		String requestFileName = fileName+REQUEST_FILE;
-		Path p = Paths.get("./"+ requestFileName);
+		String requestFileName = fileName+REQUEST_FILE;		
+		String fileLocation = properties.getValue(FILE_DROPS_LOCATION);
+		Path p = Paths.get(fileLocation + requestFileName);
 
 	    try (OutputStream out = new BufferedOutputStream(
 	      Files.newOutputStream(p, CREATE))) {    		       

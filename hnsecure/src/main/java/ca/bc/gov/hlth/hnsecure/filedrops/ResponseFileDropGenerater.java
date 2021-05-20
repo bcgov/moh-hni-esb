@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.filedrops;
 
 
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.FILE_DROPS_LOCATION;
 import static java.nio.file.StandardOpenOption.CREATE;
 
 import java.io.BufferedOutputStream;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 
 /**
  * This implementation logs each HL7v2 request/response message in a file in its raw/text form.
@@ -27,7 +29,8 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 public class ResponseFileDropGenerater {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ResponseFileDropGenerater.class);
-	public final static String RESPONSE_FILE = "response.txt";
+	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
+	public  static final String RESPONSE_FILE = "response.txt";
 	
 	@Handler
 	public void createFileDrops(Exchange exchange) {
@@ -51,7 +54,7 @@ public class ResponseFileDropGenerater {
 		 */
 		String corId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);		
 		
-		String fileName = Util.buildFileName(v2MsgRequest,sendingFacility,corId,msgType);	   
+		String fileName = Util.buildFileName(sendingFacility,corId,msgType);	   
 	    writeResponse(exchange,fileName);
 	}
 
@@ -63,8 +66,8 @@ public class ResponseFileDropGenerater {
 	 */
 	private void writeResponse(Exchange exchange, String fileName) {
 		String responseFileName = fileName+RESPONSE_FILE;
-		
-		Path p = Paths.get("./"+ responseFileName);
+		String fileLocation = properties.getValue(FILE_DROPS_LOCATION);
+		Path p = Paths.get(fileLocation+ responseFileName);
 
 	    try (OutputStream out = new BufferedOutputStream(
 	      Files.newOutputStream(p, CREATE))) {    		        
