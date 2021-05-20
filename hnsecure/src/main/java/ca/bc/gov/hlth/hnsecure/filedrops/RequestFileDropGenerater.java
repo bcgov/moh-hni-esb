@@ -24,18 +24,20 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
  * @author anumeha.srivastava
  *
  */
-public class V2FileDropsRequest {
+public class RequestFileDropGenerater {
 	
-private static final Logger logger = LoggerFactory.getLogger(V2FileDropsRequest.class);
+private static final Logger logger = LoggerFactory.getLogger(RequestFileDropGenerater.class);
 	
 	public final static String REQUEST_FILE = "request.txt";
-	public final static String RESPONSE_FILE = "response.txt";
+	
 	
 	@Handler
 	public void createFileDrops(Exchange exchange) {		
 		String v2MsgRequest = exchange.getIn().getBody().toString();		
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
-		String fileName = Util.buildFileName(v2MsgRequest,accessToken,exchange.getIn().getMessageId());
+		String msgType = Util.getMsgType(v2MsgRequest);
+		String sendingFacility = Util.getSendingFacility(accessToken);
+		String fileName = Util.buildFileName(v2MsgRequest,sendingFacility,exchange.getIn().getMessageId(), msgType);
 	    writeRequest(exchange,fileName);   
 	}
 

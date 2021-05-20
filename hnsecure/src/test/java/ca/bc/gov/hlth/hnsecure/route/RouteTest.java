@@ -45,13 +45,13 @@ public class RouteTest extends CamelTestSupport {
 		ApplicationProperties properties = ApplicationProperties.getInstance() ;
 		properties.injectProperties(pc.loadProperties());
 		
-		context.addRoutes(new Route());		
+		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
-			a.replaceFromWith("direct:tap");
+			a.replaceFromWith("direct:tap");		
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");	
-			a.weaveById("V2FileDrops").replace().to("mock:v2FileDrops");
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");				
+			a.weaveById("ResponseFileDropGenerater").replace().to("mock:V2FileDropsResponse");
 			a.weaveAddLast().to("mock:response");
 		});
 	}

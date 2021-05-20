@@ -11,6 +11,7 @@ import org.apache.camel.Headers;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 
@@ -24,6 +25,7 @@ public class PopulateReqHeader {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateReqHeader.class);
 	public static final String RECEIVING_APP = "receivingApp";
 	public static final String MESSAGE_TYPE = "messageType";
+	public static final String SENDING_FACILITY = "sendingFacility";
 
 	/**
 	 * This method is for parsing V2 message to set the HTTP headers.
@@ -39,8 +41,11 @@ public class PopulateReqHeader {
 		final String methodName = LoggingUtil.getMethodName();
 		String recApp = Util.getReceivingApp(v2Message);
 		String msgType = Util.getMsgType(v2Message);
+		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
+		String sendingFacility = Util.getSendingFacility(accessToken);
 		hm.put(RECEIVING_APP, recApp);
 		hm.put(MESSAGE_TYPE, msgType);
+		hm.put(SENDING_FACILITY, sendingFacility);
 		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 
 		logger.info("{} - TransactionId: {}, The exchange id is : {}, The receiving application is : {},The transaction type is :{} ", 
