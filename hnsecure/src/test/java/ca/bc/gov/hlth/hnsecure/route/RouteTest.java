@@ -6,7 +6,6 @@ import java.util.Map;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spi.PropertiesComponent;
@@ -28,7 +27,7 @@ public class RouteTest extends CamelTestSupport {
 		return true;
 	}
 
-	@Produce("direct:start")
+	@Produce("direct:tap")// Cannot have multiple consumers for same endpoint. "direct:start" is being used for filedrops wiretap
 	private ProducerTemplate mockRouteStart;
 
 	@EndpointInject("mock:response")
@@ -48,7 +47,7 @@ public class RouteTest extends CamelTestSupport {
 		
 		context.addRoutes(new Route());		
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
-			a.replaceFromWith("direct:start");
+			a.replaceFromWith("direct:tap");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
 			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");	
@@ -70,7 +69,7 @@ public class RouteTest extends CamelTestSupport {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		// trigger route execution by sending input to route
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsgLocal, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsgLocal, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -101,7 +100,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -149,7 +148,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.pnpJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
