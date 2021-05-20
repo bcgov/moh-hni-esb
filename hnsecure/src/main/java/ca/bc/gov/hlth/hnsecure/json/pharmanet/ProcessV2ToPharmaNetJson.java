@@ -8,8 +8,8 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 /**
  * Class to set the exchange body with JSON for PharmaNet
@@ -30,7 +30,7 @@ public class ProcessV2ToPharmaNetJson {
 	 */
 	@Handler
 	public String processV2ToPharmaNetJson(Exchange exchange) throws Exception {
-		final String methodName = Util.getMethodName();
+		final String methodName = LoggingUtil.getMethodName();
 
 		Object exchangeBody = exchange.getIn().getBody();
 

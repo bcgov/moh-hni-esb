@@ -97,6 +97,12 @@
 	    <version>${commons-lang3-version}</version>
 	</dependency>
     
+    <!-- hn common code -->
+	<dependency>
+	    <groupId>ca.bc.gov.hlth</groupId>
+	    <artifactId>hn-common</artifactId>
+	    <version>0.0.1-SNAPSHOT</version>
+	</dependency>    
 
   </dependencies>
 

@@ -3,9 +3,12 @@
  */
 package ca.bc.gov.hlth.hnsecure.parsing;
 
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.*;
+
 import org.junit.Test;
 
 /**
@@ -14,45 +17,6 @@ import org.junit.Test;
  *
  */
 public class UtilTest {
-
-	public static String invalidBase64Characters = "yk===klsdfklk";
-
-	@Test
-	public void testNullEncodeBase64() {
-		// When a null message is passed in
-		// Expect a null return
-		assertNull(Util.encodeBase64(null));
-	}
-
-	@Test
-	public void testNullDecodeBase64() {
-		// When a null message is passed in
-		// Expect a null return
-		assertNull(Util.decodeBase64(null));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testDecodeException() {
-		// When a message is not valid base 64
-		// Expect an exception
-		Util.decodeBase64(invalidBase64Characters);
-	}
-
-	@Test
-	public void testEncode64() {
-		String input = "test string";
-		String expectedValue = "dGVzdCBzdHJpbmc=";
-		String actualValue = Util.encodeBase64(input); 
-		assertEquals(expectedValue, actualValue);
-	}
-	
-	@Test
-	public void testDecode64() {
-		String input = "dGVzdCBzdHJpbmc=";
-		String expectedValue = "test string";
-		String actualValue = Util.decodeBase64(input); 
-		assertEquals(expectedValue, actualValue);
-	}
 
 	@Test
 	public void testGetReceivingAppE45() {

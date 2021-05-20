@@ -1,9 +1,10 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -13,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
@@ -49,7 +51,7 @@ public class PayLoadValidator extends AbstractValidator {
 
 	@Override
 	public boolean validate(Exchange exchange) throws Exception {
-		String methodName = Util.getMethodName();
+		String methodName = LoggingUtil.getMethodName();
 		logger.info("{} - PayLoadValidator Validation started",methodName);
 		HL7Message messageObj = new HL7Message();
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
@@ -233,7 +235,7 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		String methodName = Util.getMethodName();
+		String methodName = LoggingUtil.getMethodName();
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
@@ -251,7 +253,7 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
-		String methodName = Util.getMethodName();
+		String methodName = LoggingUtil.getMethodName();
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);

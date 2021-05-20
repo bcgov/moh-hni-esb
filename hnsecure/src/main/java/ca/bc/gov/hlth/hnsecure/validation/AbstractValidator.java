@@ -4,7 +4,8 @@ import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+
 
 /**
  * abstract class to validate 
@@ -19,9 +20,9 @@ public abstract class AbstractValidator implements Validator {
 
 	@Override
 	public void process(Exchange exchange) throws Exception {
-		logger.info("{} - AbstractValidator processing started",Util.getMethodName());
+		logger.info("{} - AbstractValidator processing started",LoggingUtil.getMethodName());
 		validate(exchange);
-		logger.info("{} - AbstractValidator processing completed",Util.getMethodName());
+		logger.info("{} - AbstractValidator processing completed",LoggingUtil.getMethodName());
 	}
 
 	
