@@ -10,7 +10,6 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 public final class Util {
@@ -178,19 +177,4 @@ public final class Util {
     }
     
     
-    /**
-     * This method uses StackWalker API to get the names of the current calling method 
-     * @return
-     */
-    public static String getMethodName() {
-    	StackWalker walker = StackWalker.getInstance();
-    	Optional<String> methodName = walker.walk(frames -> frames
-			.limit(2)
-			.skip(1) // to get name of caller
-			.findFirst()
-			.map(StackWalker.StackFrame::getMethodName)
-			);
-    	return methodName.orElse("Method name Unknnown");
-    }
-
 }

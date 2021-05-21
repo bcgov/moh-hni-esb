@@ -4,7 +4,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import net.minidev.json.JSONObject;
 
 /**
@@ -34,7 +34,7 @@ public class PharmaNetJsonUtil {
 	 * @return a {@link JSONObject} containing the provided Transaction UUID and HL7 message or null if the HL7 Message was empty
 	 */
 	public static JSONObject createJsonObjectPharmanet(final String transactionUUID, final String hl7Message) {
-		final String methodName = Util.getMethodName();
+		final String methodName = LoggingUtil.getMethodName();
 
 		if (StringUtil.isBlank(hl7Message)) {
 			return null;

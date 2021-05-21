@@ -12,6 +12,9 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+
+
 /**
  * @author Tony.Ma
  * @date Feb.3, 2021
@@ -33,7 +36,7 @@ public class PopulateReqHeader {
 	@Handler
 	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message)
 			throws Exception {
-		final String methodName = Util.getMethodName();
+		final String methodName = LoggingUtil.getMethodName();
 		String recApp = Util.getReceivingApp(v2Message);
 		String msgType = Util.getMsgType(v2Message);
 		hm.put(RECEIVING_APP, recApp);

@@ -7,9 +7,10 @@ import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.json.fhir.FHIRJsonMessage;
+import ca.bc.gov.hlth.hncommon.json.fhir.FHIRJsonUtil;
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import ca.bc.gov.hlth.hnsecure.json.FHIRJsonMessage;
-import ca.bc.gov.hlth.hnsecure.json.FHIRJsonUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -22,7 +23,7 @@ public class FhirPayloadExtractor {
     @Handler
     public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, UnsupportedEncodingException, CustomHNSException {
     	
-    	String methodName = Util.getMethodName();
+    	String methodName = LoggingUtil.getMethodName();
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property

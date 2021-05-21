@@ -5,6 +5,7 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.PharmaNetJsonMessage;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.PharmaNetJsonUtil;
 import net.minidev.json.JSONObject;
@@ -30,7 +31,7 @@ public class PharmaNetPayloadExtractor implements Processor {
      */
 	@Override
 	public void process(Exchange exchange) throws Exception {
-		final String methodName = Util.getMethodName();
+		final String methodName = LoggingUtil.getMethodName();
 		
 		Object body = exchange.getIn().getBody(String.class);
 		

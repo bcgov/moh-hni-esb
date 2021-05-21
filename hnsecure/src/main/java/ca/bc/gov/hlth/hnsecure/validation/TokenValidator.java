@@ -1,12 +1,12 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_PARTIES;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.ISSUER;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.SCOPES;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,6 +33,7 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.authorization.CustomJWTClaimsVerifier;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -67,7 +68,7 @@ public class TokenValidator extends AbstractValidator {
 	public boolean validate(Exchange exchange) throws Exception {
 		logger.info("TokenValidator validation started");
 
-		String methodName = Util.getMethodName();
+		String methodName = LoggingUtil.getMethodName();
 		
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
@@ -97,7 +98,7 @@ public class TokenValidator extends AbstractValidator {
 	 * @throws MalformedURLException 
 	 */
 	protected ConfigurableJWTProcessor<SecurityContext> initJwtProcessor() throws MalformedURLException {
-		String methodName = Util.getMethodName();
+		String methodName = LoggingUtil.getMethodName();
 		logger.info("{} - Loading JWT processor started.",methodName);
 		// Create a JWT processor for the access tokens
 		jwtProcessor = new DefaultJWTProcessor<>();
