@@ -17,10 +17,11 @@ import ca.bc.gov.hlth.hnsecure.Route;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
-import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 
 public class RouteTest extends CamelTestSupport {
 
+	private static final String WRAPPED_R03_RESPONSE = "{\"content\":[{\"attachment\":{\"data\":\"TVNIfF5+XCZ8UkFJR1QtUFJTTi1ETUdSfEJDMDAwMDIwNDF8SE5XZWJ8QkMwMTAwMDAzMHwyMDIwMDIwNjEyMzg0MXx0cmFpbjk2fFIwM3wxODE5OTI0fER8Mi40Xk0KTVNBfEFBfDIwMjAwMjA2MTIzODQwfEhKTUIwMDFJU1VDQ0VTU0ZVTExZIENPTVBMRVRFRF5NCkVSUnxeXl5ISk1CMDAxSSZTVUNDRVNTRlVMTFkgQ09NUExFVEVEXk0KUElEfHwxMjM0NTY3ODleXl5CQ15QSF5NT0h8fHx8fDE5ODQwMjI1fE1eTQpaSUF8fHx8fHx8fHx8fHx8fHxMQVNUTkFNRV5GSVJTVF5TXl5eXkx8OTEyIFZJRVcgU1ReXl5eXl5eXl5eXl5eXl5eXl5eVklDVE9SSUFeQkNeVjhWM00yXkNBTl5IXl5eXk58XlBSTl5QSF5eXjI1MF4xMjM0NTY4\",\"contentType\":\"x-application\\/hl7-v2+er7\"}}],\"resourceType\":\"DocumentReference\",\"status\":\"current\"}";	
+		
 	@Override
 	public boolean isUseAdviceWith() {
 		return true;
@@ -61,7 +62,7 @@ public class RouteTest extends CamelTestSupport {
 
 		// Set expectations
 		getMockEndpoint("mock:response").expectedMessageCount(1);
-		responseEndpoint.expectedBodiesReceived(SampleMessages.r03ResponseMessage);
+		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
 
 		// Send a message with header
 		Map<String, Object> headers = new HashMap<String, Object>();
