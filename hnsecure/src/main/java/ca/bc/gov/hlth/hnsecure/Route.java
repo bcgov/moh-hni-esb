@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
+import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
@@ -131,7 +132,9 @@ public class Route extends RouteBuilder {
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
                     .setBody(simple(SampleMessages.r03ResponseMessage))
-            .end();
+            .end()
+            .setBody().method(new Base64Encoder()).id("Base64Encoder")
+            .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson");
 
     }
 
