@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.json.fhir.FHIRJsonUtil;
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 public class ProcessV2ToJson {
@@ -16,7 +17,7 @@ public class ProcessV2ToJson {
 	
 	@Handler
 	public String convertToFHIRJson(String base64V2Message) throws CustomHNSException {
-		logger.debug("process: Trying to create a JSON Message {}", base64V2Message);
+		logger.debug("{}: Trying to create a JSON Message {}", LoggingUtil.getMethodName(), base64V2Message);
 
 		// It should be impossible for the body to be empty here (the handshake server should catch that) but handle it just in case
 		if (StringUtil.isBlank(base64V2Message)) {
