@@ -96,18 +96,19 @@ public class Route extends RouteBuilder {
         String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
-        	//this route is only invoked when the original route is complete as a kind
+
+			//this route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			//Making it global will generate two response file drops.
-   
-			.onCompletion().modeBeforeConsumer().onWhen(body().isNotNull())
+			.onCompletion().modeBeforeConsumer().onWhen(body().isNotNull()).id("Completion")
 			//creating filedrops if enabled
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater").end()
+		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 		    		//encoding response before sending to consumer
 		    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
 		    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
-		    		.end()
+				.end()
+			.end()
 			
 			// here the original route continues
         	.log("HNSecure received a request")

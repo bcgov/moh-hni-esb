@@ -20,7 +20,16 @@ import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 public class RouteTest extends CamelTestSupport {
 
-	private static final String WRAPPED_R03_RESPONSE = "{\"content\":[{\"attachment\":{\"data\":\"TVNIfF5+XCZ8UkFJR1QtUFJTTi1ETUdSfEJDMDAwMDIwNDF8SE5XZWJ8QkMwMTAwMDAzMHwyMDIwMDIwNjEyMzg0MXx0cmFpbjk2fFIwM3wxODE5OTI0fER8Mi40Xk0KTVNBfEFBfDIwMjAwMjA2MTIzODQwfEhKTUIwMDFJU1VDQ0VTU0ZVTExZIENPTVBMRVRFRF5NCkVSUnxeXl5ISk1CMDAxSSZTVUNDRVNTRlVMTFkgQ09NUExFVEVEXk0KUElEfHwxMjM0NTY3ODleXl5CQ15QSF5NT0h8fHx8fDE5ODQwMjI1fE1eTQpaSUF8fHx8fHx8fHx8fHx8fHxMQVNUTkFNRV5GSVJTVF5TXl5eXkx8OTEyIFZJRVcgU1ReXl5eXl5eXl5eXl5eXl5eXl5eVklDVE9SSUFeQkNeVjhWM00yXkNBTl5IXl5eXk58XlBSTl5QSF5eXjI1MF4xMjM0NTY4\",\"contentType\":\"x-application\\/hl7-v2+er7\"}}],\"resourceType\":\"DocumentReference\",\"status\":\"current\"}";	
+	private static final String WRAPPED_R03_RESPONSE = "{\n" +
+			"\"resourceType\": \"DocumentReference\",\n" +
+			"\"status\" : \"current\",\n" +
+			"\"content\": [{\n" +
+			"\"attachment\": {\n" +
+			"\"contentType\": \"x-application/hl7-v2+er7\",\n" +
+			"\"data\": \"TVNIfF5+XCZ8SE5XRUJ8bW9oX2huY2xpZW50X2RldnxSQUlHVC1QUlNOLURNR1J8QkMwMDAwMTAxM3wyMDE3MDEyNTEyMjEyNXx0cmFpbjk2fFIwM3wyMDE3MDEyNTEyMjEyNXxEfDIuNHx8ClpIRHwyMDE3MDEyNTEyMjEyNXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQKUElEfHwxMjM0NTY3ODkwXl5eQkNeUEgN\"\n" +
+			"}\n" +
+			"}]\n" +
+			"}";
 		
 	@Override
 	public boolean isUseAdviceWith() {
@@ -51,8 +60,7 @@ public class RouteTest extends CamelTestSupport {
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
 			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");				
-			a.weaveById("ResponseFileDropGenerater").replace().to("mock:V2FileDropsResponse");
-			a.weaveAddLast().to("mock:response");
+			a.weaveById("completion").after().to("mock:response");
 		});
 	}
 

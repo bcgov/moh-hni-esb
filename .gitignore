@@ -8,4 +8,6 @@
 */.settings/*
 */bin/*
 */keystore/*
-*/logs/*
+hnsecure/logs/*
+logs/*
+filedrops/*
