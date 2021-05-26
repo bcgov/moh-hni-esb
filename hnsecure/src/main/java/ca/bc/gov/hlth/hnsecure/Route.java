@@ -1,8 +1,8 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ALLOWED;
 
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
-import ca.bc.gov.hlth.hnsecure.filedrops.V2FileDrops;
+import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
+import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
@@ -58,14 +59,14 @@ public class Route extends RouteBuilder {
 
 	@PropertyInject(value = "pharmanet.cert")
     private String pharmanetCert;
-	    
+    
     private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
     private static final String pharmanetUser = System.getenv("PHARMANET_USER");
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
-    private static ApplicationProperties properties;
+	private static ApplicationProperties properties;
     
     private Validator validator;
     
@@ -79,6 +80,7 @@ public class Route extends RouteBuilder {
         
     	onException(org.apache.http.conn.HttpHostConnectException.class)
 		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
+		.setBody(constant(""))
 		.log("Failed to connect remote server");
         
         onException(ValidationFailedException.class)
@@ -86,27 +88,28 @@ public class Route extends RouteBuilder {
                 .handled(true)
                 .id("ValidationException");
         
-        onCompletion().choice()
-        .when(header("isFileDropsAllowed")
-        		.isEqualTo("Y"))
-        .bean(V2FileDrops.class).id("V2FileDrops");
-
-        
         setupSSLConextPharmanetRegistry(getContext());
         String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
         String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
         log.info("Using pharmNetUrl: " + pharmNetUrl);
         
-			
-		String isFileDropsAllowed = properties.getValue(IS_FILEDDROPS_ALLOWED);
+        String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
+        	//this route is only invoked when the original route is complete as a kind
+			// of completion callback.The onCompletion method is called once per route execution.
+			//Making it global will generate two response file drops.
+			.onCompletion()// 
+			.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+			.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater").end().end()
+			
+			// here the original route continues
         	.log("HNSecure received a request")
+        	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
-        	//set the original request and header for filedrops. This will be checked once route is completed.
-        	.setProperty("origInBody", body())
-            .setHeader("isFileDropsAllowed").simple(isFileDropsAllowed)
+        	// Added wireTap for asynchronous call to filedrop request
+			.wireTap("direct:start").end()
         	// Validate the message
         	.process(validator).id("Validator")
             //set the receiving app, message type into headers
@@ -151,6 +154,10 @@ public class Route extends RouteBuilder {
             .end()
             .setBody().method(new Base64Encoder()).id("Base64Encoder")
             .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson");
+        
+        from("direct:start").log("wireTap route").choice()
+		.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+		.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done");
 
     }
 
@@ -195,7 +202,8 @@ public class Route extends RouteBuilder {
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
-    	loadValidator();  	
+    	loadValidator();
+    	
     }
     
 	/**
