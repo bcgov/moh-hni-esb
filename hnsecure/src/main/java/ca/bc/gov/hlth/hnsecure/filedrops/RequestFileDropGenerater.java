@@ -23,8 +23,14 @@ public class RequestFileDropGenerater extends FileDropGenerater {
 	
 
 	@Handler
-	public void createFileDrops(Exchange exchange) {
-		String fileName = buildFileNameParameters(exchange);
+	public void createFileDrops(Exchange exchange) {		
+		/*
+		 * when we use wiretap then the tapped exchange has its own exchange id
+		 * But the wire tap will store the exchange id from its parent as a
+		 * "correlated exchange id".
+		 */
+		String corId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
+		String fileName = buildFileNameParameters(exchange,corId);
 		String requestFileName = fileName + REQUEST_FILE;
 		writeFiledrop(exchange.getIn().getBody().toString(), requestFileName);
 		logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",LoggingUtil.getMethodName(), exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);

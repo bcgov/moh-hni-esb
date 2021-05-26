@@ -35,7 +35,7 @@ public abstract class FileDropGenerater {
 	 * @param exchange
 	 * @return
 	 */
-	protected String buildFileNameParameters(Exchange exchange) {		
+	protected String buildFileNameParameters(Exchange exchange, String transactionid) {		
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
 		String msgType = (String)exchange.getIn().getHeader("messageType");
 		String sendingFacility = (String)exchange.getIn().getHeader("sendingFacility");
@@ -49,14 +49,8 @@ public abstract class FileDropGenerater {
 		
 		if(sendingFacility == null)
 			sendingFacility = Util.getSendingFacility(accessToken);
-		
-		/*
-		 * when we use wiretap or onCompletion then the tapped exchange has its own exchange id
-		 * But the wire tap will store the exchange id from its parent as a
-		 * "correlated exchange id".
-		 */
-		String corId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);				
-		String fileName = Util.buildFileName(sendingFacility,corId,msgType);
+						
+		String fileName = Util.buildFileName(sendingFacility,transactionid,msgType);
 		return fileName;
 	}
 

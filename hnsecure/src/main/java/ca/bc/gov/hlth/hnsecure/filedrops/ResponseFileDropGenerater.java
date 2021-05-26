@@ -34,26 +34,13 @@ public class ResponseFileDropGenerater extends FileDropGenerater {
 
 	@Handler
 	public void createFileDrops(Exchange exchange) {
-
-		if (exchange.getIn().getBody() != null) {
-			try {
-				extractedmessage = FhirPayloadExtractor.extractFhirPayload(exchange,
-						exchange.getIn().getBody().toString());
-			} catch (UnsupportedEncodingException e) {
-				logger.error(e.getMessage());
-			} catch (ParseException e) {
-				logger.error(e.getMessage());
-			} catch (CustomHNSException e) {
-				logger.error(e.getMessage());
-			}
-		} else
-			extractedmessage = "";
+		extractedmessage = exchange.getIn().getBody().toString();
 		exchange.getIn().setBody(extractedmessage);
-		String fileName = buildFileNameParameters(exchange);
-		String responseFileName = fileName + RESPONSE_FILE;
+		String fileName = buildFileNameParameters(exchange,exchange.getIn().getMessageId());
+		String responseFileName = fileName + RESPONSE_FILE;		
 		writeFiledrop(extractedmessage, responseFileName);
 		logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",
-				LoggingUtil.getMethodName(), exchange.getProperty(Exchange.CORRELATION_ID, String.class),
+				LoggingUtil.getMethodName(), exchange.getIn().getMessageId(),
 				responseFileName);
 	}
 

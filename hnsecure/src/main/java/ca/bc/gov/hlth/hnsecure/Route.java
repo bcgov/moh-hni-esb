@@ -86,8 +86,7 @@ public class Route extends RouteBuilder {
         onException(ValidationFailedException.class)
                 .log("Validation exception response: ${body}")
                 .handled(true)
-                .setBody().method(new Base64Encoder()).id("Base64Encoder")
-                .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson") .id("ValidationException");
+                .id("ValidationException");
         
         setupSSLConextPharmanetRegistry(getContext());
         String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
@@ -100,10 +99,15 @@ public class Route extends RouteBuilder {
         	//this route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			//Making it global will generate two response file drops.
-        .onCompletion()
-        	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-				  .bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
-			.end().end()
+   
+			.onCompletion().modeBeforeConsumer().onWhen(body().isNotNull())
+			//creating filedrops if enabled
+		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater").end()
+		    		//encoding response before sending to consumer
+		    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
+		    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+		    		.end()
 			
 			// here the original route continues
         	.log("HNSecure received a request")
@@ -153,14 +157,12 @@ public class Route extends RouteBuilder {
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
                     .setBody(simple(SampleMessages.r03ResponseMessage))
-            .end()
-            .setBody().method(new Base64Encoder()).id("Base64Encoder")
-            .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson");
+            .end();
            
         
         from("direct:start").log("wireTap route").choice()
-		.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-		.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done");
+			.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+			.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done");
 
     }
 
