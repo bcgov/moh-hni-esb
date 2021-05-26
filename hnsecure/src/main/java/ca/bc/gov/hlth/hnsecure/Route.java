@@ -80,13 +80,14 @@ public class Route extends RouteBuilder {
         
     	onException(org.apache.http.conn.HttpHostConnectException.class)
 		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
-		.setBody(constant(""))
+		.setBody(constant(null))
 		.log("Failed to connect remote server");
         
         onException(ValidationFailedException.class)
                 .log("Validation exception response: ${body}")
                 .handled(true)
-                .id("ValidationException");
+                .setBody().method(new Base64Encoder()).id("Base64Encoder")
+                .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson") .id("ValidationException");
         
         setupSSLConextPharmanetRegistry(getContext());
         String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
@@ -99,9 +100,10 @@ public class Route extends RouteBuilder {
         	//this route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			//Making it global will generate two response file drops.
-			.onCompletion()// 
-			.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-			.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater").end().end()
+        .onCompletion()
+        	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+				  .bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
+			.end().end()
 			
 			// here the original route continues
         	.log("HNSecure received a request")
@@ -154,6 +156,7 @@ public class Route extends RouteBuilder {
             .end()
             .setBody().method(new Base64Encoder()).id("Base64Encoder")
             .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson");
+           
         
         from("direct:start").log("wireTap route").choice()
 		.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))

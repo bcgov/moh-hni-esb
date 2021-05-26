@@ -35,15 +35,17 @@ public abstract class FileDropGenerater {
 	 * @param exchange
 	 * @return
 	 */
-	protected String buildFileNameParameters(Exchange exchange) {
-		String v2MsgRequest = exchange.getIn().getBody().toString();
+	protected String buildFileNameParameters(Exchange exchange) {		
 		String accessToken = (String) exchange.getIn().getHeader("Authorization");
 		String msgType = (String)exchange.getIn().getHeader("messageType");
 		String sendingFacility = (String)exchange.getIn().getHeader("sendingFacility");
 		
 		//In case of validation error, headers are not populated
-		if(msgType == null)
+		if(msgType == null) {
+			String v2MsgRequest = exchange.getIn().getBody().toString();
 			msgType = Util.getMsgType(v2MsgRequest);
+		}
+			
 		
 		if(sendingFacility == null)
 			sendingFacility = Util.getSendingFacility(accessToken);
@@ -61,10 +63,10 @@ public abstract class FileDropGenerater {
 	
 	/**
 	 * writes v2 request/response message to file
-	 * @param exchange
+	 * @param message
 	 * @param fileName
 	 */
-	protected void writeFiledrop(Exchange exchange, String fileName) {
+	protected void writeFiledrop(String message, String fileName) {
 		String requestFileName = fileName;	
 		String fileLocation = properties.getValue(FILE_DROPS_LOCATION);
 		Path p = Paths.get(fileLocation + requestFileName);
@@ -72,7 +74,7 @@ public abstract class FileDropGenerater {
 	    try (OutputStream out = new BufferedOutputStream(
 	      Files.newOutputStream(p, CREATE))) {    		       
 	    	PrintWriter printWriter = new PrintWriter(out);	
-	    	printWriter.print(exchange.getIn().getBody());			
+	    	printWriter.print(message);			
 			printWriter.close();
 	    
 	    } catch (IOException ioe) {
