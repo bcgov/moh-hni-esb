@@ -5,6 +5,7 @@ import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 /**
@@ -26,7 +27,7 @@ public class RequestFileDropGenerater extends FileDropGenerater {
 		String fileName = buildFileNameParameters(exchange);
 		String requestFileName = fileName + REQUEST_FILE;
 		writeFiledrop(exchange, requestFileName);
-		logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",Util.getMethodName(), exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);
+		logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",LoggingUtil.getMethodName(), exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);
 	}
 
 

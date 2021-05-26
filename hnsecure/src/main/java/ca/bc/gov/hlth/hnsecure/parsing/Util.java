@@ -35,6 +35,7 @@ public final class Util {
 	public final static String GENERIC_PATTERN = "yyyyMMddHHmmss Z";
 	public final static String LINE_BREAK = "\n";
 	public static final String AUTHORIZATION = "Authorization";
+	public static final String ACK = "ACK";
 
 	/**
 	 * return a Base64 encoding string
@@ -99,13 +100,17 @@ public final class Util {
 
 		String msgType = "";
 
-		if (hlMsg == null || hlMsg.isEmpty()) {
+		if (StringUtils.isEmpty(hlMsg)) {
 			return msgType;
 		}
 
 		String[] hl7MessageAtt = hlMsg.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 		if (hl7MessageAtt.length > 8) {
 			msgType = hl7MessageAtt[8];
+			// When response is generated, acknowledgment identifier is added at MSH(8)
+			if (msgType.equals(ACK) && hl7MessageAtt.length > 9) {
+				msgType = hl7MessageAtt[9];
+			}
 		}
 		// there is a special case for R50 message which the value of MSH.8 is
 		// "R50^Z05".
@@ -124,10 +129,11 @@ public final class Util {
 	public static String getMsgId(String hlMsg) {
 
 		String msgId = "";
-
-		if (hlMsg == null || hlMsg.isEmpty()) {
+		
+		if (StringUtils.isEmpty(hlMsg)) {
 			return msgId;
 		}
+		
 
 		String[] hl7MessageAtt = hlMsg.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 		if (hl7MessageAtt.length > 9) {
@@ -228,6 +234,18 @@ public final class Util {
         }
         return propertyList;
     }
+    
+	/**
+	 * @param exchange
+	 * @return filename in the format
+	 *         {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
+	 */
+	public static String buildFileName(String sendingFacility, String transactionId,
+			String msgType) {
+		String dateTime = Util.getDateTime();
+		String fileName = transactionId + "-" + msgType + "-" + sendingFacility + "-" + dateTime + "-";
+		return fileName;
+	}
 
     /**
      * Return a set of values from a comma delimited property
