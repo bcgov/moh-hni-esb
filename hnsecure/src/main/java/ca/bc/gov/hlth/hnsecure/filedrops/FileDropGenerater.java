@@ -45,8 +45,7 @@ public abstract class FileDropGenerater {
 			String v2MsgRequest = exchange.getIn().getBody().toString();
 			msgType = Util.getMsgType(v2MsgRequest);
 		}
-			
-		
+					
 		if(sendingFacility == null)
 			sendingFacility = Util.getSendingFacility(accessToken);
 						
