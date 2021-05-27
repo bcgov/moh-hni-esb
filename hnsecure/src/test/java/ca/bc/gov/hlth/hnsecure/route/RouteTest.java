@@ -20,14 +20,23 @@ import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 public class RouteTest extends CamelTestSupport {
 
-	private static final String WRAPPED_R03_RESPONSE = "{\"content\":[{\"attachment\":{\"data\":\"TVNIfF5+XCZ8UkFJR1QtUFJTTi1ETUdSfEJDMDAwMDIwNDF8SE5XZWJ8QkMwMTAwMDAzMHwyMDIwMDIwNjEyMzg0MXx0cmFpbjk2fFIwM3wxODE5OTI0fER8Mi40Xk0KTVNBfEFBfDIwMjAwMjA2MTIzODQwfEhKTUIwMDFJU1VDQ0VTU0ZVTExZIENPTVBMRVRFRF5NCkVSUnxeXl5ISk1CMDAxSSZTVUNDRVNTRlVMTFkgQ09NUExFVEVEXk0KUElEfHwxMjM0NTY3ODleXl5CQ15QSF5NT0h8fHx8fDE5ODQwMjI1fE1eTQpaSUF8fHx8fHx8fHx8fHx8fHxMQVNUTkFNRV5GSVJTVF5TXl5eXkx8OTEyIFZJRVcgU1ReXl5eXl5eXl5eXl5eXl5eXl5eVklDVE9SSUFeQkNeVjhWM00yXkNBTl5IXl5eXk58XlBSTl5QSF5eXjI1MF4xMjM0NTY4\",\"contentType\":\"x-application\\/hl7-v2+er7\"}}],\"resourceType\":\"DocumentReference\",\"status\":\"current\"}";	
+	private static final String WRAPPED_R03_RESPONSE = "{\n" +
+			"\"resourceType\": \"DocumentReference\",\n" +
+			"\"status\" : \"current\",\n" +
+			"\"content\": [{\n" +
+			"\"attachment\": {\n" +
+			"\"contentType\": \"x-application/hl7-v2+er7\",\n" +
+			"\"data\": \"TVNIfF5+XCZ8SE5XRUJ8bW9oX2huY2xpZW50X2RldnxSQUlHVC1QUlNOLURNR1J8QkMwMDAwMTAxM3wyMDE3MDEyNTEyMjEyNXx0cmFpbjk2fFIwM3wyMDE3MDEyNTEyMjEyNXxEfDIuNHx8ClpIRHwyMDE3MDEyNTEyMjEyNXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQKUElEfHwxMjM0NTY3ODkwXl5eQkNeUEgN\"\n" +
+			"}\n" +
+			"}]\n" +
+			"}";
 		
 	@Override
 	public boolean isUseAdviceWith() {
 		return true;
 	}
 
-	@Produce("direct:start")
+	@Produce("direct:tap")// Cannot have multiple consumers for same endpoint. "direct:start" is being used for filedrops wiretap
 	private ProducerTemplate mockRouteStart;
 
 	@EndpointInject("mock:response")
@@ -47,11 +56,11 @@ public class RouteTest extends CamelTestSupport {
 		
 		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
-			a.replaceFromWith("direct:start");
+			a.replaceFromWith("direct:tap");		
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");
-			a.weaveAddLast().to("mock:response");
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");				
+			a.weaveById("completion").after().to("mock:response");
 		});
 	}
 
@@ -68,7 +77,7 @@ public class RouteTest extends CamelTestSupport {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		// trigger route execution by sending input to route
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsgLocal, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsgLocal, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -99,7 +108,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.r03JsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -147,7 +156,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.pnpJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();

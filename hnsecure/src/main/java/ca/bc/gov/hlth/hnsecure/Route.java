@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
@@ -23,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
+import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
@@ -63,6 +66,8 @@ public class Route extends RouteBuilder {
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
+	private static ApplicationProperties properties;
+    
     private Validator validator;
     
     @Override
@@ -75,6 +80,7 @@ public class Route extends RouteBuilder {
         
     	onException(org.apache.http.conn.HttpHostConnectException.class)
 		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
+		.setBody(constant(null))
 		.log("Failed to connect remote server");
         
         onException(ValidationFailedException.class)
@@ -86,11 +92,31 @@ public class Route extends RouteBuilder {
         String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
         String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
         log.info("Using pharmNetUrl: " + pharmNetUrl);
+        
+        String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
+
+			//this route is only invoked when the original route is complete as a kind
+			// of completion callback.The onCompletion method is called once per route execution.
+			//Making it global will generate two response file drops.
+			.onCompletion().modeBeforeConsumer().onWhen(body().isNotNull()).id("Completion")
+			//creating filedrops if enabled
+		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
+		    		//encoding response before sending to consumer
+		    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
+		    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+				.end()
+			.end()
+			
+			// here the original route continues
         	.log("HNSecure received a request")
+        	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
+        	// Added wireTap for asynchronous call to filedrop request
+			.wireTap("direct:start").end()
         	// Validate the message
         	.process(validator).id("Validator")
             //set the receiving app, message type into headers
@@ -132,9 +158,12 @@ public class Route extends RouteBuilder {
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
                     .setBody(simple(SampleMessages.r03ResponseMessage))
-            .end()
-            .setBody().method(new Base64Encoder()).id("Base64Encoder")
-            .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson");
+            .end();
+           
+        
+        from("direct:start").log("wireTap route").choice()
+			.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+			.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done");
 
     }
 
@@ -178,6 +207,7 @@ public class Route extends RouteBuilder {
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
+    	properties = ApplicationProperties.getInstance();
     	loadValidator();
     	
     }

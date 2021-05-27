@@ -23,8 +23,9 @@ public enum ApplicationProperty {
 	PHARMANET_ENDPOINT("pharmanet-endpoint"),
 	HIBC_E45_ENDPOINT("hibc-e45-endpoint"),
 	HIBC_R15_ENDPOINT("hibc-r15-endpoint"),
-	HIBC_R50_ENDPOINT("hibc-r50-endpoint")
-	;
+	HIBC_R50_ENDPOINT("hibc-r50-endpoint"),
+	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
+	FILE_DROPS_LOCATION("file-drops-location");
 	// Key should be same as the key in application.properties
 	private String key;
 	
