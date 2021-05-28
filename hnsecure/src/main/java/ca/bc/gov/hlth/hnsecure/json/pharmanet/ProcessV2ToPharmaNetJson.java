@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 /**
  * Class to set the exchange body with JSON for PharmaNet
@@ -40,7 +41,11 @@ public class ProcessV2ToPharmaNetJson {
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();
-			logger.info("{} - Transaction UUID: {}", methodName, transactionUUID);
+			String transactionId = exchange.getIn().getMessageId();
+			String pharmacyId = exchange.getIn().getHeader(Util.PHARMACY_ID,String.class);
+			String traceId = exchange.getIn().getHeader(Util.TRACING_ID,String.class);			
+			logger.info("{} - TransactionId: {}, PharmacyId: {}, TraceNumber: {}, transactionUUID: {} ",
+					methodName, transactionId, pharmacyId, traceId, transactionUUID);
 			return PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString();
 		}
 	}

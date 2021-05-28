@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.apache.camel.Headers;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ public class PopulateReqHeader {
 	public static final String RECEIVING_APP = "receivingApp";
 	public static final String MESSAGE_TYPE = "messageType";
 	public static final String SENDING_FACILITY = "sendingFacility";
+	
 
 	/**
 	 * This method is for parsing V2 message to set the HTTP headers.
@@ -47,6 +49,14 @@ public class PopulateReqHeader {
 		hm.put(MESSAGE_TYPE, msgType);
 		hm.put(SENDING_FACILITY, sendingFacility);
 		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
+		
+		if(StringUtils.isNotEmpty(msgType) && msgType.equals(Util.MESSAGE_TYPE_PNP)) {
+			String zcbSegment = Util.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
+			String pharmacyID = Util.getPharmacyId(zcbSegment);
+			String traceID = Util.getTraceNumber(zcbSegment);
+			hm.put(Util.PHARMACY_ID, pharmacyID);
+			hm.put(Util.TRACING_ID, traceID);
+		}
 
 		logger.info("{} - TransactionId: {}, The exchange id is : {}, The receiving application is : {},The transaction type is :{} ", 
 				methodName, exchange.getExchangeId(),

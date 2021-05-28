@@ -95,4 +95,16 @@ public class SamplesToSend {
     public static String invalidRecevingApp="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMG|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\r\n" +
             "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\r\n" +
             "PID||0000053655^^^BC^PH\r\n";
+    
+    public static final String validPharmanetMessage= "MSH|^~\\&|TRXTOOL|moh_hnclient_dev|PNP|PP|||ZPN||P|2.1||\r\n"
+            + "ZZZ|TDR||9286|P1|2F3P2||||\r\n"
+            + "ZCA||03|00|KC|13|\r\n"
+            + "ZCB|BC00007007|201222|9286\r\n"
+            + "ZPC|2240579||||||Y|ZPC1^^^766720\r\n"
+            + "\r\n";
+ 
+    public static final String inValidPhramanetMessage= "MSH|^~\\&|TRXTOOL|moh_hnclient_dev|PNP|PP|||ZPN|9286|P|2.1||\r\n"
+            + "ZZZ|TDR||9286|P1|2F3P2||||\r\n"
+            + "ZCA||03|00|KC|13|\r\n"	           
+            + "ZPC|2240579||||||Y|ZPC1^^^766720\r\n";  
 }

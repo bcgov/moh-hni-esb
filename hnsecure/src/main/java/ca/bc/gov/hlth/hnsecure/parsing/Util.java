@@ -36,6 +36,8 @@ public final class Util {
 	public final static String LINE_BREAK = "\n";
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String ACK = "ACK";
+	public static final String PHARMACY_ID = "pharmacyId";
+	public static final String TRACING_ID = "traceId";
 
 	/**
 	 * return a Base64 encoding string
@@ -185,6 +187,60 @@ public final class Util {
 
 		}
 		return false;
+	}
+	
+	/**
+	 * @param v2Message
+	 * @param segmentType
+	 * @return
+	 */
+	public static String getZCBSegment(String v2Message, String segmentType) {
+		String[] v2DataLines_Pharmanet = v2Message.split(LINE_BREAK);
+
+		for (String segment : v2DataLines_Pharmanet) {
+
+			if (segment.startsWith(segmentType)) {
+				String[] messageSegments = segment.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
+				if (messageSegments[0].equalsIgnoreCase(segmentType)) {
+					return segment;
+				}
+			}
+
+		}	
+		
+		return null;
+	}
+	
+	
+	/**
+	 * @param zcbSegment
+	 * ZCB|PharmacyId|DateTime|TraceNumber
+	 * @return Pharmacy id
+	 */
+	public static String getPharmacyId(String zcbSegment) {		
+		if(StringUtils.isNotEmpty(zcbSegment)) {
+			String[] zcbDataSegment = zcbSegment.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
+			if(zcbDataSegment.length >1) {
+				return zcbDataSegment[1];
+			}
+		}
+		return "";
+	}
+	
+	
+	/**
+	 * @param zcbSegment
+	 * ZCB|PharmacyId|DateTime|TraceNumber
+	 * @return trace number
+	 */
+	public static String getTraceNumber(String zcbSegment) {		
+		if(StringUtils.isNotEmpty(zcbSegment)) {
+			String[] zcbDataSegment = zcbSegment.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
+			if(zcbDataSegment.length >3) {
+				return zcbDataSegment[3];
+			}
+		}
+		return "";
 	}
 	
 	/**

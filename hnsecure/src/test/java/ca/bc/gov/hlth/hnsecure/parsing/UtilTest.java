@@ -8,8 +8,12 @@ import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
+import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 /**
  * @author Tony.Ma * 
@@ -72,5 +76,58 @@ public class UtilTest {
 		String expectedValue ="R15";
 		String actualValue = Util.getMsgType(MSG_R15);
 		assertEquals(expectedValue, actualValue);
+	}
+	
+	@Test
+	public void testGetSendingFacility() {
+		String accessToken =SamplesToSend.AUTH_HEADER;
+		String actualValue = Util.getSendingFacility(accessToken);
+		String expectedValue = "moh_hnclient_dev";		
+		assertEquals(expectedValue, actualValue);
+	}
+	
+	@Test
+	public void testGetSendingFacility_whenBlank() {
+		String accessToken =null;
+		String actualValue = Util.getSendingFacility(accessToken);
+		String expectedValue = "";		
+		assertEquals(expectedValue, actualValue);
+	}
+	
+	@Test
+	public void testisSegmentPresent_True() {
+		String message = SamplesToSend.validPharmanetMessage;
+		boolean isValid = Util.isSegmentPresent(message, Util.ZCB_SEGMENT);		
+		assertTrue(isValid);
+	}
+	
+	@Test
+	public void testisSegmentPresent_False() {
+		String message = SamplesToSend.inValidPhramanetMessage;
+		boolean isValid = Util.isSegmentPresent(message, Util.ZCB_SEGMENT);		
+		assertFalse(isValid);
+	}
+	
+	@Test
+	public void testGetZCBSegment() {
+		String message = SamplesToSend.validPharmanetMessage;
+		String actualValue = Util.getZCBSegment(message, Util.ZCB_SEGMENT);			
+		assertTrue(actualValue.startsWith(Util.ZCB_SEGMENT));
+	}
+	
+	@Test
+	public void testPharmacyId() {
+		String zcbSegment =  "ZCB|BC00007007|201222|9286";
+		String actualValue = Util.getPharmacyId(zcbSegment);
+		String expectedValue = "BC00007007";		
+		assertEquals(expectedValue, actualValue);
+	}
+	
+	@Test
+	public void testTraceId() {
+		String zcbSegment =  "ZCB|BC00007007|201222|9286";
+		String actualValue = Util.getTraceNumber(zcbSegment);
+		String expectedValue = "9286";		
+		assertEquals(expectedValue, actualValue);;
 	}
 }
