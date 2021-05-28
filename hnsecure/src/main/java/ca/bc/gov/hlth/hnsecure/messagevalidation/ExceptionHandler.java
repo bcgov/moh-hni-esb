@@ -51,11 +51,11 @@ public class ExceptionHandler implements Processor {
 			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_INTERNAL_SERVER_ERROR);
 			LOGGER.info("{} - Failed to connect remote server.",LoggingUtil.getMethodName());
 		} else {
-			// Should reach here as the exception should be handled above, add default error until the handling is added
+			// Should not reach here as the specific exception should be handled above, add default error in case the specific handling not added
 			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_INTERNAL_SERVER_ERROR);
 		}
 		
-		//Set the body to null as none is expected and this prevents hn-secure from attempting to create a FHIR JSON response body.
+		//Set the body to null as none is expected.
         exchange.getIn().setBody(null);
 	}
 }
