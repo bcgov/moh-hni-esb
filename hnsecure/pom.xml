@@ -21,6 +21,20 @@
     <camel-maven-plugin-version>3.4.0</camel-maven-plugin-version>
     
   </properties>
+  
+  <repositories>
+	<repository>
+		<id>cgi-mvn-release</id>
+		<name>CGI Maven Repository</name>
+		<url>https://artifactory.hlth.gov.bc.ca/artifactory/cgi-mvn-release</url>
+		<releases>
+			<enabled>true</enabled>
+		</releases>
+		<snapshots>
+			<enabled>true</enabled>
+		</snapshots>
+	</repository>
+  </repositories>
 
   <dependencyManagement>
     <dependencies>
