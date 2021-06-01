@@ -18,6 +18,7 @@ import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,8 @@ public class Route extends RouteBuilder {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Route.class);
 
+	private static final String HTTP_STATUS_OK_CODES = "2";
+
 	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
     
     private static final String SSL_CONTEXT_PHARMANET = "ssl_context_pharmanet";
@@ -70,18 +73,14 @@ public class Route extends RouteBuilder {
     
     private Validator validator;
     
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void configure() {
     	init();
 
-    	onException(CustomHNSException.class)
+    	onException(CustomHNSException.class, HttpHostConnectException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
-        
-    	onException(org.apache.http.conn.HttpHostConnectException.class)
-		.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500)).handled(true)
-		.setBody(constant(null))
-		.log("Failed to connect remote server");
         
         onException(ValidationFailedException.class)
                 .log("Validation exception response: ${body}")
@@ -100,14 +99,14 @@ public class Route extends RouteBuilder {
 			//this route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			//Making it global will generate two response file drops.
-			.onCompletion().modeBeforeConsumer().onWhen(body().isNotNull()).id("Completion")
+			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).startsWith(HTTP_STATUS_OK_CODES)).id("Completion")
 			//creating filedrops if enabled
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
+				.end()
 		    		//encoding response before sending to consumer
 		    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
 		    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
-				.end()
 			.end()
 			
 			// here the original route continues

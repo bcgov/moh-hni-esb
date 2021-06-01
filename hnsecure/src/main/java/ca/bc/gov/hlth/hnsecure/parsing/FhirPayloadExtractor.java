@@ -1,5 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidRequest;
+
 import java.io.UnsupportedEncodingException;
 
 import org.apache.camel.Exchange;
@@ -35,7 +37,7 @@ public class FhirPayloadExtractor {
         	extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
         }catch(IllegalArgumentException e) {
         	logger.error("Exception while decoding message ", e);
-        	throw new CustomHNSException(e.getMessage());
+        	throw new CustomHNSException(CustomError_Msg_InvalidRequest.getErrorMessage());
         }
         logger.debug("{} - TransactionId: {},{}", methodName, exchange.getIn().getMessageId(), "Message extracted successfully");
 		logger.debug("The decoded HL7 message is:"+extractedMessage);
