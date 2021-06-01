@@ -8,13 +8,14 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import ca.bc.gov.hlth.hnsecure.TransactionIdGenerator;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 
 public class TestPropertiesLoader {
 
 	public static CamelContext context = new DefaultCamelContext();
-    public Exchange exchange = new DefaultExchange(context);
 
+    public Exchange exchange = new DefaultExchange(context);
 	
     @BeforeClass
 	public static void loadProperties() throws Exception {
@@ -24,12 +25,14 @@ public class TestPropertiesLoader {
 		ApplicationProperties properties = ApplicationProperties.getInstance() ;
 		properties.injectProperties(pc.loadProperties());
 		
+		// Set the TransactionIdGenerator here so that it applies to all the tests. 
+		// The Route where this is normally set is only used in a single test		
+    	context.setUuidGenerator(new TransactionIdGenerator());
 	}
     
     @AfterClass
 	public static void cleanUp() throws Exception {
-    	context.close();
-    	
+    	context.close();    	
     }
 
 

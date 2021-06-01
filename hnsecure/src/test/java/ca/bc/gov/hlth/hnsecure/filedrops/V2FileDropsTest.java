@@ -13,14 +13,16 @@ public class V2FileDropsTest extends TestPropertiesLoader{
 	
 	@Test
 	public void test_buildFileName() {
-		//ID-CA-LJPDZTN2-1621486716331-0-1-R03-moh_hnclient_dev-20210519225836
+		// 11b7bbb2-4668-4ab3-9794-624147d5d9e8-R03-moh_hnclient_dev-20210519225836
 		exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
 		String sendingFacility = Util.getSendingFacility((String)exchange.getIn().getHeader("Authorization"));
-		String fileName=Util.buildFileName(sendingFacility,exchange.getIn().getMessageId(), "R03");
+		String fileName = Util.buildFileName(sendingFacility,exchange.getIn().getMessageId(), "R03");
 		String[] sections = fileName.split("-");
+		
+		// First 5 positions are the UUID
 		assertNotNull("transactionid should not be null", sections[0]);
-		assertEquals(sections[6],"R03");
-		assertEquals(sections[7],"moh_hnclient_dev");	
+		assertEquals(sections[5], "R03");
+		assertEquals(sections[6], "moh_hnclient_dev");	
 	}
 	
 }
