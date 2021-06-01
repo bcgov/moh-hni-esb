@@ -57,8 +57,9 @@ public class PayLoadValidator extends AbstractValidator {
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
 		String v2Message = (String) exchange.getIn().getBody();
+		String transactionId = (String) exchange.getIn().getMessageId();
 		validateMessageFormat(exchange, v2Message, messageObj);
-		boolean isPharmanetMode = isPharmanet(messageObj);
+		boolean isPharmanetMode = isPharmanet(v2Message,messageObj, transactionId);
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 		validateReceivingApp(exchange, messageObj);
 		validateReceivingFacility(exchange, messageObj);
@@ -200,9 +201,15 @@ public class PayLoadValidator extends AbstractValidator {
 	 * @param messageObj
 	 * @return
 	 */
-	protected static boolean isPharmanet(HL7Message messageObj) {
+	protected static boolean isPharmanet(String v2Message, HL7Message messageObj, String transactionId) {
 		if ((!StringUtils.isEmpty(messageObj.getMessageType())
 				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
+			String methodName = LoggingUtil.getMethodName();		
+			String zcbSegment = Util.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
+			String pharmacyID = Util.getPharmacyId(zcbSegment);
+			String traceNumber = Util.getTraceNumber(zcbSegment);
+			logger.info("{} - TransactionId: {}, FacilityId: {}, PharmacyId: {}, TraceNumber: {}",
+					methodName, transactionId, messageObj.getSendingFacility(), pharmacyID, traceNumber);
 			return true;
 		}
 		return false;
@@ -244,7 +251,6 @@ public class PayLoadValidator extends AbstractValidator {
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
 	}
-
 	/**
 	 * @param messageObject
 	 * @param errorMessage
