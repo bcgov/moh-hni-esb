@@ -195,9 +195,9 @@ public final class Util {
 	 * @return
 	 */
 	public static String getZCBSegment(String v2Message, String segmentType) {
-		String[] v2DataLines_Pharmanet = v2Message.split(LINE_BREAK);
+		String[] v2DataLinesPharmanet = v2Message.split(LINE_BREAK);
 
-		for (String segment : v2DataLines_Pharmanet) {
+		for (String segment : v2DataLinesPharmanet) {
 
 			if (segment.startsWith(segmentType)) {
 				String[] messageSegments = segment.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
@@ -218,7 +218,7 @@ public final class Util {
 	 * @return Pharmacy id
 	 */
 	public static String getPharmacyId(String zcbSegment) {		
-		if(StringUtils.isNotEmpty(zcbSegment)) {
+		if(StringUtils.isNotBlank(zcbSegment)) {
 			String[] zcbDataSegment = zcbSegment.split(DOUBLE_BACKSLASH + HL7_DELIMITER);
 			if(zcbDataSegment.length >1) {
 				return zcbDataSegment[1];

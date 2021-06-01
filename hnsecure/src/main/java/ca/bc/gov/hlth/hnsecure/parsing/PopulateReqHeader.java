@@ -50,7 +50,7 @@ public class PopulateReqHeader {
 		hm.put(SENDING_FACILITY, sendingFacility);
 		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 		
-		if(StringUtils.isNotEmpty(msgType) && msgType.equals(Util.MESSAGE_TYPE_PNP)) {
+		if(StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
 			String zcbSegment = Util.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
 			String pharmacyID = Util.getPharmacyId(zcbSegment);
 			String traceID = Util.getTraceNumber(zcbSegment);
