@@ -1,0 +1,32 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+  name: hni
+  namespace: c5839f-test
+  labels:
+    app: hni-01
+    deployment: hni-01
+    deploymentconfig: hni-01
+spec:
+  containers:
+      - name: hni
+        image: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test/hni:0.1
+        env:
+            - name: PHARMANET_CERT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_CERT_PASSWORD
+            - name: PHARMANET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_PASSWORD
+            - name: PHARMANET_USER
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_USER                    
+        ports:
+        - containerPort: 14885
+          protocol: TCP
