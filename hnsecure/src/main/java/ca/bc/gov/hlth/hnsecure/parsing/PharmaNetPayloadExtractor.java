@@ -20,8 +20,6 @@ import net.minidev.json.parser.JSONParser;
 public class PharmaNetPayloadExtractor implements Processor {
 
     private static Logger logger = LoggerFactory.getLogger(PharmaNetPayloadExtractor.class);
-    
-    private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 
     /**
      * Processes the message exchange by extracting the v2 message from the JSON returned by PharmaNet 
@@ -35,6 +33,7 @@ public class PharmaNetPayloadExtractor implements Processor {
 		
 		Object body = exchange.getIn().getBody(String.class);
 		
+		JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
         JSONObject pharmaNetJSON = (JSONObject) jsonParser.parse(body.toString());
         
         PharmaNetJsonMessage encodedExtractedMessage = PharmaNetJsonUtil.parseJsonToPharmanetMsg(pharmaNetJSON); 
