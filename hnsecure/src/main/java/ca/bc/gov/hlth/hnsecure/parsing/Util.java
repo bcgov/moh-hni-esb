@@ -22,7 +22,6 @@ import net.minidev.json.parser.JSONParser;
 
 public final class Util {
 	private static final Logger logger = LoggerFactory.getLogger(Util.class);
-	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 	public final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public final static String HL7_DELIMITER = "|";
 	public final static String R50_SPEC_CHAR = "^";
@@ -156,6 +155,7 @@ public final class Util {
 			String[] split = auth.split("\\.");
 			String decodeAuth = Util.decodeBase64(split[1]);
 			try {
+				JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeAuth);
 				clientId = (String) jsonObject.get("azp");
 			} catch (net.minidev.json.parser.ParseException e) {

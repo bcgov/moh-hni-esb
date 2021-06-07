@@ -37,7 +37,7 @@ public class PayLoadValidator extends AbstractValidator {
 	private static final Logger logger = LoggerFactory.getLogger(PayLoadValidator.class);
 	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
-	private static final JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
+
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 	
 	private Validator validator;
@@ -46,8 +46,6 @@ public class PayLoadValidator extends AbstractValidator {
 		super();
 		this.validator = validator;
 	}
-
-
 
 	@Override
 	public boolean validate(Exchange exchange) throws Exception {
@@ -280,6 +278,7 @@ public class PayLoadValidator extends AbstractValidator {
 			String[] split = auth.split("\\.");
 			String decodeAuth = Util.decodeBase64(split[1]);
 			try {
+				JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeAuth);
 				clientId = (String) jsonObject.get("azp");
 			} catch (net.minidev.json.parser.ParseException e) {
