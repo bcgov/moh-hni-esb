@@ -1,0 +1,33 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+  name: hnsesb
+  namespace: c5839f-dev
+  labels:
+    app: hnsesb
+    deployment: hnsesb
+    deploymentconfig: hnsesb
+    app.kubernetes.io/part-of: hnsesb
+spec:
+  containers:
+      - name: hnsesb
+        image: image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:main-1.0
+        env:
+            - name: PHARMANET_CERT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_CERT_PASSWORD
+            - name: PHARMANET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_PASSWORD
+            - name: PHARMANET_USER
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_USER                    
+        ports:
+        - containerPort: 14885
+          protocol: TCP

@@ -1,0 +1,7 @@
+﻿kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: hnsesb
+  namespace: c5839f-tools
+  labels:
+    app: hnsesb
