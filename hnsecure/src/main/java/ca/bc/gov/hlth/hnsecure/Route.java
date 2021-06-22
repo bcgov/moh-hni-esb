@@ -9,8 +9,11 @@ import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
 
+import javax.sql.DataSource;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
@@ -18,6 +21,7 @@ import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
@@ -69,7 +73,26 @@ public class Route extends RouteBuilder {
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
-	private static ApplicationProperties properties;
+    /** Audits properties **/
+    
+	@PropertyInject(value = "audits.enabled", defaultValue = "false")
+	private String isAuditsEnabled;
+	
+	private static final String HN_DATA_SOURCE = "hnDataSource";
+
+	private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
+
+    private static final String DATABASE_HOST = System.getenv("DATABASE_HOST");
+    
+    private static final String DATABASE_PORT = System.getenv("DATABASE_PORT");
+    
+    private static final String DATABASE_NAME = System.getenv("DATABASE_NAME");
+
+    private static final String DATABASE_USERNAME = System.getenv("DATABASE_USERNAME");
+
+    private static final String DATABASE_PASSWORD = System.getenv("DATABASE_PASSWORD");
+
+    private static ApplicationProperties properties;
     
     private Validator validator;
     
@@ -94,8 +117,9 @@ public class Route extends RouteBuilder {
         
         String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 
+       	setUpDatabase();
+        
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
-
 			//this route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			//Making it global will generate two response file drops.
@@ -109,9 +133,9 @@ public class Route extends RouteBuilder {
 		    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
 			.end()
 			
-			// here the original route continues
         	.log("HNSecure received a request")
         	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)
+        	.setHeader("isAuditsEnabled").simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
         	// Added wireTap for asynchronous call to filedrop request
@@ -160,13 +184,45 @@ public class Route extends RouteBuilder {
             .end();
            
         
-        from("direct:start").log("wireTap route").choice()
-			.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-			.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done");
-
+        from("direct:start").log("wireTap route")
+        	.choice()
+				.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+				.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
+			.end()
+			.choice()
+				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
+					.process(new Processor() {			
+						@Override
+						public void process(Exchange exchange) throws Exception {
+							String messageId = exchange.getIn().getMessageId();
+					        String insertQuery = "INSERT INTO hnsecure.transaction (TRANSACTION_ID, TYPE, SERVER,	SOURCE,	ORGANIZATION, USER_ID,	FACILITY_ID, START_TIME) VALUES ('" + messageId + "', 'E45', 'test_server', 'Sending_App', 'sending_org', 'user_1', 'FAC_001', NOW())";
+					        logger.info("Insert Query: {}", insertQuery);
+					        exchange.getIn().setBody(insertQuery);					
+						}
+					})
+			    	.to("jdbc:" + HN_DATA_SOURCE)
+			.end();
     }
 
-	private String buildBasicToken(String username, String password) {
+	private void setUpDatabase() {
+		String url = String.format("jdbc:postgresql://%s:%s/%s", DATABASE_HOST, DATABASE_PORT, DATABASE_NAME);
+        DataSource dataSource = setupDataSource(url);
+        Registry registry = getContext().getRegistry();
+        registry.bind(HN_DATA_SOURCE, dataSource);
+	}
+
+    private static DataSource setupDataSource(String connectURI) {
+    	logger.info("Audit Database connection URI: {}", connectURI);
+    	logger.info("DB Name: {}; DB User: {}; DB Password: {}", DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD);
+        BasicDataSource ds = new BasicDataSource();
+        ds.setDriverClassName(POSTGRESQL_DRIVER);
+        ds.setUsername(DATABASE_USERNAME);
+        ds.setPassword(DATABASE_PASSWORD);
+        ds.setUrl(connectURI);
+        return ds;
+    }
+    
+    private String buildBasicToken(String username, String password) {
 		String usernamePassword = username + ":" + password;
 		Charset charSet = Charset.forName("UTF-8");
 		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(charSet)));

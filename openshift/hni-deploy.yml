@@ -27,6 +27,22 @@ spec:
                 secretKeyRef:
                     name: hnsesb-secret
                     key: PHARMANET_USER                    
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                    name: postgre-db-service
+                    key: DATABASE_NAME                    
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                    name: postgre-db-service
+                    key: DATABASE_USERNAME                    
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: postgre-db-service
+                    key: DATABASE_PASSWORD                    
+
         ports:
         - containerPort: 14885
           protocol: TCP
