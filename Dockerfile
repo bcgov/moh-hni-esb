@@ -21,7 +21,7 @@ WORKDIR /tmp
 
 #Make keystore dir in tmp
 Run mkdir -p keystore
-COPY /hnsecure/src/main/resources/keystore/CGI-HNI-DEV.pfx /tmp/keystore
+#COPY /hnsecure/src/main/resources/keystore/CGI-HNI-DEV.pfx /tmp/keystore
 
 
 #Expose is for documenting purpose. This is added for deployment support to inform the team that they will need to map this port number for access to application
