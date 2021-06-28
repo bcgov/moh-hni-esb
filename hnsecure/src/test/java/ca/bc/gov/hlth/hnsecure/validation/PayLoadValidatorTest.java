@@ -14,8 +14,7 @@ import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 public class PayLoadValidatorTest extends TestPropertiesLoader {
 
     private PayLoadValidator v2PayloadValidator = new PayLoadValidator(new ValidatorImpl());
-    
-    
+
     @Test
     public void testHL7ErrorMsgInvalidHL7Format() {
     	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
@@ -43,7 +42,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     
     @Test
     public void testHL7ErrorMsgNoInputHL7() throws ValidationFailedException {
-    	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR||VLDT004E  No HL7 Message was supplied as input|";
     	exchange.getIn().setBody(null);
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
@@ -64,8 +63,6 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(response,expectedResponse);       
     }
-    
-
 
     @Test
     public void testHL7ErrorMsgFacilityIdMismatch() {

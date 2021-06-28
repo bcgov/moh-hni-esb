@@ -61,7 +61,7 @@ public class PayLoadValidator extends AbstractValidator {
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 		validateReceivingApp(exchange, messageObj);
 		validateReceivingFacility(exchange, messageObj);
-		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
+		validatePharmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
 		// To ensure validation in wrapper class is called.
 		validator.validate(exchange);
 		logger.info("{} - PayLoadValidator Validation completed",methodName);
@@ -78,7 +78,7 @@ public class PayLoadValidator extends AbstractValidator {
 	 * @param isPharmanetMode
 	 * @throws ValidationFailedException
 	 */
-	protected  void validatePhanrmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
+	protected  void validatePharmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
@@ -177,7 +177,7 @@ public class PayLoadValidator extends AbstractValidator {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 			}
 		} else {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_NoInputHL7, exchange);
 		}
 
 		// Validate segment identifier
@@ -249,6 +249,7 @@ public class PayLoadValidator extends AbstractValidator {
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
 	}
+
 	/**
 	 * @param messageObject
 	 * @param errorMessage

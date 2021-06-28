@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_MissingAuthKey;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_PARTIES;
@@ -74,7 +74,7 @@ public class TokenValidator extends AbstractValidator {
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if(StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
-			throw new CustomHNSException(CustomError_Msg_InvalidAuthKey.getErrorMessage());
+			throw new CustomHNSException(CustomError_Msg_MissingAuthKey.getErrorMessage());
 		}
 		AccessToken accessToken = AccessToken.parse(authorizationKey);
 		logger.info("{} - TransactionId: {}, Access token: {}", methodName,exchange.getIn().getMessageId(),accessToken);

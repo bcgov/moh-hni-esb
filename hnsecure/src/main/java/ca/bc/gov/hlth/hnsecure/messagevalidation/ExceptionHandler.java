@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidAuthKey;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_MissingAuthKey;
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidRequest;
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
@@ -38,7 +38,7 @@ public class ExceptionHandler implements Processor {
 		Exception exception = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
 		
 		if (exception instanceof CustomHNSException) {
-			if (CustomError_Msg_InvalidAuthKey.getErrorMessage().equals(exception.getMessage())) {
+			if (CustomError_Msg_MissingAuthKey.getErrorMessage().equals(exception.getMessage())) {
 				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_FORBIDDEN);
 			} else if (CustomError_Msg_InvalidRequest.getErrorMessage().equals(exception.getMessage())){
 				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_BAD_REQUEST);
