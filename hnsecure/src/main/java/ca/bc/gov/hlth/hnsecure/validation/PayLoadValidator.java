@@ -83,7 +83,7 @@ public class PayLoadValidator extends AbstractValidator {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 				populateFieldsForErrorResponse(messageObj);
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFormatError, exchange);
 			}
 		}
 	}
@@ -97,16 +97,17 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	protected  void validateReceivingFacility(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
-		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
+		if (StringUtils.isEmpty(messageObj.getReceivingFacility())) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_MissingReceivingFacility, exchange);
+		} else if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
 			Set<String> validReceivingFacility = Util.getPropertyAsSet(properties.getValue(VALID_RECIEVING_FACILITY));
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
-
 			}
-		}else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
+		} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
-			}
+			generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+		}
 	}
 	
 
@@ -118,14 +119,11 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	protected  void validateReceivingApp(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
-		if ((StringUtils.isEmpty(messageObj.getReceivingApplication())
-				|| StringUtils.isEmpty(messageObj.getReceivingFacility()))) {
-
+		if (StringUtils.isEmpty(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
-
 		// Check the validity
-		if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
+		else if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 	}
@@ -182,7 +180,7 @@ public class PayLoadValidator extends AbstractValidator {
 
 		// Validate segment identifier
 		if (!messageObj.getSegmentIdentifier().equals(segmentIdentifier)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_MSHSegmentMissing, exchange);
 		}
 
 		// Validate encoding characters
@@ -247,7 +245,7 @@ public class PayLoadValidator extends AbstractValidator {
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
-		throw new ValidationFailedException(errorMessage.getErrorMessage());
+		throw new ValidationFailedException(errorMessage);
 	}
 
 	/**
@@ -265,7 +263,7 @@ public class PayLoadValidator extends AbstractValidator {
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
-		throw new ValidationFailedException(errorMessage.getErrorMessage());
+		throw new ValidationFailedException(errorMessage);
 	}
 
 	/*

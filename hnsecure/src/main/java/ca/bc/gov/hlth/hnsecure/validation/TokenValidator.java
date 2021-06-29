@@ -19,10 +19,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.RemoteJWKSet;
+import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
@@ -31,14 +33,15 @@ import com.nimbusds.jose.util.DefaultResourceRetriever;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.authorization.CustomJWTClaimsVerifier;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-
 
 /**
  * This class validate the token passed in the request using JSON Web Token processor
@@ -54,9 +57,7 @@ public class TokenValidator extends AbstractValidator {
 	
 	private ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
-	
 	private Validator validator;
-	
 	
 	public TokenValidator(Validator validator) throws MalformedURLException {
 		super();
@@ -66,26 +67,32 @@ public class TokenValidator extends AbstractValidator {
 
 	@Override
 	public boolean validate(Exchange exchange) throws Exception {
-		logger.info("TokenValidator validation started");
-
 		String methodName = LoggingUtil.getMethodName();
+
+		logger.debug("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getIn().getMessageId());
 		
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
-		if(StringUtils.isBlank(authorizationKey)) {
+		if (StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
-			throw new CustomHNSException(CustomError_Msg_MissingAuthKey.getErrorMessage());
+			throw new CustomHNSException(CustomError_Msg_MissingAuthKey);
 		}
-		AccessToken accessToken = AccessToken.parse(authorizationKey);
-		logger.info("{} - TransactionId: {}, Access token: {}", methodName,exchange.getIn().getMessageId(),accessToken);
+		try {
+			AccessToken accessToken = AccessToken.parse(authorizationKey);
+			logger.info("{} - TransactionId: {}, Access token: {}", methodName, exchange.getIn().getMessageId(),accessToken);
 
-		// Process the token
-		JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
+			// Process the token
+			JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
 
-		// Print out the token claims set
-		logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getIn().getMessageId(), claimsSet.toJSONObject());
-	
-		logger.info("TokenValidator Validation completed");
+			// Print out the token claims set
+			logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getIn().getMessageId(), claimsSet.toJSONObject());
+		
+			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getIn().getMessageId());			
+		} catch (ParseException | java.text.ParseException | BadJOSEException | JOSEException e) {
+			logger.error("{} - TransactionId: {}, Error: {}", methodName, exchange.getIn().getMessageId(), e.getMessage());
+			throw new CustomHNSException(ErrorMessage.CustomError_Msg_InvalidAuthKey);
+		}
+
 		// After token call the  other validations. Type of validation depends on wrapped class when initializing
 		validator.validate(exchange);
 	

@@ -1,15 +1,8 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_MissingAuthKey;
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidRequest;
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_FORBIDDEN;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_UNPROCESSABLE_ENTITY;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.apache.http.HttpStatus;
 import org.apache.http.conn.HttpHostConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,21 +31,27 @@ public class ExceptionHandler implements Processor {
 		Exception exception = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
 		
 		if (exception instanceof CustomHNSException) {
-			if (CustomError_Msg_MissingAuthKey.getErrorMessage().equals(exception.getMessage())) {
-				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_FORBIDDEN);
-			} else if (CustomError_Msg_InvalidRequest.getErrorMessage().equals(exception.getMessage())){
-				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_BAD_REQUEST);
-			} else if (HL7Error_Msg_NoInputHL7.getErrorMessage().equals(exception.getMessage())){
-				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_UNPROCESSABLE_ENTITY);
-			} else {
-				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_BAD_REQUEST);
+			switch (((CustomHNSException)exception).getErrorMessage()) {
+			case HL7Error_Msg_NoInputHL7:
+				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_UNPROCESSABLE_ENTITY);
+				break;
+			case CustomError_Msg_InvalidRequest:
+				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_BAD_REQUEST);
+				break;
+			case CustomError_Msg_InvalidAuthKey:
+			case CustomError_Msg_MissingAuthKey:
+				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_UNAUTHORIZED);
+				break;
+			default:
+				exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_BAD_REQUEST);
+				break;
 			}
 		} else if (exception instanceof HttpHostConnectException) {
-			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_INTERNAL_SERVER_ERROR);
-			LOGGER.info("{} - Failed to connect remote server.",LoggingUtil.getMethodName());
+			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+			LOGGER.info("{} - Failed to connect remote server. {}", LoggingUtil.getMethodName(), exception.getMessage());
 		} else {
 			// Should not reach here as the specific exception should be handled above, add default error in case the specific handling not added
-			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, SC_INTERNAL_SERVER_ERROR);
+			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_INTERNAL_SERVER_ERROR);
 		}
 		
 		//Set the body to null as none is expected.
