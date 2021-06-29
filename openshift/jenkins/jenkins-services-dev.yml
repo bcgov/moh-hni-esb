@@ -1,0 +1,19 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: c5839f-tools
+  labels:
+    app: jenkins
+spec:
+  ports:
+    - name: 50000-jenkins-tcp
+      protocol: TCP
+      port: 50000
+      targetPort: 50000
+    - name: 8080-jenkins-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: jenkins    

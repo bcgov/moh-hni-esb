@@ -1,0 +1,11 @@
+﻿apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jenkins-allow-all
+spec:
+  podSelector: 
+    matchLabels:
+      name: jenkins
+#{} in ingress means allow-all
+  ingress:
+  - {}
