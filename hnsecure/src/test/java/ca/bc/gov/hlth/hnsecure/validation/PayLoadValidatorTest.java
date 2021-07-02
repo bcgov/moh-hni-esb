@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import org.apache.camel.Exchange;
+import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
@@ -23,7 +24,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
             v2PayloadValidator.validate(exchange);
         });
 
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);       
     }
@@ -37,7 +38,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
             v2PayloadValidator.validate(exchange);
         });
 
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);       
     }
@@ -51,7 +52,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
             v2PayloadValidator.validate(exchange);
         });
 
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);       
     }
@@ -63,7 +64,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange );
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);     
     }
@@ -75,7 +76,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);
     }
@@ -87,7 +88,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);       
     }
@@ -99,7 +100,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);       
     }
@@ -115,7 +116,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);
     }
@@ -132,7 +133,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedResponse, response);
     }
@@ -151,7 +152,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[3];
         assertEquals(expectedResponse, response); 
     }
@@ -170,7 +171,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[3];
         assertEquals(expectedResponse, response);
     }
@@ -191,7 +192,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String zca = ((String) exchange.getIn().getBody()).split("\n")[1];
         assertEquals(expectedZCA, zca);
         

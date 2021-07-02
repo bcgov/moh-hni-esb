@@ -243,7 +243,7 @@ public class PayLoadValidator extends AbstractValidator {
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage);
 	}
@@ -261,7 +261,7 @@ public class PayLoadValidator extends AbstractValidator {
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage);
 	}

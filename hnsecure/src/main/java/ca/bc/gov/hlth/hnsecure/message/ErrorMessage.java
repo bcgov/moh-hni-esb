@@ -19,7 +19,9 @@ public enum ErrorMessage {
 	// Custom error message so custom sequence added
 	CustomError_Msg_MissingAuthKey("HNSE001E", "No authorization key passed in request header."),
 	CustomError_Msg_InvalidAuthKey("HNSE002E", "Invalid token passed in request header."),
-	CustomError_Msg_InvalidRequest("HNSE003E", "Invalid request.");
+	CustomError_Msg_DownstreamConnectionFailed("HNSE003E", "Downstream connection failed."),
+	CustomError_Msg_InvalidRequest("HNSE004E", "Invalid request."),
+	CustomError_Msg_UknownError("HNSE005E", "Uknown error.");
 
 	private final String errorSequence;
 	private final String errorMessage;

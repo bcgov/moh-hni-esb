@@ -45,8 +45,8 @@ import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 public class Route extends RouteBuilder {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Route.class);
-
-	private static final String HTTP_STATUS_OK_CODES = "2";
+	// HTTP Status codes for which the onCompletion logic will be invoked
+	private static final String HTTP_STATUS_CODES_COMPLETION_REGEX = "^[245][0-9][0-9]$";
 
 	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
     
@@ -99,7 +99,7 @@ public class Route extends RouteBuilder {
 			//this route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			//Making it global will generate two response file drops.
-			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).startsWith(HTTP_STATUS_OK_CODES)).id("Completion")
+			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).regex(HTTP_STATUS_CODES_COMPLETION_REGEX)).id("Completion")
 			//creating filedrops if enabled
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
