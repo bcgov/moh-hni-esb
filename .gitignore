@@ -5,9 +5,10 @@
 */.idea/*
 *.project
 *.classpath
-*/.settings/*
 */bin/*
 */keystore/*
-hnsecure/logs/*
 logs/*
 */filedrops/*
+hnsecure/logs/*
+hnsecure/.settings/*
+
