@@ -118,7 +118,7 @@ public class Route extends RouteBuilder {
 				.when(header(HTTP_REQUEST_ID_HEADER))
 					.process(exchange -> {
 						exchange.setExchangeId(exchange.getIn().getHeader(HTTP_REQUEST_ID_HEADER, String.class));
-					})
+					}).id("SetExchangeIdFromHeader")
 			.end()
 
         	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)

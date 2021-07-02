@@ -73,17 +73,17 @@ public class TokenValidator extends AbstractValidator {
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if(StringUtils.isBlank(authorizationKey)) {
-			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
+			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getExchangeId());
 			throw new CustomHNSException(CustomError_Msg_InvalidAuthKey.getErrorMessage());
 		}
 		AccessToken accessToken = AccessToken.parse(authorizationKey);
-		logger.info("{} - TransactionId: {}, Access token: {}", methodName,exchange.getIn().getMessageId(),accessToken);
+		logger.info("{} - TransactionId: {}, Access token: {}", methodName,exchange.getExchangeId(),accessToken);
 
 		// Process the token
 		JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
 
 		// Print out the token claims set
-		logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getIn().getMessageId(), claimsSet.toJSONObject());
+		logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getExchangeId(), claimsSet.toJSONObject());
 	
 		logger.info("TokenValidator Validation completed");
 		// After token call the  other validations. Type of validation depends on wrapped class when initializing

@@ -58,9 +58,8 @@ public class PopulateReqHeader {
 			hm.put(Util.TRACING_ID, traceID);
 		}
 
-		logger.info("{} - TransactionId: {}, The exchange id is : {}, The receiving application is : {},The transaction type is :{} ", 
-				methodName, exchange.getExchangeId(),
-				exchange.getIn().getMessageId(),  recApp , msgType);
+		logger.info("{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
+				methodName, exchange.getExchangeId(), recApp , msgType, sendingFacility);
 	}
 	
 	
