@@ -19,7 +19,7 @@ import net.minidev.json.parser.ParseException;
 
 public class FhirPayloadExtractor {
 
-    private static Logger logger = LoggerFactory.getLogger(FhirPayloadExtractor.class);
+    private static final Logger logger = LoggerFactory.getLogger(FhirPayloadExtractor.class);
 
     @Handler
     public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, UnsupportedEncodingException, CustomHNSException {
@@ -39,7 +39,7 @@ public class FhirPayloadExtractor {
         	logger.error("Exception while decoding message ", e);
         	throw new CustomHNSException(CustomError_Msg_InvalidRequest.getErrorMessage());
         }
-        logger.debug("{} - TransactionId: {},{}", methodName, exchange.getIn().getMessageId(), "Message extracted successfully");
+        logger.debug("{} - TransactionId: {},{}", methodName, exchange.getExchangeId(), "Message extracted successfully");
 		logger.debug("The decoded HL7 message is:"+extractedMessage);
         
         return extractedMessage;

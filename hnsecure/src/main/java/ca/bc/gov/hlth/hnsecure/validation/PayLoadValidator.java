@@ -55,7 +55,7 @@ public class PayLoadValidator extends AbstractValidator {
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
 		String v2Message = (String) exchange.getIn().getBody();
-		String transactionId = (String) exchange.getIn().getMessageId();
+		String transactionId = exchange.getExchangeId();
 		validateMessageFormat(exchange, v2Message, messageObj);
 		boolean isPharmanetMode = isPharmanet(v2Message,messageObj, transactionId);
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
@@ -244,7 +244,7 @@ public class PayLoadValidator extends AbstractValidator {
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
@@ -261,7 +261,7 @@ public class PayLoadValidator extends AbstractValidator {
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		exchange.getIn().setBody(v2Response);
 		throw new ValidationFailedException(errorMessage.getErrorMessage());
