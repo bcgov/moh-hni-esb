@@ -36,7 +36,7 @@ public class FhirPayloadExtractor {
         try {
         	extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
         } catch(IllegalArgumentException e) {
-        	logger.error("{} - TransactionId: {}, Exception while decoding message {}", methodName, exchange.getIn().getMessageId(), e.getMessage());
+        	logger.error("{} - TransactionId: {}, Exception while decoding message {}", methodName, exchange.getExchangeId(), e.getMessage());
         	throw new CustomHNSException(CustomError_Msg_InvalidRequest);
         }
         logger.debug("{} - TransactionId: {},{}", methodName, exchange.getExchangeId(), "Message extracted successfully");

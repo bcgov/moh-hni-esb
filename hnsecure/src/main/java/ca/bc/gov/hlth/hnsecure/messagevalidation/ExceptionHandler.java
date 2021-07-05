@@ -63,7 +63,7 @@ public class ExceptionHandler implements Processor {
 		hl7Message.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();
 		String v2Response = errorResponse.constructResponse(hl7Message, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getIn().getMessageId(), hl7Message.getSendingFacility(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), hl7Message.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 		exchange.getIn().setBody(v2Response);
 	}

@@ -69,7 +69,7 @@ public class TokenValidator extends AbstractValidator {
 	public boolean validate(Exchange exchange) throws Exception {
 		String methodName = LoggingUtil.getMethodName();
 
-		logger.debug("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getIn().getMessageId());
+		logger.debug("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getExchangeId());
 		
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
@@ -79,7 +79,7 @@ public class TokenValidator extends AbstractValidator {
 		}
 		try {
 			AccessToken accessToken = AccessToken.parse(authorizationKey);
-			logger.info("{} - TransactionId: {}, Access token: {}", methodName, exchange.getIn().getMessageId(),accessToken);
+			logger.info("{} - TransactionId: {}, Access token: {}", methodName, exchange.getExchangeId(), accessToken);
 
 			// Process the token
 			JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
@@ -87,7 +87,7 @@ public class TokenValidator extends AbstractValidator {
 			// Print out the token claims set
 			logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getExchangeId(), claimsSet.toJSONObject());
 		
-			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getIn().getMessageId());			
+			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getExchangeId());			
 		} catch (ParseException | java.text.ParseException | BadJOSEException | JOSEException e) {
 			logger.error("{} - TransactionId: {}, Error: {}", methodName, exchange.getExchangeId(), e.getMessage());
 			throw new CustomHNSException(ErrorMessage.CustomError_Msg_InvalidAuthKey);
