@@ -1,0 +1,16 @@
+﻿kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: jenkins
+  namespace: c5839f-tools
+  labels:
+    app: jenkins
+spec:
+  host: jenkinsdev.apps.silver.devops.gov.bc.ca
+  to:
+    kind: Service
+    name: jenkins
+    weight: 100
+  port:
+    targetPort: 8080-jenkins-tcp
+  wildcardPolicy: None

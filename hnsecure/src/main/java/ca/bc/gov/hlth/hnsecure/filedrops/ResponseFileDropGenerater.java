@@ -25,12 +25,11 @@ public class ResponseFileDropGenerater extends FileDropGenerater {
 
 	@Handler
 	public void createFileDrops(Exchange exchange) {
-		String fileName = buildFileNameParameters(exchange,exchange.getIn().getMessageId());
+		String fileName = buildFileNameParameters(exchange,exchange.getExchangeId());
 		String responseFileName = fileName + RESPONSE_FILE;		
 		writeFiledrop(exchange.getIn().getBody().toString(), responseFileName);
 		logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",
-				LoggingUtil.getMethodName(), exchange.getIn().getMessageId(),
-				responseFileName);
+				LoggingUtil.getMethodName(), exchange.getExchangeId(), responseFileName);
 	}
 
 }

@@ -54,11 +54,11 @@ public class TokenValidator extends AbstractValidator {
 	private static final Logger logger = LoggerFactory.getLogger(TokenValidator.class);
 	private static final String OBJECT_TYPE_JWT = "JWT";
 	private ApplicationProperties properties = ApplicationProperties.getInstance();
-	
-	private ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
-	private Validator validator;
+	private ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 	
+	private Validator validator;
+
 	public TokenValidator(Validator validator) throws MalformedURLException {
 		super();
 		this.validator = validator;
@@ -74,7 +74,7 @@ public class TokenValidator extends AbstractValidator {
 		// If more validataion is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if (StringUtils.isBlank(authorizationKey)) {
-			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getIn().getMessageId());
+			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getExchangeId());
 			throw new CustomHNSException(CustomError_Msg_MissingAuthKey);
 		}
 		try {
@@ -85,11 +85,11 @@ public class TokenValidator extends AbstractValidator {
 			JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
 
 			// Print out the token claims set
-			logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getIn().getMessageId(), claimsSet.toJSONObject());
+			logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getExchangeId(), claimsSet.toJSONObject());
 		
 			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getIn().getMessageId());			
 		} catch (ParseException | java.text.ParseException | BadJOSEException | JOSEException e) {
-			logger.error("{} - TransactionId: {}, Error: {}", methodName, exchange.getIn().getMessageId(), e.getMessage());
+			logger.error("{} - TransactionId: {}, Error: {}", methodName, exchange.getExchangeId(), e.getMessage());
 			throw new CustomHNSException(ErrorMessage.CustomError_Msg_InvalidAuthKey);
 		}
 
