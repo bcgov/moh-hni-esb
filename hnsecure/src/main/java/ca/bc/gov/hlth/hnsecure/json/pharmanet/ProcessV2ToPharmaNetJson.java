@@ -37,7 +37,7 @@ public class ProcessV2ToPharmaNetJson {
 
 		// It should be impossible for the body to be empty here (the handshake server or base64 encoder should catch that) but handle it just in case
 		if (exchangeBody == null || StringUtil.isBlank(exchangeBody.toString())) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7.getErrorMessage());
+			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();

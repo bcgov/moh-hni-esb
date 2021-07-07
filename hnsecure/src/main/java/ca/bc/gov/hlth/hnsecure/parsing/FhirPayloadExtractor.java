@@ -33,14 +33,14 @@ public class FhirPayloadExtractor {
         // Only way to verify if message is base64 encoded is to decode and check for no exception
         // In case string is not Base 64, decoder throws IllegalArgumentException. Handled that exception.
         String extractedMessage;
-        try{
+        try {
         	extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
         } catch(IllegalArgumentException e) {
-        	logger.error("Exception while decoding message ", e);
-        	throw new CustomHNSException(CustomError_Msg_InvalidRequest.getErrorMessage());
+        	logger.error("{} - TransactionId: {}, Exception while decoding message {}", methodName, exchange.getExchangeId(), e.getMessage());
+        	throw new CustomHNSException(CustomError_Msg_InvalidRequest);
         }
         logger.debug("{} - TransactionId: {},{}", methodName, exchange.getExchangeId(), "Message extracted successfully");
-		logger.debug("The decoded HL7 message is:"+extractedMessage);
+		logger.debug("{} - TransactionId: {}, The decoded HL7 message is: {}", methodName, exchange.getExchangeId(), extractedMessage);
         
         return extractedMessage;
     }    

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import org.apache.camel.Exchange;
+import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
@@ -14,8 +15,7 @@ import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 public class PayLoadValidatorTest extends TestPropertiesLoader {
 
     private PayLoadValidator v2PayloadValidator = new PayLoadValidator(new ValidatorImpl());
-    
-    
+
     @Test
     public void testHL7ErrorMsgInvalidHL7Format() {
     	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
@@ -24,9 +24,37 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
             v2PayloadValidator.validate(exchange);
         });
 
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response);       
+    }
+    
+    @Test
+    public void testHL7ErrorMsgMissingReceivingFacility() {
+    	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
+    	String expectedResponse = "MSA|AR|20191108083244|VLDT009E  The Receiving Facility ID was not specified in the HL7 Message.|";
+    	exchange.getIn().setBody(SamplesToSend.missingReceivingFacility);
+        assertThrows(ValidationFailedException.class, () -> {
+            v2PayloadValidator.validate(exchange);
+        });
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
+        String response = ((String) exchange.getIn().getBody()).split("\n")[1];
+        assertEquals(expectedResponse, response);       
+    }
+    
+    @Test
+    public void testHL7ErrorMsgUnknownReceivingApplication() {
+    	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
+    	String expectedResponse = "MSA|AR|20191108083244|HNPS005E  Unknown receiving application|";
+    	exchange.getIn().setBody(SamplesToSend.unknownReceivingApplication);
+        assertThrows(ValidationFailedException.class, () -> {
+            v2PayloadValidator.validate(exchange);
+        });
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
+        String response = ((String) exchange.getIn().getBody()).split("\n")[1];
+        assertEquals(expectedResponse, response);       
     }
     
     @Test
@@ -36,36 +64,46 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange );
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response);     
     }
     
     @Test
     public void testHL7ErrorMsgNoInputHL7() throws ValidationFailedException {
-    	String expectedResponse = "MSA|AR||VLDT014E  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR||VLDT004E  No HL7 Message was supplied as input|";
     	exchange.getIn().setBody(null);
         assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response);
     }
     
     @Test
     public void testHL7ErrorMsgMSHSegmentMissing() {
-    	String expectedResponse = "MSA|AR|20191108083244|VLDT014E  The Supplied HL7 Message was improperly formatted|";
+    	String expectedResponse = "MSA|AR|20191108083244|VLDT007E  The MSH Segment from the HL7 Message is missing.|";
+    	exchange.getIn().setBody(SamplesToSend.msgMissingMSH);
+    	assertThrows(ValidationFailedException.class, () -> {
+            v2PayloadValidator.validate(exchange);
+        });
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
+        String response = ((String) exchange.getIn().getBody()).split("\n")[1];
+        assertEquals(expectedResponse, response);       
+    }
+    
+    @Test
+    public void testHL7ErrorMsgInvalidMSHSegment() {
+    	String expectedResponse = "MSA|AR|20191108083244|HNPS002E  Invalid MSH segment format|";
     	exchange.getIn().setBody(SamplesToSend.msgInvalidMSH);
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response);       
     }
-    
-
 
     @Test
     public void testHL7ErrorMsgFacilityIdMismatch() {
@@ -78,9 +116,9 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response);
     }
     
     @Test
@@ -95,9 +133,9 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response);
     }
     
     @Test
@@ -114,11 +152,10 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[3];
-        assertEquals(response,expectedResponse);       
+        assertEquals(expectedResponse, response); 
     }
-    
     
     @Test
     public void testHL7ErrorMsgTransactionFromatError() {
@@ -134,10 +171,9 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String response = ((String) exchange.getIn().getBody()).split("\n")[3];
-        assertEquals(response,expectedResponse);        
-       
+        assertEquals(expectedResponse, response);
     }
     
     
@@ -156,15 +192,15 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
-        assertEquals(exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 200);
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
         String zca = ((String) exchange.getIn().getBody()).split("\n")[1];
-        assertEquals(zca,expectedZCA);
+        assertEquals(expectedZCA, zca);
         
         String zcb = ((String) exchange.getIn().getBody()).split("\n")[2];
-        assertEquals(zcb,expectedZCB);
+        assertEquals(expectedZCB, zcb);
         
         String zzz = ((String) exchange.getIn().getBody()).split("\n")[3];
-        assertEquals(zzz,expectedZZZ);
+        assertEquals(expectedZZZ, zzz);
         
     }
 

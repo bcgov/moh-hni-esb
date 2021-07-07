@@ -21,7 +21,7 @@ public class ProcessV2ToJson {
 
 		// It should be impossible for the body to be empty here (the handshake server should catch that) but handle it just in case
 		if (StringUtil.isBlank(base64V2Message)) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7.getErrorMessage());
+			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
 		}
 		return FHIRJsonUtil.createFHIRJsonObj(base64V2Message).toString();
 	}
