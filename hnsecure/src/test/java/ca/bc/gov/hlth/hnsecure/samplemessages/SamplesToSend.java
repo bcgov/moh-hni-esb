@@ -115,4 +115,6 @@ public class SamplesToSend {
             + "ZZZ|TDR||9286|P1|2F3P2||||\r\n"
             + "ZCA||03|00|KC|13|\r\n"	           
             + "ZPC|2240579||||||Y|ZPC1^^^766720\r\n";  
+    
+    public static final String invalidFhirJsonMsg = "{\"content\":[{\"attachment\":{\"data\":\"MDAwMDAzNTJNU0h8Xn5cJnxITldFQnxWSUhBfFJBSUdULVBSU04tRE1HUnxCQzAwMDAxMDEzfDIwMTcwMTI1MTIyMTI1fHRyYWluOTZ8UjAzfDIwMTcwMTI1MTIyMTI1fER8Mi40fHwKWkhEfDIwMTcwMTI1MTIyMTI1fF5eMDAwMDAwMTB8SE5BSUFETUlOSVNUUkFUSU9OfHx8fDIuNApQSUR8fDEyMzQ1Njc4OTBeXl5CQ15QSA=B=\",\"contentType\":\"x-application\\/hl7-v2+er7\"}}],\"resourceType\":\"DocumentReference\",\"status\":\"current\"}";
 }

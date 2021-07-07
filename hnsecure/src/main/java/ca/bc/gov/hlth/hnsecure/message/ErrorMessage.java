@@ -7,7 +7,8 @@ public enum ErrorMessage {
 	HL7Error_Msg_FacilityIDMismatch("VLDT008E", "The Client Facility and HL7 Sending Facility IDs do not match."),
 	HL7Error_Msg_MissingReceivingFacility("VLDT009E", "The Receiving Facility ID was not specified in the HL7 Message."),
 	HL7Error_Msg_InvalidHL7Format("VLDT014E", "The Supplied HL7 Message was improperly formatted"),
-
+	HL7Error_Msg_Unknown("TFXR999E", "An unknown error has occurred."),
+	
 	HL7Error_Msg_EncryptionError("TXFR029E", "Encryption protocols failed with remote facility."),
 	
 	HL7Error_Msg_InvalidMSHSegment("HNPS002E", "Invalid MSH segment format"),
@@ -20,8 +21,7 @@ public enum ErrorMessage {
 	CustomError_Msg_MissingAuthKey("HNSE001E", "No authorization key passed in request header."),
 	CustomError_Msg_InvalidAuthKey("HNSE002E", "Invalid token passed in request header."),
 	CustomError_Msg_DownstreamConnectionFailed("HNSE003E", "Downstream connection failed."),
-	CustomError_Msg_InvalidRequest("HNSE004E", "Invalid request."),
-	CustomError_Msg_UknownError("HNSE005E", "Unknown error.");
+	CustomError_Msg_InvalidRequest("HNSE004E", "Invalid request.");
 
 	private final String errorSequence;
 	private final String errorMessage;

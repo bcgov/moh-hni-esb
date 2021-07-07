@@ -46,7 +46,7 @@ public class ExceptionHandler implements Processor {
 				generateErrorResponse(exchange, errorMessage, HttpStatus.SC_UNAUTHORIZED);
 				break;
 			default:
-				generateErrorResponse(exchange, ErrorMessage.CustomError_Msg_UknownError, HttpStatus.SC_BAD_REQUEST);
+				generateErrorResponse(exchange, ErrorMessage.HL7Error_Msg_Unknown, HttpStatus.SC_BAD_REQUEST);
 				break;
 			}
 		} else if (exception instanceof HttpHostConnectException) {
@@ -54,7 +54,7 @@ public class ExceptionHandler implements Processor {
 			generateErrorResponse(exchange, ErrorMessage.CustomError_Msg_DownstreamConnectionFailed, HttpStatus.SC_INTERNAL_SERVER_ERROR);			
 		} else {
 			// Should not reach here as the specific exception should be handled above, add default error in case the specific handling not added
-			generateErrorResponse(exchange, ErrorMessage.CustomError_Msg_UknownError, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+			generateErrorResponse(exchange, ErrorMessage.HL7Error_Msg_Unknown, HttpStatus.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -64,7 +64,7 @@ public class ExceptionHandler implements Processor {
 		ErrorResponse errorResponse = new ErrorResponse();
 		String v2Response = errorResponse.constructResponse(hl7Message, errorMessage);
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), hl7Message.getSendingFacility(), errorMessage);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);
 	}
 }
