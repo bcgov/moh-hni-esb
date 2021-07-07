@@ -7,7 +7,7 @@ public enum ErrorMessage {
 	HL7Error_Msg_FacilityIDMismatch("VLDT008E", "The Client Facility and HL7 Sending Facility IDs do not match."),
 	HL7Error_Msg_MissingReceivingFacility("VLDT009E", "The Receiving Facility ID was not specified in the HL7 Message."),
 	HL7Error_Msg_InvalidHL7Format("VLDT014E", "The Supplied HL7 Message was improperly formatted"),
-	HL7Error_Msg_Unknown("TFXR999E", "An unknown error has occurred."),
+	HL7Error_Msg_Unknown("VLDT999E", "An unknown error has occurred."),
 	
 	HL7Error_Msg_EncryptionError("TXFR029E", "Encryption protocols failed with remote facility."),
 	
