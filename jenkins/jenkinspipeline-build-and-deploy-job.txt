@@ -43,7 +43,8 @@ pipeline {
 									def buildSelector = bc.startBuild()
 									buildSelector.logs('-f')
 								}else{
-									echo "Please provide valid build name"
+									echo "Build name ${BUILD_NAME} does not exist in project ${NAMESPACE}." 
+									echo "Please provide valid build name."
 								}
 							}
 					
