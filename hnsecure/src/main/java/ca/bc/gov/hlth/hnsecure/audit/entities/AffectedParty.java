@@ -20,20 +20,35 @@ public class AffectedParty {
 	@Column(name="affected_party_id", columnDefinition="bigserial")
 	private long affectedPartyId;
 
+	/**
+	 * 	identifier number, such as a PHN or MRN
+	 */
 	@Basic
 	private String identifier;
 
+	/**
+	 * name of the source system that issued the identifier
+	 */
 	@Basic
 	@Column(name="identifier_source")
 	private String identifierSource;
 
+	/**
+	 * the type of identifier (PHN, MRN, drivers license no, etc)
+	 */
 	@Basic
 	@Column(name="identifier_type")
 	private String identifierType;
 
+	/**
+	 * Status of the identifier (Active, Merged, Deleted)
+	 */
 	@Basic
 	private String status;
 
+	/**
+	 * Foreign key to the transaction the party is the subject of.
+	 */
 	@ManyToOne(fetch=FetchType.LAZY, cascade=CascadeType.MERGE)
 	@JoinColumn(name="transaction_id", columnDefinition="uuid")
 	private Transaction transaction;
