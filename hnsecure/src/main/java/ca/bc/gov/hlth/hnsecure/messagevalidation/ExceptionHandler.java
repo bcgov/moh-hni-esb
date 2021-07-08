@@ -8,12 +8,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+import ca.bc.gov.hlth.hnsecure.audit.EventMessageProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.filedrops.FileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 /**
  * Custom ExceptionHandler to handle hn secure exceptions.
@@ -66,5 +70,10 @@ public class ExceptionHandler implements Processor {
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), hl7Message.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);
+		
+		if (Boolean.valueOf(ApplicationProperties.getInstance().getValue(ApplicationProperty.IS_AUDITS_ENABLED))) {
+			EventMessageProcessor eventMessageProcessor = new EventMessageProcessor();
+			eventMessageProcessor.process(exchange, TransactionEventType.UNAUTHENTICATED);	
+		}		
 	}
 }

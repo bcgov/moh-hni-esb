@@ -1,13 +1,11 @@
 package ca.bc.gov.hlth.hnsecure.audit.entities;
 
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -19,7 +17,8 @@ public class EventMessage {
 
 	@Id
 	@Column(name="event_message_id", columnDefinition="bigserial")
-	private long eventMessageId;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long eventMessageId;
 
 	@Basic
 	@Column(name="error_code")
@@ -33,10 +32,8 @@ public class EventMessage {
 	@Column(name="message_text", columnDefinition="text", length=2147483647)
 	private String messageText;
 
-	@ManyToOne(fetch=FetchType.LAZY, cascade=CascadeType.MERGE)
-	@JoinColumn(name="transaction_event_id", columnDefinition="int8")
-	private TransactionEvent transactionEvent;
-
+	@Column(name="transaction_event_id", columnDefinition="int8")
+	private Long transactionEventId;
 
 	public EventMessage() {
 	}
@@ -61,11 +58,11 @@ public class EventMessage {
 		this.errorLevel = errorLevel;
 	}
 
-	public long getEventMessageId() {
+	public Long getEventMessageId() {
 		return eventMessageId;
 	}
 
-	public void setEventMessageId(long eventMessageId) {
+	public void setEventMessageId(Long eventMessageId) {
 		this.eventMessageId = eventMessageId;
 	}
 
@@ -77,11 +74,13 @@ public class EventMessage {
 		this.messageText = messageText;
 	}
 
-	public TransactionEvent getTransactionEvent() {
-		return transactionEvent;
+	public Long getTransactionEventId() {
+		return transactionEventId;
 	}
 
-	public void setTransactionEvent(TransactionEvent transactionEvent) {
-		this.transactionEvent = transactionEvent;
+	public void setTransactionEventId(Long transactionEventId) {
+		this.transactionEventId = transactionEventId;
 	}
+
+	
 }

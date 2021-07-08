@@ -38,6 +38,11 @@ public enum ErrorMessage {
 	public String getErrorMessage() {
 		return errorMessage;
 	}
+	
+	@Override
+	public String toString() {
+		return errorSequence + " " + errorMessage;
+	}
 
 }
 
