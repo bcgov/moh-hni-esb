@@ -22,6 +22,7 @@ import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -81,7 +82,7 @@ public class PayLoadValidator extends AbstractValidator {
 	protected  void validatePharmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
-			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
+			if (!V2MessageUtil.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 				populateFieldsForErrorResponse(messageObj);
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFormatError, exchange);
 			}
@@ -201,9 +202,9 @@ public class PayLoadValidator extends AbstractValidator {
 		if ((!StringUtils.isEmpty(messageObj.getMessageType())
 				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
 			String methodName = LoggingUtil.getMethodName();		
-			String zcbSegment = Util.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
-			String pharmacyID = Util.getPharmacyId(zcbSegment);
-			String traceNumber = Util.getTraceNumber(zcbSegment);
+			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
+			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
+			String traceNumber = V2MessageUtil.getTraceNumber(zcbSegment);
 			logger.info("{} - TransactionId: {}, FacilityId: {}, PharmacyId: {}, TraceNumber: {}",
 					methodName, transactionId, messageObj.getSendingFacility(), pharmacyID, traceNumber);
 			return true;

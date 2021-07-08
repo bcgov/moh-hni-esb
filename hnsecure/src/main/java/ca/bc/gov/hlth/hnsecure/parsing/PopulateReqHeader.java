@@ -42,8 +42,8 @@ public class PopulateReqHeader {
 	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message)
 			throws Exception {
 		final String methodName = LoggingUtil.getMethodName();
-		String recApp = Util.getReceivingApp(v2Message);
-		String msgType = Util.getMsgType(v2Message);
+		String recApp = V2MessageUtil.getReceivingApp(v2Message);
+		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
 		hm.put(HEADER_RECEIVING_APP, recApp);
@@ -52,9 +52,9 @@ public class PopulateReqHeader {
 		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 		
 		if(StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
-			String zcbSegment = Util.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
-			String pharmacyID = Util.getPharmacyId(zcbSegment);
-			String traceID = Util.getTraceNumber(zcbSegment);
+			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
+			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
+			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
 			hm.put(Util.PHARMACY_ID, pharmacyID);
 			hm.put(Util.TRACING_ID, traceID);
 		}
