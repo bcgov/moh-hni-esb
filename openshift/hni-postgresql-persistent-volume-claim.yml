@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hni-postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: netapp-file-standard
+  resources:
+    requests:
+      storage: 1Gi
+
