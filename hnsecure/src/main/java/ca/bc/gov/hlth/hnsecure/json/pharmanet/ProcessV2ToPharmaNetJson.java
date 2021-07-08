@@ -37,15 +37,14 @@ public class ProcessV2ToPharmaNetJson {
 
 		// It should be impossible for the body to be empty here (the handshake server or base64 encoder should catch that) but handle it just in case
 		if (exchangeBody == null || StringUtil.isBlank(exchangeBody.toString())) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7.getErrorMessage());
+			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();
-			String transactionId = exchange.getIn().getMessageId();
 			String pharmacyId = exchange.getIn().getHeader(Util.PHARMACY_ID,String.class);
 			String traceId = exchange.getIn().getHeader(Util.TRACING_ID,String.class);			
 			logger.info("{} - TransactionId: {}, PharmacyId: {}, TraceNumber: {}, transactionUUID: {} ",
-					methodName, transactionId, pharmacyId, traceId, transactionUUID);
+					methodName, transactionUUID, pharmacyId, traceId, transactionUUID);
 			return PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString();
 		}
 	}

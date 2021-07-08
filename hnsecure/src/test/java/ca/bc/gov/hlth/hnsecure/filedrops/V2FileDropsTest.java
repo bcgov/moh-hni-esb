@@ -16,7 +16,7 @@ public class V2FileDropsTest extends TestPropertiesLoader{
 		// 11b7bbb2-4668-4ab3-9794-624147d5d9e8-R03-moh_hnclient_dev-20210519225836
 		exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
 		String sendingFacility = Util.getSendingFacility((String)exchange.getIn().getHeader("Authorization"));
-		String fileName = Util.buildFileName(sendingFacility,exchange.getIn().getMessageId(), "R03");
+		String fileName = Util.buildFileName(sendingFacility,exchange.getExchangeId(), "R03");
 		String[] sections = fileName.split("-");
 		
 		// First 5 positions are the UUID

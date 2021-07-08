@@ -1,0 +1,43 @@
+kind: List
+apiVersion: v1
+items:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: openshift-hnsesb-sample
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: openshift-hnsesb-sample-docker
+  spec:
+    strategy:
+      type: Docker
+    source:
+      type: Docker
+      dockerfile: |-
+        FROM adoptopenjdk:11-jre-hotspot
+        COPY /hnsecure/target/hni-esb.jar /tmp
+        WORKDIR /tmp
+        CMD ["java","-jar","hni-esb.jar"]
+      binary:
+        asFile: ROOT.war
+    output:
+      to:
+        kind: ImageStreamTag
+        name: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools/hnsesb:bc
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: openshift-hnsesb-sample
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          node("maven") {
+            sh "git clone https://github.com/bcgov/moh-hni-esb.git ."
+            sh "mvn -B clean package"
+            sh "oc start-build -F openshift-hnsesb-sample-docker --from-file=target/ROOT.war"
+          }
+    triggers:
+    - type: ConfigChange

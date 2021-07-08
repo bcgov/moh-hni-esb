@@ -49,8 +49,8 @@ import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 public class Route extends RouteBuilder {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Route.class);
-
-	private static final String HTTP_STATUS_OK_CODES = "2";
+	// HTTP Status codes for which the onCompletion logic will be invoked
+	private static final String HTTP_STATUS_CODES_COMPLETION_REGEX = "^[245][0-9][0-9]$";
 
 	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
     
@@ -59,6 +59,8 @@ public class Route extends RouteBuilder {
 	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
 
 	private static final String BASIC = "Basic ";
+
+	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
 
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
@@ -99,7 +101,15 @@ public class Route extends RouteBuilder {
     @SuppressWarnings("unchecked")
 	@Override
     public void configure() {
+
     	init();
+		setupSSLContextPharmanetRegistry(getContext());
+
+		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
+		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
+
+		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
+		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 
     	onException(CustomHNSException.class, HttpHostConnectException.class)
         	.process(new ExceptionHandler())
@@ -109,31 +119,31 @@ public class Route extends RouteBuilder {
                 .log("Validation exception response: ${body}")
                 .handled(true)
                 .id("ValidationException");
-        
-        setupSSLConextPharmanetRegistry(getContext());
-        String pharmNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
-        String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
-        log.info("Using pharmNetUrl: " + pharmNetUrl);
-        
-        String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 
        	setUpDatabase();
         
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
-			//this route is only invoked when the original route is complete as a kind
+			// This route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
-			//Making it global will generate two response file drops.
-			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).startsWith(HTTP_STATUS_OK_CODES)).id("Completion")
-			//creating filedrops if enabled
+			// Making it global will generate two response file drops.
+			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).regex(HTTP_STATUS_CODES_COMPLETION_REGEX)).id("Completion")
+				// create filedrops if enabled
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 				.end()
-		    		//encoding response before sending to consumer
-		    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
-		    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+				//encoding response before sending to consumer
+				.setBody().method(new Base64Encoder()).id("Base64Encoder")
+				.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
 			.end()
-			
         	.log("HNSecure received a request")
+			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
+			.choice()
+				.when(header(HTTP_REQUEST_ID_HEADER))
+					.process(exchange -> {
+						exchange.setExchangeId(exchange.getIn().getHeader(HTTP_REQUEST_ID_HEADER, String.class));
+					}).id("SetExchangeIdFromHeader")
+			.end()
+
         	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)
         	.setHeader("isAuditsEnabled").simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
@@ -142,42 +152,42 @@ public class Route extends RouteBuilder {
 			.wireTap("direct:start").end()
         	// Validate the message
         	.process(validator).id("Validator")
-            //set the receiving app, message type into headers
+            // Set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
             .log("The message receiving application is <${in.header.receivingApp}> and the message type is <${in.header.messageType}>.")     
             
-            //dispatch the message based on the receiving application code and message type
+            // Dispatch the message based on the receiving application code and message type
             .choice()
-	            //sending message to pharmaNet
+	            // Sending message to PharmaNet
             	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
                 	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
             		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
             		.setBody(body().regexReplaceAll("\r\n","\r"))
                     .setBody().method(new Base64Encoder())
 		            .setBody().method(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
-		            .log("Sending to Pharmanet")
+		            .log("Sending to Pharamanet")
 		            .removeHeader(Exchange.HTTP_URI) //clean this header as it has been set in the "from" section
-		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))		            
+		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 		            .setHeader(CAMEL_HTTP_METHOD, POST)
 		            .setHeader(AUTHORIZATION, simple(basicToken))
 		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-		            .to(pharmNetUrl).id("ToPharmaNet")
+		            .to(pharmaNetUrl).id("ToPharmaNet")
 		            .log("Received response from Pharmanet")
 		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 		            .process(new PharmaNetPayloadExtractor())
 		            
-	            //sending message to HIBC for ELIG
+	            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
 	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
                     .setBody(simple(SampleMessages.e45ResponseMessage))
 	            
-	            //sending message to HIBC for ENROL
+	            // sending message to HIBC for ENROL
 	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
 	                .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
                     .setBody(simple(SampleMessages.r50ResponseMessage))
 	            
-	            //others sending to JMB
+	            // others sending to JMB
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
                     .setBody(simple(SampleMessages.r03ResponseMessage))
@@ -230,7 +240,7 @@ public class Route extends RouteBuilder {
 		return basicToken;
 	}
 
-	private void setupSSLConextPharmanetRegistry(CamelContext camelContext) {
+	private void setupSSLContextPharmanetRegistry(CamelContext camelContext) {
 		KeyStoreParameters ksp = new KeyStoreParameters();
         ksp.setResource(pharmanetCert);
         ksp.setPassword(pharmanetCertPassword);

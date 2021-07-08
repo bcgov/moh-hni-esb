@@ -55,13 +55,13 @@ public class PayLoadValidator extends AbstractValidator {
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
 		String v2Message = (String) exchange.getIn().getBody();
-		String transactionId = (String) exchange.getIn().getMessageId();
+		String transactionId = exchange.getExchangeId();
 		validateMessageFormat(exchange, v2Message, messageObj);
 		boolean isPharmanetMode = isPharmanet(v2Message,messageObj, transactionId);
 		validateSendingFacility(exchange, messageObj, accessToken, isPharmanetMode);
 		validateReceivingApp(exchange, messageObj);
 		validateReceivingFacility(exchange, messageObj);
-		validatePhanrmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
+		validatePharmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
 		// To ensure validation in wrapper class is called.
 		validator.validate(exchange);
 		logger.info("{} - PayLoadValidator Validation completed",methodName);
@@ -78,12 +78,12 @@ public class PayLoadValidator extends AbstractValidator {
 	 * @param isPharmanetMode
 	 * @throws ValidationFailedException
 	 */
-	protected  void validatePhanrmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
+	protected  void validatePharmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 				populateFieldsForErrorResponse(messageObj);
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFromatError, exchange);
+				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFormatError, exchange);
 			}
 		}
 	}
@@ -97,16 +97,17 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	protected  void validateReceivingFacility(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
-		if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
+		if (StringUtils.isEmpty(messageObj.getReceivingFacility())) {
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_MissingReceivingFacility, exchange);
+		} else if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
 			Set<String> validReceivingFacility = Util.getPropertyAsSet(properties.getValue(VALID_RECIEVING_FACILITY));
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
-
 			}
-		}else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
+		} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
-			}
+			generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+		}
 	}
 	
 
@@ -118,14 +119,11 @@ public class PayLoadValidator extends AbstractValidator {
 	 */
 	protected  void validateReceivingApp(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
-		if ((StringUtils.isEmpty(messageObj.getReceivingApplication())
-				|| StringUtils.isEmpty(messageObj.getReceivingFacility()))) {
-
+		if (StringUtils.isEmpty(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 		}
-
 		// Check the validity
-		if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
+		else if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 	}
@@ -177,12 +175,12 @@ public class PayLoadValidator extends AbstractValidator {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 			}
 		} else {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_NoInputHL7, exchange);
 		}
 
 		// Validate segment identifier
 		if (!messageObj.getSegmentIdentifier().equals(segmentIdentifier)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+			generateError(messageObj, ErrorMessage.HL7Error_Msg_MSHSegmentMissing, exchange);
 		}
 
 		// Validate encoding characters
@@ -244,11 +242,12 @@ public class PayLoadValidator extends AbstractValidator {
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
+	exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 		exchange.getIn().setBody(v2Response);
-		throw new ValidationFailedException(errorMessage.getErrorMessage());
+		throw new ValidationFailedException(errorMessage);
 	}
+
 	/**
 	 * @param messageObject
 	 * @param errorMessage
@@ -261,10 +260,10 @@ public class PayLoadValidator extends AbstractValidator {
 		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getIn().getMessageId(),messageObject.getSendingFacility(), errorMessage);
-		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}",methodName, exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
+		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 		exchange.getIn().setBody(v2Response);
-		throw new ValidationFailedException(errorMessage.getErrorMessage());
+		throw new ValidationFailedException(errorMessage);
 	}
 
 	/*

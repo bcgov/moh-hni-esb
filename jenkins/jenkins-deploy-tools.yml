@@ -1,0 +1,39 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+  name: jenkins
+  namespace: c5839f-tools
+  labels:
+    app: jenkins
+    name: jenkins
+spec:
+  containers:
+      - name: jenkins
+        image: image-registry.openshift-image-registry.svc:5000/c5839f-tools/jenkins:jdk11-mvn
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-jdk11-data
+          subPath: jenkins
+        - mountPath: /tmp/repository
+          name: mvn-repository
+          subPath: repository          
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 50000
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 2
+            memory: 8Gi
+          requests:
+            cpu: 1
+            memory: 2Gi
+  volumes:
+    - name: jenkins-jdk11-data
+      persistentVolumeClaim:
+        claimName: jenkins-jdk11
+    - name: mvn-repository
+      persistentVolumeClaim:
+        claimName: maven-repo
+  restartPolicy: Never
