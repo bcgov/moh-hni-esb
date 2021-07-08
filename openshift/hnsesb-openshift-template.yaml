@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: Template
+parameters:
+- description: Namespace variable. Update this value to the namespace where we want to create this template.
+  displayName: namespace
+  name: NAMESPACE
+  required: true
+  #change this value
+  value: c5839f-dev
+- description: Application name. This value will be used for application name and route URL
+  displayName: Application name
+  name: APP_NAME
+  required: true
+  #change this value
+  value: hnsesb-dev
+- description: Main label. This value is used for all API object. To get all all objects, we can use this value as label for selector.
+  displayName: Label
+  name: LABEL
+  required: true
+  #change this value
+  value: hnsesb-dev
+- description: Image stream. Change the value 
+  displayName: Image Stream
+  name: IMAGE_STREAM
+  required: true
+  #change this value
+  value: hnsesb-dev
+- description: Image stream tag.
+  displayName: Image Stream tag
+  name: IMAGE_STREAM_TAG
+  required: true
+  #change this value
+  value: hnsesb-dev:latest
+labels:
+  template: ${LABEL}
+metadata:
+  annotations:
+    description: Creates the hnsesb setup for a namespace that includes- imagestream, bc, dc, route, service and network policy.
+    #find the icon for this
+    #iconClass: icon-jenkins
+    tags: instant-app,${LABEL}
+  #change this value
+  name: hnsesb-dev
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: ${LABEL}
+    name: ${IMAGE_STREAM}
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    labels:
+      app: ${LABEL}
+    name: ${APP_NAME}-allow-apiportal
+  spec:
+    podSelector: 
+      matchLabels:
+        app: ${LABEL}
+    #{} in ingress means allow-all
+    ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            environment: test
+            name: 264e6f
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            environment: prod
+            name: 264e6f
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    labels:
+      app: ${LABEL}
+    name: ${APP_NAME}-allow-all
+  spec:
+    podSelector: 
+      matchLabels:
+        app: ${LABEL}
+    #{} in ingress means allow-all
+    ingress:
+    - {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      app: ${LABEL}
+  spec:
+    ports:
+    - name: 14885-tcp
+      protocol: TCP
+      port: 14885
+      targetPort: 14885
+    selector:
+      app: ${LABEL}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      app: ${LABEL}
+  spec:
+    host: ${APP_NAME}.apps.silver.devops.gov.bc.ca
+    to:
+      kind: Service
+      name: ${APP_NAME}
+    port:
+      targetPort: 14885-tcp
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: ${LABEL}
+    name: ${APP_NAME}
+  spec:
+    source:
+      #type: Git
+      #git:
+        #uri: https://github.com/bcgov/moh-hni-esb.git
+        # Expect a local directory to be streamed to OpenShift as a build source
+      type: Binary
+      binary: {}      
+    output:
+      to:
+        kind: DockerImage
+        name: image-registry.apps.silver.devops.gov.bc.ca/c5839f-dev/hnsesb-dev:latest
+    strategy:
+      type: Docker
+      dockerStrategy:
+        # Find the image build instructions in ./Dockerfile
+        dockerfilePath: Dockerfile
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: ${LABEL}
+    name: ${APP_NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${LABEL}
+      deploymentconfig: ${APP_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: ${LABEL}
+          deploymentconfig: ${APP_NAME}
+      spec:
+        containers:
+        - name: ${APP_NAME}
+          image: ${IMAGE_STREAM_TAG}
+          env:
+            - name: PHARMANET_CERT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_CERT_PASSWORD
+            - name: PHARMANET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_PASSWORD
+            - name: PHARMANET_USER
+              valueFrom:
+                secretKeyRef:
+                    name: hnsesb-secret
+                    key: PHARMANET_USER                    
+          ports:
+          - containerPort: 14885
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /tmp/keystore
+            name: dev-keystore
+        volumes:
+        - name: dev-keystore
+          persistentVolumeClaim:
+            claimName: dev-keystore
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${APP_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${IMAGE_STREAM_TAG}
+      type: ImageChange
