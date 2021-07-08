@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
-import ca.bc.gov.hlth.hnsecure.audit.persistence.AuditProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 
-public class TransactionProcessor implements Processor {
+public class TransactionProcessor extends AbstractAuditPersistence implements Processor {
 
     private static Logger logger = LoggerFactory.getLogger(TransactionProcessor.class);
 
@@ -40,8 +40,7 @@ public class TransactionProcessor implements Processor {
     	t.setTimestamp(new Date());
         	
         try {        	
-        	AuditProcessor auditProcessor = new AuditProcessor();
-        	auditProcessor.insert(t);
+        	insert(t);
         } catch (Exception ex) {
         	logger.error("Exception {}", ex.getMessage());
         }							

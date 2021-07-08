@@ -8,10 +8,12 @@ import javax.persistence.Persistence;
  * Handles persistence for ESB database audits.
  * 
  */
-public class AuditProcessor {
-    
-    public <T> T insert(T record) {
-        EntityManager em = Persistence.createEntityManagerFactory("HNI-ESB-AUDITS").createEntityManager();
+public abstract class AbstractAuditPersistence {    
+
+    private static final String PERSISTENCE_UNIT_HNI_ESB_AUDITS = "HNI-ESB-AUDITS";
+
+	public <T> T insert(T record) {
+        EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS).createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
