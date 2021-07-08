@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
@@ -37,6 +36,10 @@ public final class Util {
 	public static final String ACK = "ACK";
 	public static final String PHARMACY_ID = "pharmacyId";
 	public static final String TRACING_ID = "traceId";
+
+	public static final String HEADER_RECEIVING_APP = "receivingApp";
+	public static final String HEADER_MESSAGE_TYPE = "messageType";
+	public static final String HEADER_SENDING_FACILITY = "sendingFacility";
 
 	/**
 	 * return a Base64 encoding string

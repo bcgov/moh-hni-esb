@@ -23,6 +23,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.audit.TransactionProcessor;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
@@ -71,6 +72,9 @@ public class Route extends RouteBuilder {
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
+	@PropertyInject(value = "audits.enabled", defaultValue = "false")
+	private String isAuditsEnabled;
+	
 	private static ApplicationProperties properties;
     
     private Validator validator;
@@ -107,9 +111,9 @@ public class Route extends RouteBuilder {
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 				.end()
-				//encoding response before sending to consumer
-				.setBody().method(new Base64Encoder()).id("Base64Encoder")
-				.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+	    		//encoding response before sending to consumer
+	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
+	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
 			.end()
 
         	.log("HNSecure received a request")
@@ -122,6 +126,7 @@ public class Route extends RouteBuilder {
 			.end()
 
         	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)
+        	.setHeader("isAuditsEnabled").simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
         	// Added wireTap for asynchronous call to filedrop request
@@ -170,10 +175,15 @@ public class Route extends RouteBuilder {
             .end();
            
         
-        from("direct:start").log("wireTap route").choice()
-			.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-			.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done");
-
+        from("direct:start").log("wireTap route")
+        	.choice()
+				.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+				.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
+			.end()
+			.choice()
+				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
+					.process(new TransactionProcessor())
+			.end();
     }
 
 	private String buildBasicToken(String username, String password) {

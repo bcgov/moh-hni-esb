@@ -3,6 +3,11 @@
  */
 package ca.bc.gov.hlth.hnsecure.parsing;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.HEADER_MESSAGE_TYPE;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.HEADER_RECEIVING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.HEADER_SENDING_FACILITY;
+
 import java.util.Map;
 
 import org.apache.camel.Exchange;
@@ -12,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 
@@ -24,9 +28,6 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  */
 public class PopulateReqHeader {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateReqHeader.class);
-	public static final String RECEIVING_APP = "receivingApp";
-	public static final String MESSAGE_TYPE = "messageType";
-	public static final String SENDING_FACILITY = "sendingFacility";
 	
 
 	/**
@@ -45,9 +46,9 @@ public class PopulateReqHeader {
 		String msgType = Util.getMsgType(v2Message);
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
-		hm.put(RECEIVING_APP, recApp);
-		hm.put(MESSAGE_TYPE, msgType);
-		hm.put(SENDING_FACILITY, sendingFacility);
+		hm.put(HEADER_RECEIVING_APP, recApp);
+		hm.put(HEADER_MESSAGE_TYPE, msgType);
+		hm.put(HEADER_SENDING_FACILITY, sendingFacility);
 		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 		
 		if(StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
