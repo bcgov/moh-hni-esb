@@ -32,25 +32,26 @@ pipeline {
                 // This is a step defined in the shared library (see the top for the URL)
                 // (Or you could invoke this step using 'oc' commands!)
                 //binaryBuild(buildConfigName: appName, buildFromPath: ".")
-				openshift.withCluster( 'openshift' ) { 
-					openshift.withCredentials( 'deployer-tools-oc-plugin' ) {
-							openshift.withProject('${NAMESPACE}'){
-								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-								def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
-								def bc
-								if(bcSelector.exists()){
-									bc = bcSelector.object();
-									def buildSelector = bc.startBuild()
-									buildSelector.logs('-f')
-								}else{
-									echo "Build name ${BUILD_NAME} does not exist in project ${NAMESPACE}." 
-									echo "Please provide valid build name."
+				script{
+					openshift.withCluster( 'openshift' ) { 
+						openshift.withCredentials( 'deployer-tools-oc-plugin' ) {
+								openshift.withProject('${NAMESPACE}'){
+									echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+									def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
+									def bc
+									if(bcSelector.exists()){
+										bc = bcSelector.object();
+										def buildSelector = bc.startBuild()
+										buildSelector.logs('-f')
+									}else{
+										echo "Build name ${BUILD_NAME} does not exist in project ${NAMESPACE}." 
+										echo "Please provide valid build name."
+									}
 								}
-							}
-					
+						
+						}
 					}
 				}
-				
             }
         }
     }
