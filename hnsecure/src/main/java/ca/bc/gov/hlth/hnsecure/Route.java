@@ -129,6 +129,10 @@ public class Route extends RouteBuilder {
         	.setHeader("isAuditsEnabled").simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
+        	
+        	// Log the Transaction
+			.choice().when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString())).process(new TransactionProcessor())
+			
         	// Added wireTap for asynchronous call to filedrop request
 			.wireTap("direct:start").end()
         	// Validate the message
@@ -179,11 +183,11 @@ public class Route extends RouteBuilder {
         	.choice()
 				.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 				.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
-			.end()
-			.choice()
-				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-					.process(new TransactionProcessor())
 			.end();
+//			.choice()
+//				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
+//					.process(new TransactionProcessor())
+//			.end();
     }
 
 	private String buildBasicToken(String username, String password) {

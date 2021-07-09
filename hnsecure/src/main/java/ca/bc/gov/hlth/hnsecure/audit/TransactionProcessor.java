@@ -28,7 +28,8 @@ public class TransactionProcessor extends AbstractAuditPersistence implements Pr
 
     	Map<String, Object> headers = exchange.getIn().getHeaders();
 
-    	String transactionId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
+    	//String transactionId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
+    	String transactionId = exchange.getExchangeId();
 		Transaction t = new Transaction();
     	t.setTransactionId(UUID.fromString(transactionId));
 		t.setType((String)headers.get(HEADER_MESSAGE_TYPE));

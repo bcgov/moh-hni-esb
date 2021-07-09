@@ -4,8 +4,8 @@ public enum TransactionEventType {
 
 	ERROR("ERROR"),
 	INVALID("Invalid"),
-	MESSSAGE_RECEIVED("Message Received"),
-	MESSSAGE_SENT("Message Sent"),
+	MESSAGE_RECEIVED("Message Received"),
+	MESSAGE_SENT("Message Sent"),
 	TRANSACTION_COMPLETE("Transaction Complete"),
 	UNAUTHENTICATED("Unauthenticated");
 
