@@ -10,7 +10,7 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEvent;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 
 /**
  * Processor for working with EventMessage.
@@ -27,7 +27,7 @@ public class EventMessageProcessor extends AbstractAuditPersistence {
 		logger.info("{} - Begin", methodName);
 
 		String v2 = (String)exchange.getIn().getBody();
-		String messageId = Util.getMsgId(v2);
+		String messageId = V2MessageUtil.getMsgId(v2);
 		TransactionEvent transactionEvent = createTransactionEvent(exchange, eventType, messageId);		
 		insert(transactionEvent);
 
