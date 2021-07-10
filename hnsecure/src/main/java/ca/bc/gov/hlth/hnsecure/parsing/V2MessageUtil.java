@@ -4,13 +4,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
+
 /**
  * Utility class for V2 Message related tasks.
  * 
  */
 public class V2MessageUtil {
 
-	private static final Logger logger = LoggerFactory.getLogger(Util.class);
+	private static final Logger logger = LoggerFactory.getLogger(V2MessageUtil.class);
+
+	public enum MessageType {
+		ZPN,	//PharmaNet
+		R03, R09, R15, E45, R50;
+	}
+	
+	public static enum SegmentType {
+		MSH, PID, QPD, ZCC, ZPA
+	}
 
 	/**
 	 * This method is used to get the receiving application from a HL7 message.
@@ -58,8 +69,8 @@ public class V2MessageUtil {
 		}
 		// there is a special case for R50 message which the value of MSH.8 is
 		// "R50^Z05".
-		if (msgType != null && !msgType.isEmpty() && msgType.contains(Util.R50_SPEC_CHAR)) {
-			int index = msgType.indexOf(Util.R50_SPEC_CHAR);
+		if (msgType != null && !msgType.isEmpty() && msgType.contains(Util.CARET)) {
+			int index = msgType.indexOf(Util.CARET);
 			msgType = msgType.substring(0, index);
 		}
 		return msgType;
@@ -163,4 +174,60 @@ public class V2MessageUtil {
 		return false;
 	}
 
+	public static String[] getMessageSegments(String v2Message) {
+		String[] segments = null;
+		if (v2Message.contains(Util.CARRIAGE_RETURN_LINE_BREAK)) {
+			segments = v2Message.split(Util.CARRIAGE_RETURN_LINE_BREAK);
+		} else if (v2Message.contains(Util.LINE_BREAK)) {
+			segments = v2Message.split(Util.LINE_BREAK);
+		} else {
+			logger.warn("Can't split v2 message due to unknown EOL");
+		}
+		return segments;
+	}
+	
+	public static String getSegment(String[] segments, V2MessageUtil.SegmentType segmentType) {
+		for (String segment : segments) {						
+			if (segment.startsWith(segmentType.name())) {
+				return segment;
+			}
+		}
+		logger.warn("Segment {} not found", segmentType);
+		return null;
+	}
+
+	public static String[] getSegmentFields(String segment) {
+		return segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+	}
+
+	public static String[] getIdentifierSections(String[] fields, int position) {
+		String[] patientIdentifierSections = null;
+		if (fields.length > position) {
+			String patientIdentifierField = fields[position];	//e.g. 0891250000^^^BC^PH
+			patientIdentifierSections = patientIdentifierField.split(Util.DOUBLE_BACKSLASH + Util.CARET);
+		}
+		return patientIdentifierSections; 
+	}
+
+	public static String[] getIdentifierSectionsPID(String[] fields) {
+		return getIdentifierSections(fields, 2); 
+	}
+
+	public static String[] getIdentifierSectionsQPD(String[] fields) {
+		return getIdentifierSections(fields, 6); 
+	}
+
+	public static String getIdentifierSectionZCC(String[] fields) {
+		return getIdentifierSection(fields, 10);
+	}
+
+	public static String getIdentifierSection(String[] fields, int position) {
+		String patientIdentifierField = null;
+		if (fields.length > position) {
+			patientIdentifierField = fields[position];	//e.g. 0009735000001
+		}
+		return patientIdentifierField; 
+	}
+
 }
+		

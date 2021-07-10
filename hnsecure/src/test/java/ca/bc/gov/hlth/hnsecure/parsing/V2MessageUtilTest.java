@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 /**
@@ -109,5 +110,29 @@ public class V2MessageUtilTest {
 		String actualValue = V2MessageUtil.getTraceNumber(zcbSegment);
 		String expectedValue = "9286";		
 		assertEquals(expectedValue, actualValue);;
+	}
+	
+	@Test
+	public void testGetIdentifierSectionsPID() {
+		//Expected 0891250000^^^BC^PH
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_R03);				
+		String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.PID);
+		String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
+		String[] patientIdentifierSections = V2MessageUtil.getIdentifierSectionsPID(segmentFields);			
+		assertEquals("0891250000", patientIdentifierSections[0]);
+		assertEquals("BC", patientIdentifierSections[3]);
+		assertEquals("PH", patientIdentifierSections[4]);
+	}
+
+	@Test
+	public void testGetIdentifierSectionsQPD() {
+		//Expected 9020198746^^^CANBC^JHN^MOH
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45);				
+		String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.QPD);
+		String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
+		String[] patientIdentifierSections = V2MessageUtil.getIdentifierSectionsQPD(segmentFields);			
+		assertEquals("9020198746", patientIdentifierSections[0]);
+		assertEquals("CANBC", patientIdentifierSections[3]);
+		assertEquals("JHN", patientIdentifierSections[4]);
 	}
 }

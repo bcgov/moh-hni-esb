@@ -23,7 +23,7 @@ public final class Util {
 	private static final Logger logger = LoggerFactory.getLogger(Util.class);
 	public final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public final static String HL7_DELIMITER = "|";
-	public final static String R50_SPEC_CHAR = "^";
+	public final static String CARET = "^";
 	public final static String ZCB_SEGMENT = "ZCB";
 	public final static String RECEIVING_APP_PNP = "PNP";
 	public final static String MESSAGE_TYPE_PNP = "ZPN";
@@ -31,7 +31,10 @@ public final class Util {
 	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
 	public final static String DATE_PATTERN = "yyyyMMddHHmmss";
 	public final static String GENERIC_PATTERN = "yyyyMMddHHmmss Z";
+	
 	public final static String LINE_BREAK = "\n";
+	public final static String CARRIAGE_RETURN_LINE_BREAK = "\r\n";
+	
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String ACK = "ACK";
 	public static final String PHARMACY_ID = "pharmacyId";
