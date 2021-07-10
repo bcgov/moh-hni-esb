@@ -19,7 +19,6 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
 import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
-import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
 
 public class TransactionProcessor extends AbstractAuditPersistence implements Processor {
 
@@ -34,7 +33,7 @@ public class TransactionProcessor extends AbstractAuditPersistence implements Pr
     	Map<String, Object> headers = exchange.getIn().getHeaders();
     	String v2Message = (String)exchange.getIn().getBody();
 
-    	String transactionId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
+    	String transactionId = exchange.getExchangeId();
 		Transaction transaction = populateTransaction(headers, transactionId);
         	
         try {        	
@@ -42,7 +41,6 @@ public class TransactionProcessor extends AbstractAuditPersistence implements Pr
         } catch (Exception ex) {
         	logger.error("Exception {}", ex.getMessage());
         }			
-        
         
         //Affected Party - Get info for R03, R09, R15, E45, R50, R09(only for response)        
         AffectedParty affectedParty = populateAffectedParty(v2Message, transactionId);

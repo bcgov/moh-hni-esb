@@ -1,43 +1,42 @@
 package ca.bc.gov.hlth.hnsecure.audit.entities;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 /**
  * Audit entity TransactionEvent
  */
 @Entity
-@Table(schema="hnsecure", name="transaction_event")
+@Table(schema = "hnsecure", name = "transaction_event")
 public class TransactionEvent {
 
 	@Id
-	@Column(name="transaction_event_id", columnDefinition="bigserial")
-	private long transactionEventId;
+	@Column(name = "transaction_event_id", columnDefinition = "bigserial")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long transactionEventId;
 
 	@Basic
-	@Column(name="event_time", columnDefinition="timestamptz")
+	@Column(name = "event_time", columnDefinition = "timestamptz")
 	private Date eventTime;
 
 	@Basic
-	@Column(name="message_id")
+	@Column(name = "message_id")
 	private String messageId;
 
-	@ManyToOne(fetch=FetchType.LAZY, cascade=CascadeType.MERGE)
-	@JoinColumn(name="transaction_id", columnDefinition="uuid")
-	private Transaction transaction;
+	@Column(name = "transaction_id", columnDefinition = "uuid")
+	private UUID transactionId;
 
 	@Basic
 	private String type;
-
 
 	public TransactionEvent() {
 	}
@@ -62,19 +61,19 @@ public class TransactionEvent {
 		this.messageId = messageId;
 	}
 
-	public Transaction getTransaction() {
-		return transaction;
+	public UUID getTransactionId() {
+		return transactionId;
 	}
 
-	public void setTransaction(Transaction transaction) {
-		this.transaction = transaction;
+	public void setTransactionId(UUID transactionId) {
+		this.transactionId = transactionId;
 	}
 
-	public long getTransactionEventId() {
+	public Long getTransactionEventId() {
 		return transactionEventId;
 	}
 
-	public void setTransactionEventId(long transactionEventId) {
+	public void setTransactionEventId(Long transactionEventId) {
 		this.transactionEventId = transactionEventId;
 	}
 
@@ -84,5 +83,12 @@ public class TransactionEvent {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	@PrePersist
+	public void prePersist() {
+		if (eventTime == null) {
+			eventTime = new Date();
+		}
 	}
 }
