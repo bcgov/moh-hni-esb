@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
@@ -77,9 +78,6 @@ public class Route extends RouteBuilder {
     
     /** Audits properties **/
     
-	@PropertyInject(value = "audits.enabled", defaultValue = "false")
-	private String isAuditsEnabled;
-	
 	private static final String HN_DATA_SOURCE = "hnDataSource";
 
 	private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
@@ -110,7 +108,8 @@ public class Route extends RouteBuilder {
 
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
-
+		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
+		
     	onException(CustomHNSException.class, HttpHostConnectException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
