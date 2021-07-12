@@ -56,7 +56,7 @@ public abstract class AbstractAuditPersistence {
 	
 	public AffectedParty createAffectedParty(String v2Message, String transactionId) {
 		AffectedParty affectedParty = new AffectedParty();
-//	    affectedParty.setTransaction(transactionId);						
+	    affectedParty.setTransactionId(UUID.fromString(transactionId));						
 		
 		if (StringUtils.isNotEmpty(v2Message)) {
 			String[] segments = V2MessageUtil.getMessageSegments(v2Message);				

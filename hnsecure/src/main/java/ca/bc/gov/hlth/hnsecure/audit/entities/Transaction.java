@@ -132,5 +132,12 @@ public class Transaction {
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
+
+	@Override
+	public String toString() {
+		return "Transaction [transactionId=" + transactionId + ", type=" + type + ", server=" + server + ", source="
+				+ source + ", organization=" + organization + ", userId=" + userId + ", facilityId=" + facilityId
+				+ ", timestamp=" + timestamp + "]";
+	}
 	
-}
+	}

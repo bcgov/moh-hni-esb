@@ -40,6 +40,4 @@ public class TransactionProcessor extends AbstractAuditPersistence implements Pr
         
         logger.debug("End {}", methodName);
 	}
-
-
 }
