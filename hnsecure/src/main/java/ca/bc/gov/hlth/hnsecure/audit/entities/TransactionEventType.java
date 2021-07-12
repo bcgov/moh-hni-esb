@@ -7,6 +7,7 @@ public enum TransactionEventType {
 	MESSAGE_RECEIVED("Message Received"),
 	MESSAGE_SENT("Message Sent"),
 	TRANSACTION_COMPLETE("Transaction Complete"),
+	TRANSACTION_START("Transaction Start"),
 	UNAUTHENTICATED("Unauthenticated");
 
 	private String value;
