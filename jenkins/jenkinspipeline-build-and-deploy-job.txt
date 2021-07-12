@@ -20,7 +20,7 @@ pipeline {
                 //binaryBuild(buildConfigName: appName, buildFromPath: ".")
 				script{
 					openshift.withCluster( "openshift" ) { 
-						openshift.withCredentials( "deployer-tools-oc-plugin" ) {
+						openshift.withCredentials( "deployer-c5839f-tools" ) {
 								openshift.withProject("${NAMESPACE}"){
 									echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
 									def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
