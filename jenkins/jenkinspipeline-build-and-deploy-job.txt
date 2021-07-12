@@ -8,7 +8,7 @@ pipeline {
             steps {
                 // Get some code from a GitHub repository
                 echo "Getting code from main"
-                git branch: "${BRANCH}", url: "https://github.com/bcgov/moh-hni-esb"
+                git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
 				//sh 'printenv'
             }
         }
