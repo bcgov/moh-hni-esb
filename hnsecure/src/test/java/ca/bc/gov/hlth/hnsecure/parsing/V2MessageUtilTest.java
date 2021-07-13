@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_MULTI_PATIENT;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50;
@@ -8,9 +9,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
-import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 /**
@@ -19,6 +21,20 @@ import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
  */
 public class V2MessageUtilTest {
 
+	@Test
+	public void testGetSendingApplicationR50() {
+		String expectedValue ="HNWeb";
+		String actualValue = V2MessageUtil.getSendingApplication(MSG_R50);
+		assertEquals(expectedValue, actualValue);
+	}
+	
+	@Test
+	public void testGetSendingFacilityR50() {
+		String expectedValue ="BC01000030";
+		String actualValue = V2MessageUtil.getSendingFacility(MSG_R50);
+		assertEquals(expectedValue, actualValue);
+	}
+	
 	@Test
 	public void testGetReceivingAppE45() {
 		String expectedValue ="RAIGET-DOC-SUM";
@@ -126,12 +142,18 @@ public class V2MessageUtilTest {
 
 	@Test
 	public void testGetIdentifierSectionsQPD() {
-		//Expected 9020198746^^^CANBC^JHN^MOH
-		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45);				
+		//Expected 9020198746^^^CANBC^JHN^MOH~9023411583^^^CANBC^JHN^MOH
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45_MULTI_PATIENT);				
 		String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.QPD);
 		String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
-		String[] patientIdentifierSections = V2MessageUtil.getIdentifierSectionsQPD(segmentFields);			
+		List<String> patientIdentifiers = V2MessageUtil.getIdentifiersQPD(segmentFields);
+		
+		String [] patientIdentifierSections = V2MessageUtil.getFieldSections(patientIdentifiers.get(0));
 		assertEquals("9020198746", patientIdentifierSections[0]);
+		assertEquals("CANBC", patientIdentifierSections[3]);
+		assertEquals("JHN", patientIdentifierSections[4]);
+		patientIdentifierSections = V2MessageUtil.getFieldSections(patientIdentifiers.get(1));
+		assertEquals("9023411583", patientIdentifierSections[0]);
 		assertEquals("CANBC", patientIdentifierSections[3]);
 		assertEquals("JHN", patientIdentifierSections[4]);
 	}

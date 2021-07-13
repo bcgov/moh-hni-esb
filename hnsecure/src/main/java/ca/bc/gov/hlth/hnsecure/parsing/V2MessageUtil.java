@@ -1,10 +1,11 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
 
 /**
  * Utility class for V2 Message related tasks.
@@ -21,6 +22,58 @@ public class V2MessageUtil {
 	
 	public static enum SegmentType {
 		MSH, PID, QPD, ZCC, ZPA
+	}
+
+	/**
+	 * This method is used to get the sending application from a HL7 v2 message.
+	 * 
+	 * @param v2Message
+	 * @return the sending application
+	 */
+	public static String getSendingApplication(String v2Message) {	
+		String sendingApplication = "";	
+		if (!StringUtils.isBlank(v2Message)) {
+			String[] segmentFields = getMshSegmentFields(v2Message);
+			if (segmentFields.length > 2) {
+				sendingApplication = segmentFields[2];
+			}
+		}
+		return sendingApplication;
+	}
+
+	/**
+	 * This method is used to get the sending facility from a HL7 v2 message.
+	 * 
+	 * @param v2Message
+	 * @return the sending facility
+	 */
+	public static String getSendingFacility(String v2Message) {	
+		String sendingFacility = "";	
+		if (!StringUtils.isBlank(v2Message)) {
+			String[] segmentFields = getMshSegmentFields(v2Message);
+			if (segmentFields.length > 3) {
+				sendingFacility = segmentFields[3];
+			}
+		}
+		return sendingFacility;
+	}
+
+	private static String getMSHSegment(String v2Message) {
+		String mshSegment = "";
+		if (!StringUtils.isBlank(v2Message)) {
+			String[] segments = V2MessageUtil.getMessageSegments(v2Message);				
+			mshSegment = getSegment(segments, SegmentType.MSH);
+		}
+		return mshSegment;
+	}
+
+	private static String[] getMshSegmentFields(String v2Message) {
+		String [] segmentFields = null;
+		if (!StringUtils.isBlank(v2Message)) {
+			String mshSegment = getMSHSegment(v2Message);
+			segmentFields = getSegmentFields(mshSegment);
+		}
+		return segmentFields;
 	}
 
 	/**
@@ -200,21 +253,30 @@ public class V2MessageUtil {
 		return segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 	}
 
-	public static String[] getIdentifierSections(String[] fields, int position) {
+	public static String[] getFieldSections(String[] fields, int position) {
 		String[] patientIdentifierSections = null;
 		if (fields.length > position) {
 			String patientIdentifierField = fields[position];	//e.g. 0891250000^^^BC^PH
-			patientIdentifierSections = patientIdentifierField.split(Util.DOUBLE_BACKSLASH + Util.CARET);
+			patientIdentifierSections = getFieldSections(patientIdentifierField);
 		}
 		return patientIdentifierSections; 
 	}
 
-	public static String[] getIdentifierSectionsPID(String[] fields) {
-		return getIdentifierSections(fields, 2); 
+	public static String[] getFieldSections(String field) {
+		return field.split(Util.DOUBLE_BACKSLASH + Util.CARET);
 	}
 
-	public static String[] getIdentifierSectionsQPD(String[] fields) {
-		return getIdentifierSections(fields, 6); 
+	public static String[] getIdentifierSectionsPID(String[] fields) {
+		return getFieldSections(fields, 2); 
+	}
+
+	public static List<String> getIdentifiersQPD(String[] fields) {
+		String[] patientIdentifiers = null;
+		if (fields.length > 6) {
+			String patientIdentifierField = fields[6];	//e.g. 9020198746^^^CANBC^JHN^MOH~9020193333^^^CANBC^JHN^MOH
+			patientIdentifiers = patientIdentifierField.split(Util.DOUBLE_BACKSLASH + Util.TILDE);
+		}
+		return Arrays.asList(patientIdentifiers);		
 	}
 
 	public static String getIdentifierSectionZCC(String[] fields) {

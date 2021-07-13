@@ -24,6 +24,7 @@ public final class Util {
 	public final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public final static String HL7_DELIMITER = "|";
 	public final static String CARET = "^";
+	public final static String TILDE = "~";
 	public final static String ZCB_SEGMENT = "ZCB";
 	public final static String RECEIVING_APP_PNP = "PNP";
 	public final static String MESSAGE_TYPE_PNP = "ZPN";
@@ -40,9 +41,10 @@ public final class Util {
 	public static final String PHARMACY_ID = "pharmacyId";
 	public static final String TRACING_ID = "traceId";
 
+	public static final String HEADER_SENDING_APPLICATION = "sendingApplication";
+	public static final String HEADER_SENDING_FACILITY = "sendingFacility";
 	public static final String HEADER_RECEIVING_APP = "receivingApp";
 	public static final String HEADER_MESSAGE_TYPE = "messageType";
-	public static final String HEADER_SENDING_FACILITY = "sendingFacility";
 
 	/**
 	 * return a Base64 encoding string

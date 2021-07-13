@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.audit;
 
-import java.util.Map;
+import java.util.List;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -22,11 +22,10 @@ public class TransactionProcessor extends AbstractAuditPersistence implements Pr
     	String methodName = LoggingUtil.getMethodName();
         logger.debug("Begin {}", methodName);
 
-    	Map<String, Object> headers = exchange.getIn().getHeaders();
     	String v2Message = (String)exchange.getIn().getBody();
 
     	String transactionId = exchange.getExchangeId();
-		Transaction transaction = createTransaction(headers, transactionId);
+		Transaction transaction = createTransaction(v2Message, transactionId);
         	
         try {        	
         	insert(transaction);
@@ -35,8 +34,8 @@ public class TransactionProcessor extends AbstractAuditPersistence implements Pr
         }			
         
         //Affected Party - Get info for R03, R09, R15, E45, R50, R09(only for response)        
-        AffectedParty affectedParty = createAffectedParty(v2Message, transactionId);
-        insert(affectedParty);
+        List<AffectedParty> affectedParties = createAffectedParties(v2Message, transactionId);
+        insertList(affectedParties);
         
         logger.debug("End {}", methodName);
 	}
