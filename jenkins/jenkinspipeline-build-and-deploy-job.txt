@@ -33,7 +33,7 @@ pipeline {
 										if("Complete"==bStatus){
 											echo "Build status is ${bStatus}.  Image created is ${IMAGE_STREAM}"
 											echo "Tagging the build with build tag: ${BUILD_TAG}"
-											openshift.tag( "IMAGE_STREAM", "${BUILD_NAME}:${BUILD_TAG}")
+											openshift.tag( "${IMAGE_STREAM}", "${BUILD_NAME}:${BUILD_TAG}")
 										}
 										// if build is a failure, process should failure
 										else{
