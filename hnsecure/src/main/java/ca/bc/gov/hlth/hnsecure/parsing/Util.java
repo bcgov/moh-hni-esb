@@ -47,6 +47,9 @@ public final class Util {
 	public static final String HEADER_MESSAGE_TYPE = "messageType";
 	public static final String HEADER_TRANSACTION_EVENT_TYPE = "eventType";
 	public static final String HEADER_TRANSACTION_EVENT_TIME = "eventTime";
+	public static final String BCPHN = "BCPHN";
+
+    public static final String STATUS_CODE_ACTIVE = "active";
 
 	/**
 	 * return a Base64 encoding string

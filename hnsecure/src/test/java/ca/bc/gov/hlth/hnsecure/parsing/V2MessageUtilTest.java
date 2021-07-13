@@ -1,15 +1,12 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_MULTI_PATIENT;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import java.util.List;
 
 import org.junit.Test;
 
@@ -142,18 +139,12 @@ public class V2MessageUtilTest {
 
 	@Test
 	public void testGetIdentifierSectionsQPD() {
-		//Expected 9020198746^^^CANBC^JHN^MOH~9023411583^^^CANBC^JHN^MOH
-		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45_MULTI_PATIENT);				
+		//Expected 9020198746^^^CANBC^JHN^MOH
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45);				
 		String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.QPD);
 		String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
-		List<String> patientIdentifiers = V2MessageUtil.getIdentifiersQPD(segmentFields);
-		
-		String [] patientIdentifierSections = V2MessageUtil.getFieldSections(patientIdentifiers.get(0));
+		String[] patientIdentifierSections = V2MessageUtil.getIdentifierSectionsQPD(segmentFields);			
 		assertEquals("9020198746", patientIdentifierSections[0]);
-		assertEquals("CANBC", patientIdentifierSections[3]);
-		assertEquals("JHN", patientIdentifierSections[4]);
-		patientIdentifierSections = V2MessageUtil.getFieldSections(patientIdentifiers.get(1));
-		assertEquals("9023411583", patientIdentifierSections[0]);
 		assertEquals("CANBC", patientIdentifierSections[3]);
 		assertEquals("JHN", patientIdentifierSections[4]);
 	}

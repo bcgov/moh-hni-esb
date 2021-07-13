@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +56,23 @@ public class V2MessageUtil {
 			}
 		}
 		return sendingFacility;
+	}
+
+	/**
+	 * This method is used to get the sending facility from a HL7 v2 message.
+	 * 
+	 * @param v2Message
+	 * @return the sending facility
+	 */
+	public static String getSecurity(String v2Message) {	
+		String security = "";	
+		if (!StringUtils.isBlank(v2Message)) {
+			String[] segmentFields = getMshSegmentFields(v2Message);
+			if (segmentFields.length > 7) {
+				security = segmentFields[7];
+			}
+		}
+		return security;
 	}
 
 	private static String getMSHSegment(String v2Message) {
@@ -239,7 +256,14 @@ public class V2MessageUtil {
 		return segments;
 	}
 	
-	public static String getSegment(String[] segments, V2MessageUtil.SegmentType segmentType) {
+	/**
+	 * Return the first segment of the specified type from the v2 message.
+	 * 
+	 * @param segments
+	 * @param segmentType
+	 * @return
+	 */
+	public static String getSegment(String[] segments, SegmentType segmentType) {
 		for (String segment : segments) {						
 			if (segment.startsWith(segmentType.name())) {
 				return segment;
@@ -247,6 +271,23 @@ public class V2MessageUtil {
 		}
 		logger.warn("Segment {} not found", segmentType);
 		return null;
+	}
+
+	/**
+	 * Return a list of segments of the specified type from a v2 message. e.g. all the QPD segments
+	 * @param segments
+	 * @param segmentType
+	 * @return
+	 */
+	public static List<String> getSegments(String[] segments, SegmentType segmentType) {
+		List<String> requiredSegments = new ArrayList<String>();
+		for (String segment : segments) {						
+			if (segment.startsWith(segmentType.name())) {
+				requiredSegments.add(segment);
+			}
+		}
+		logger.warn("Segment {} not found", segmentType);
+		return requiredSegments;
 	}
 
 	public static String[] getSegmentFields(String segment) {
@@ -270,16 +311,19 @@ public class V2MessageUtil {
 		return getFieldSections(fields, 2); 
 	}
 
-	public static List<String> getIdentifiersQPD(String[] fields) {
-		String[] patientIdentifiers = null;
-		if (fields.length > 6) {
-			String patientIdentifierField = fields[6];	//e.g. 9020198746^^^CANBC^JHN^MOH~9020193333^^^CANBC^JHN^MOH
-			patientIdentifiers = patientIdentifierField.split(Util.DOUBLE_BACKSLASH + Util.TILDE);
-		}
-		return Arrays.asList(patientIdentifiers);		
+	public static String[] getIdentifierSectionsQPD(String[] fields) {
+		return getFieldSections(fields, 6); 
 	}
 
+	/**
+	 * 
+	 * @param fields
+	 * @return
+	 */
 	public static String getIdentifierSectionZCC(String[] fields) {
+		if (!StringUtils.equals(fields[0], SegmentType.ZCC.name())) {
+			return null;
+		}
 		return getIdentifierSection(fields, 10);
 	}
 

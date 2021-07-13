@@ -30,4 +30,13 @@ public class SampleMessages {
             "ERR|^^^HJMB001I&SUCCESSFULLY COMPLETED^M\n" +
             "PID||123456789^^^BC^PH^MOH|||||19840225|M^M\n" +
             "ZIA|||||||||||||||LASTNAME^FIRST^S^^^^L|912 VIEW ST^^^^^^^^^^^^^^^^^^^VICTORIA^BC^V8V3M2^CAN^H^^^^N|^PRN^PH^^^250^1234568";
+
+	public static String R09_RESPONSE_MESSAGE = "MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
+            + "MSA|AA|20191108082211|HJMB001ISUCCESSFULLY COMPLETED\r\n"
+			+ "ZTL|2^RD\r\n"
+			+ "PID|1|1314500002^^^BC^PH|||||1989|M\r\n" 
+			+ "PID|2|2564500001^^^BC^PH|||||1973|M\r\n" 
+			+ "ZIA|||||||||||||||Branton^James^^^^^|||||||1\r\n"
+			+ "ZIA|||||||||||||||Branton^Debbie^^^^^|||||||2\r\n";
+
 }

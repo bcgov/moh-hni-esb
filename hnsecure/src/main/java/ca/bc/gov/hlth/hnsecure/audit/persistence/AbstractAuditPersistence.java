@@ -1,16 +1,24 @@
 package ca.bc.gov.hlth.hnsecure.audit.persistence;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.STATUS_CODE_ACTIVE;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
@@ -25,10 +33,33 @@ import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
  */
 public abstract class AbstractAuditPersistence {    
 
+    private static Logger logger = LoggerFactory.getLogger(AbstractAuditPersistence.class);
+
     private static final String PERSISTENCE_UNIT_HNI_ESB_AUDITS = "HNI-ESB-AUDITS";
 
+    /** Audits properties **/
+    
+    private static final String DATABASE_HOST = System.getenv("DATABASE_HOST");
+       
+    private static final String DATABASE_PORT = System.getenv("DATABASE_PORT");
+       
+    private static final String DATABASE_NAME = System.getenv("DATABASE_NAME");
+
+   	private static final String DATABASE_USERNAME = System.getenv("DATABASE_USERNAME");
+
+   	private static final String DATABASE_PASSWORD = System.getenv("DATABASE_PASSWORD");    
+       
+   	private static final Map<String, String> properties = new HashMap<String, String>();
+    
+   	static {   
+   		String url = String.format("jdbc:postgresql://%s:%s/%s", DATABASE_HOST, DATABASE_PORT, DATABASE_NAME);
+        properties.put("javax.persistence.jdbc.url", url);
+        properties.put("javax.persistence.jdbc.user", DATABASE_USERNAME);
+		properties.put("javax.persistence.jdbc.password", DATABASE_PASSWORD);
+    }
+    
 	public <T> T insert(T record) {
-        EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS).createEntityManager();
+		EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, properties).createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
@@ -39,7 +70,7 @@ public abstract class AbstractAuditPersistence {
     }
 
 	public <T> List<T> insertList(List<T> records) {
-        EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS).createEntityManager();
+		EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, properties).createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
@@ -51,20 +82,32 @@ public abstract class AbstractAuditPersistence {
         return records;
     }
 
-	public Transaction createTransaction(String v2Message, String transactionId) {
+	public Transaction createTransaction(String v2Message, String transactionId, String organizationId, Date eventTime) {
 		Transaction transaction = new Transaction();
     	transaction.setTransactionId(UUID.fromString(transactionId));
 		String msgType = V2MessageUtil.getMsgType(v2Message);
-		transaction.setType(msgType);
-		transaction.setServer(""); //TODO (dbarrett) check if we need this, it's the name of the server that processed the transaction. (this may not be relevant in openshift), and if so where it is taken from.
+		transaction.setType(msgType);		
+		String hostname = getServer();
+		transaction.setServer(hostname); 
 		transaction.setSource(V2MessageUtil.getSendingApplication(v2Message));
     	transaction.setFacilityId(V2MessageUtil.getSendingFacility(v2Message));
-//		t.setOrganization();
-//		t.setUserId();	
-    	transaction.setTimestamp(new Date());
+		transaction.setOrganization(organizationId);
+		transaction.setUserId(V2MessageUtil.getSecurity(v2Message));	
+    	transaction.setTimestamp(eventTime);
 		return transaction;
 	}
-	
+
+	private String getServer() {
+		//TODO (dbarrett) check if we need this, it's the name of the server that processed the transaction. (this may not be relevant in openshift), and if so where it is taken from.		
+		String hostname = "";
+		try {
+			hostname = InetAddress.getLocalHost().getHostName();
+			logger.debug("The hostname is {}", hostname);
+        } catch (UnknownHostException e) {
+			logger.warn("Could not get server name");
+		}
+		return hostname;
+	}
 	
 	public List<AffectedParty> createAffectedParties(String v2Message, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
@@ -73,9 +116,6 @@ public abstract class AbstractAuditPersistence {
 	
 		if (StringUtils.isNotEmpty(v2Message)) {
 			String[] segments = V2MessageUtil.getMessageSegments(v2Message);				
-			String segment;
-			String[] segmentFields;
-			String[] patientIdentifierSections;			
 			
 			String msgType = V2MessageUtil.getMsgType(v2Message);
 			if (StringUtils.isNotEmpty(msgType)) {
@@ -83,61 +123,59 @@ public abstract class AbstractAuditPersistence {
 				
 				switch (messageType) {
 				case ZPN:
-					affectedParty = new AffectedParty();		
-				    affectedParty.setTransactionId(transactionUuid);						
 					//PharmaNet has client info in ZCC and ZPA
 					//ZCC e.g.
 					//ZCC||||||||||0009735000001|
-					segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.ZCC);
-					segmentFields = V2MessageUtil.getSegmentFields(segment);
-					affectedParty.setIdentifier(V2MessageUtil.getIdentifierSectionZCC(segmentFields));
-					affectedParty.setIdentifierSource("");
-					affectedParty.setIdentifierType("");
-					affectedParty.setStatus("");
+					String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.ZCC); 
+					String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
+					String patientIdentifier = V2MessageUtil.getIdentifierSectionZCC(segmentFields);	//ZCC Provincial Health Care ID field e.g. 0009735000001
+					affectedParty = new AffectedParty();		
+					populateAffectedParty(affectedParty, transactionUuid, patientIdentifier);					
 					affectedParties.add(affectedParty);
 					break;
 				case E45:
 					//QPD e.g.
 					//QPD|E45^^HNET0003|1|^^00000001^^^CANBC^XX^MOH|^^00000001^^^CANBC^XX^MOH|^^00000754^^^CANBC^XX^MOH|9020198746^^^CANBC^JHN^MOH||19421112||||||19980601||PVC^^HNET9909
-					segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.QPD);
-					segmentFields = V2MessageUtil.getSegmentFields(segment);
-					List<String> patientIdentifiers = V2MessageUtil.getIdentifiersQPD(segmentFields);
-					
-					affectedParties.addAll(patientIdentifiers.stream().map(pI -> {
+					List<String> segmentsQPD = V2MessageUtil.getSegments(segments, V2MessageUtil.SegmentType.QPD);
+					segmentsQPD.forEach(s -> {
+						String [] fields = V2MessageUtil.getSegmentFields(s);
+						String [] sections =  V2MessageUtil.getIdentifierSectionsQPD(fields);	//QPD Patient Identifier List e.g. 9020198746^^^CANBC^JHN^MOH
+						String identifier = sections[0];
 						AffectedParty ap = new AffectedParty();
-					    ap.setTransactionId(transactionUuid);						
-						String [] sections = V2MessageUtil.getFieldSections(pI);
-						ap.setIdentifier(sections[0]);
-						ap.setIdentifierSource(sections[3]);
-						ap.setIdentifierType(sections[4]);
-						ap.setStatus("");
-						return ap;
-
-					}).collect(Collectors.toList()));
+						populateAffectedParty(ap, transactionUuid, identifier);					
+						affectedParties.add(ap);
+					});
 					break;
 				case R03:;
-				case R09:;
+				case R09: 
 				case R15:;
 				case R50:
-					affectedParty = new AffectedParty();		
-				    affectedParty.setTransactionId(transactionUuid);						
 					/* PID e.g. 
 					PID||0891250000^^^BC^PH 
 					*/
-					segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.PID);
-					segmentFields = V2MessageUtil.getSegmentFields(segment);
-					patientIdentifierSections = V2MessageUtil.getIdentifierSectionsPID(segmentFields);					
-					//affectedParty
-					affectedParty.setIdentifier(patientIdentifierSections[0]);
-					affectedParty.setIdentifierSource(patientIdentifierSections[3]);
-					affectedParty.setIdentifierType(patientIdentifierSections[4]);
-					affectedParty.setStatus("");
-					affectedParties.add(affectedParty);
-					break;				
+					List<String> segmentsPID = V2MessageUtil.getSegments(segments, V2MessageUtil.SegmentType.PID);
+					segmentsPID.forEach(s -> {
+						String [] fields = V2MessageUtil.getSegmentFields(s);
+						String [] sections =  V2MessageUtil.getIdentifierSectionsPID(fields);
+						//affectedParty from PID External Patient ID e.g. 0891250000^^^BC^PH
+						String identifier = sections[0];
+						AffectedParty ap = new AffectedParty();
+						populateAffectedParty(ap, transactionUuid, identifier);					
+						affectedParties.add(ap);
+					});
+					break;
 				}
 			}
 		}
 		return affectedParties;
+	}
+
+	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier) {
+	    affectedParty.setTransactionId(transactionUuid);						
+		affectedParty.setIdentifier(identifier);
+		affectedParty.setIdentifierSource(null); //not required for this application
+		affectedParty.setIdentifierType(BCPHN);
+		affectedParty.setStatus(STATUS_CODE_ACTIVE);
 	}
 
 	public TransactionEvent createTransactionEvent(String transactionId, TransactionEventType eventType, Date eventTime) {

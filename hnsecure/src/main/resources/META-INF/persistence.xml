@@ -5,12 +5,7 @@
 	<persistence-unit name="HNI-ESB-AUDITS"                       transaction-type="RESOURCE_LOCAL">
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://127.0.0.1:15432/hni" />
-			<property name="javax.persistence.jdbc.user" value="hni-user" />
-			<property name="javax.persistence.jdbc.password" value="DB_PASSWORD" />
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL95Dialect"/>
-			<property name="hibernate.show_sql" value="true" />
-			<property name="hibernate.format_sql" value="true" />
 		</properties>
 	</persistence-unit>
 </persistence>

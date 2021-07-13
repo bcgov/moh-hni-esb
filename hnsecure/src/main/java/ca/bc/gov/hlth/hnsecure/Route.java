@@ -113,14 +113,12 @@ public class Route extends RouteBuilder {
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 				.end()
-	    		//encoding response before sending to consumer
-	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
-	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
-
 	            // Audit "Transaction Complete"
 	    		.process(new EventTimeProcessor())
 	            .wireTap("direct:transactionComplete").end()
-	            
+	    		//encoding response before sending to consumer
+	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
+	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")	            
 			.end()
 
         	.log("HNSecure received a request")
@@ -179,11 +177,18 @@ public class Route extends RouteBuilder {
 	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
 	                .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
                     .setBody(simple(SampleMessages.r50ResponseMessage))
-	            
+                 
 	            // others sending to JMB
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
-                    .setBody(simple(SampleMessages.r03ResponseMessage))
+                	.process(new EventTimeProcessor())
+                	.wireTap("direct:messageSent")
+                		.endChoice()
+                    .setBody(simple(SampleMessages.R09_RESPONSE_MESSAGE))
+		            .log("Received response from JMB")
+		            .process(new EventTimeProcessor())
+		            .wireTap("direct:messageReceived")
+		            	.endChoice()
             .end();        
         
         from("direct:start").log("wireTap route")
