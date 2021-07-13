@@ -1,5 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.audit;
 
+import java.util.Date;
+
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +30,7 @@ public class EventMessageProcessor extends AbstractAuditPersistence {
 
 		String v2 = (String)exchange.getIn().getBody();
 		String messageId = V2MessageUtil.getMsgId(v2);
-		TransactionEvent transactionEvent = createTransactionEvent(exchange, eventType, messageId);		
+		TransactionEvent transactionEvent = createTransactionEvent(exchange.getExchangeId(), eventType, new Date(), messageId);		
 		insert(transactionEvent);
 
 		EventMessage eventMessage = new EventMessage();

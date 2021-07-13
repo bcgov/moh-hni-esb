@@ -45,6 +45,8 @@ public final class Util {
 	public static final String HEADER_SENDING_FACILITY = "sendingFacility";
 	public static final String HEADER_RECEIVING_APP = "receivingApp";
 	public static final String HEADER_MESSAGE_TYPE = "messageType";
+	public static final String HEADER_TRANSACTION_EVENT_TYPE = "eventType";
+	public static final String HEADER_TRANSACTION_EVENT_TIME = "eventTime";
 
 	/**
 	 * return a Base64 encoding string

@@ -10,7 +10,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
-import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
@@ -141,15 +140,16 @@ public abstract class AbstractAuditPersistence {
 		return affectedParties;
 	}
 
-	public TransactionEvent createTransactionEvent(Exchange exchange, TransactionEventType eventType) {
-		return createTransactionEvent(exchange, eventType, null);
+	public TransactionEvent createTransactionEvent(String transactionId, TransactionEventType eventType, Date eventTime) {
+		return createTransactionEvent(transactionId, eventType, eventTime, null);
 	}
 	
-	public TransactionEvent createTransactionEvent(Exchange exchange, TransactionEventType eventType, String messageId) {
+	public TransactionEvent createTransactionEvent(String transactionId, TransactionEventType eventType, Date eventTime, String messageId) {
 		TransactionEvent transactionEvent = new TransactionEvent();
-		transactionEvent.setTransactionId(UUID.fromString(exchange.getExchangeId()));
+		transactionEvent.setTransactionId(UUID.fromString(transactionId));
 		transactionEvent.setType(eventType.getValue());
-		transactionEvent.setMessageId(null);
+		transactionEvent.setEventTime(eventTime);
+		transactionEvent.setMessageId(messageId);
 		
 		return transactionEvent;
 	}
