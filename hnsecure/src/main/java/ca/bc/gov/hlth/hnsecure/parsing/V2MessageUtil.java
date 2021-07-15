@@ -20,7 +20,7 @@ public class V2MessageUtil {
 		R03, R09, R15, E45, R50;
 	}
 	
-	public static enum SegmentType {
+	public enum SegmentType {
 		MSH, PID, QPD, ZCC, ZPA
 	}
 

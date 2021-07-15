@@ -12,6 +12,10 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
 import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
+/**
+ * Processor for handling Transaction auditing
+ *
+ */
 public class TransactionProcessor extends AbstractAuditPersistence implements Processor {
 
     private static Logger logger = LoggerFactory.getLogger(TransactionProcessor.class);
