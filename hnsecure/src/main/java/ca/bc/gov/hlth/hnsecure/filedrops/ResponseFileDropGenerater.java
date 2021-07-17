@@ -2,6 +2,7 @@ package ca.bc.gov.hlth.hnsecure.filedrops;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +26,19 @@ public class ResponseFileDropGenerater extends FileDropGenerater {
 
 	@Handler
 	public void createFileDrops(Exchange exchange) {
-		String fileName = buildFileNameParameters(exchange,exchange.getExchangeId());
-		String responseFileName = fileName + RESPONSE_FILE;		
-		writeFiledrop(exchange.getIn().getBody().toString(), responseFileName);
-		logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",
-				LoggingUtil.getMethodName(), exchange.getExchangeId(), responseFileName);
+		String methodName = LoggingUtil.getMethodName();
+		logger.debug("Beging {}", methodName);
+
+		Object body = exchange.getIn().getBody();
+		if (body != null && StringUtils.isNotBlank(body.toString())) {
+			String fileName = buildFileNameParameters(exchange,exchange.getExchangeId());
+			String responseFileName = fileName + RESPONSE_FILE;		
+			writeFiledrop(body.toString(), responseFileName);
+			logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",
+					LoggingUtil.getMethodName(), exchange.getExchangeId(), responseFileName);
+		}
+
+		logger.debug("End {}", methodName);
 	}
 
 }
