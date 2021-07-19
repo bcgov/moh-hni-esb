@@ -56,7 +56,7 @@ pipeline {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
                                 echo "Tag the build ${IMAGE_STREAM}:${DEPLOY_BUILD} with tag: ${APPLY_TAG} "
-                                openshift.tag( "${IMAGE_STREAM}:${DEPLOY_BUILD}", "${APP_NAME}:${env.BUILD_TAG}")
+                                openshift.tag( "${IMAGE_STREAM}:${DEPLOY_BUILD}", "${APP_NAME}:${APPLY_TAG}")
                             }
                         }
                     }
