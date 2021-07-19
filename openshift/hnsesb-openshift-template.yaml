@@ -1,38 +1,51 @@
 apiVersion: v1
 kind: Template
 parameters:
-- description: Namespace variable. Update this value to the namespace where we want to create this template.
+- name: NAMESPACE
+  required: true
+  #change this value
+  value: c5839f-test
+  description: Namespace variable. Update this value to the namespace where we want to create this template.
   displayName: namespace
-  name: NAMESPACE
+  #
+- name: APP_NAME
   required: true
   #change this value
-  value: c5839f-dev
-- description: Application name. This value will be used for application name and route URL
+  value: hnsesb-test
+  description: Application name. This value will be used for application name and route URL
   displayName: Application name
-  name: APP_NAME
+  #
+- name: LABEL
   required: true
   #change this value
-  value: hnsesb-dev
-- description: Main label. This value is used for all API object. To get all all objects, we can use this value as label for selector.
+  value: hnsesb-test
+  description: Main label. This value is used for all API object. To get all all objects, we can use this value as label for selector.
   displayName: Label
-  name: LABEL
+  #
+- name: IMAGE_STREAM
   required: true
   #change this value
-  value: hnsesb-dev
-- description: Image stream. Change the value 
+  value: hnsesb-test
+  description: Image stream. 
   displayName: Image Stream
-  name: IMAGE_STREAM
+  #
+- name: IMAGE_STREAM_TAG
   required: true
   #change this value
-  value: hnsesb-dev
-- description: Image stream tag.
+  value: hnsesb-test:latest
+  description: Image stream tag.
   displayName: Image Stream tag
-  name: IMAGE_STREAM_TAG
+  #
+- name: PHARMANET_CERT_KEYSTORE
   required: true
   #change this value
-  value: hnsesb-dev:latest
+  value: pharmanet-cert-keystore
+  description: PVC claim name for Pharmanet cert keystore
+  displayName: Cert Keystore
+  #
 labels:
   template: ${LABEL}
+  app: ${LABEL}
 metadata:
   annotations:
     description: Creates the hnsesb setup for a namespace that includes- imagestream, bc, dc, route, service and network policy.
@@ -40,19 +53,19 @@ metadata:
     #iconClass: icon-jenkins
     tags: instant-app,${LABEL}
   #change this value
-  name: hnsesb-dev
+  name: hnsesb-test
 objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
     name: ${IMAGE_STREAM}
 - apiVersion: networking.k8s.io/v1
   kind: NetworkPolicy
   metadata:
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
     name: ${APP_NAME}-allow-apiportal
   spec:
     podSelector: 
@@ -73,8 +86,8 @@ objects:
 - apiVersion: networking.k8s.io/v1
   kind: NetworkPolicy
   metadata:
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
     name: ${APP_NAME}-allow-all
   spec:
     podSelector: 
@@ -87,8 +100,8 @@ objects:
   kind: Service
   metadata:
     name: ${APP_NAME}
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
   spec:
     ports:
     - name: 14885-tcp
@@ -101,8 +114,8 @@ objects:
   kind: Route
   metadata:
     name: ${APP_NAME}
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
   spec:
     host: ${APP_NAME}.apps.silver.devops.gov.bc.ca
     to:
@@ -113,8 +126,8 @@ objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
     name: ${APP_NAME}
   spec:
     source:
@@ -127,7 +140,7 @@ objects:
     output:
       to:
         kind: DockerImage
-        name: image-registry.apps.silver.devops.gov.bc.ca/c5839f-dev/hnsesb-dev:latest
+        name: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test/hnsesb-test:latest
     strategy:
       type: Docker
       dockerStrategy:
@@ -136,14 +149,13 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    labels:
-      app: ${LABEL}
+    #labels:
+    #  app: ${LABEL}
     name: ${APP_NAME}
   spec:
     replicas: 1
     selector:
       app: ${LABEL}
-      deploymentconfig: ${APP_NAME}
     strategy:
       type: Recreate
     template:
@@ -176,11 +188,11 @@ objects:
             protocol: TCP
           volumeMounts:
           - mountPath: /tmp/keystore
-            name: dev-keystore
+            name: keystore
         volumes:
-        - name: dev-keystore
+        - name: keystore
           persistentVolumeClaim:
-            claimName: dev-keystore
+            claimName: ${PHARMANET_CERT_KEYSTORE}
     test: false
     triggers:
     - type: ConfigChange

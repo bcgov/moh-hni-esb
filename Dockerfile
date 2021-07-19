@@ -12,6 +12,7 @@ FROM adoptopenjdk:11-jre-hotspot
 WORKDIR /tmp
 COPY --from=build /app/hnsecure/target/hni-esb.jar /tmp/hni-esb.jar
 Run mkdir -p keystore
+COPY /hnsecure/src/main/resources/keystore/CGI-HNI-DEV.pfx /tmp/keystore
 EXPOSE 14885
 CMD ["java","-jar","hni-esb.jar"]
 

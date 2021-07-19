@@ -100,6 +100,8 @@ objects:
   strategy:
     type: Docker                      
     dockerStrategy:
+      pullSecret:
+        name: docker-hub
       dockerfilePath: ${CONTEXT_DIR}    # Look for Dockerfile in: gitUri/contextDir/dockerfilePath
   output:
     to:
