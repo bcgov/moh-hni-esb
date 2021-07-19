@@ -1,0 +1,82 @@
+// This ppeline will deploy the provided build number to selected environment
+pipeline {
+    environment {
+    	// Input from user: NAMESPACE and DEPLOY_BUILD_NUMBER
+    	CLUSTER = "openshift"
+    	DEPLOY_BUILD = "jenkins-hnsesb-buildAndDeploy-openshift-${DEPLOY_BUILD_NUMBER}"
+		OC_JEKNINS_USER = "deployer-c5839f-tools"
+		PROJECT = project()
+		APP_NAME = appName()
+
+		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${APP_NAME}"
+		IMAGE_STREAM_TAG = "imagestreamtag/${APP_NAME}:${DEPLOY_BUILD}"
+		
+		APPLY_TAG="latest"
+		//FINAL="imagestreamtag/${APP_NAME}"
+		//eg : imagestreamtag/hnsesb-test:latest 
+	}
+	
+    agent any
+
+    stages {
+        stage('Verify if Build exists') {
+            steps {
+            	script {
+                    openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                                echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                                def is = openshift.selector( "imagestreamtag")
+                                def valid = "False"
+                                is.withEach{
+                                    echo "Value of Image stream select exists: ${it.name()} and input is ${IMAGE_STREAM_TAG}"
+                                    if("${IMAGE_STREAM_TAG}"=="${it.name()}"){
+                                        valid="TRUE"
+                                    }
+                                }
+                                if("${valid}"=="TRUE"){
+                                    echo "${DEPLOY_BUILD} exists in image stream: ${IMAGE_STREAM}"
+                                }
+                                else{
+                                    echo "${DEPLOY_BUILD} does not exist in image stream: ${IMAGE_STREAM}"
+                                    sh 'False'
+                                }
+                            }
+                        }
+                    }            		
+            	}
+            }
+            
+        }
+
+        stage ('Deploy selected build to project') {
+            steps {
+                script {
+                    openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                                echo "Tag the build ${IMAGE_STREAM}:${DEPLOY_BUILD} with tag: ${APPLY_TAG} "
+                                openshift.tag( "${IMAGE_STREAM}:${DEPLOY_BUILD}", "${APP_NAME}:${env.BUILD_TAG}")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+def appName() {
+	def ns = "${NAMESPACE}" 
+	if (ns == "Dev"){
+		return "hnsesb-dev"
+	}
+	return "hnsesb-test"
+}
+
+def project() {
+	def ns = "${NAMESPACE}"
+	if (ns == "Dev"){
+		return 'c5839f-dev'
+	}
+	return 'c5839f-test'
+}

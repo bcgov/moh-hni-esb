@@ -1,6 +1,13 @@
+// This pipeline is created to build the application using build config and then deploy using deployment config
 pipeline {
 	environment {
-		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${NAMESPACE}/${BUILD_NAME}:latest"
+		CLUSTER = "openshift"
+    	DEPLOY_BUILD = "jenkins-hnsesb-buildAndDeploy-openshift-${DEPLOY_BUILD_NUMBER}"
+		OC_JEKNINS_USER = "deployer-c5839f-tools"
+		PROJECT = project()
+		BUILD_NAME = appName()
+		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${BUILD_NAME}:latest"
+		
 	}
     agent any
     stages {
@@ -15,13 +22,13 @@ pipeline {
         stage("Start Openshift build process") {
             steps {
 				script{
-					openshift.withCluster( "openshift" ) { 
-						openshift.withCredentials( "deployer-c5839f-tools" ) {
-								openshift.withProject("${NAMESPACE}"){
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
 									echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
 									def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
 									if(bcSelector.exists()){
-										echo "Build name ${BUILD_NAME} exist in project ${NAMESPACE}." 
+										echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
 										def buildRun = bcSelector.startBuild("--from-dir",".")
 										buildRun.logs('-f')
 										def bStatus = buildRun.object().status.phase
@@ -37,7 +44,7 @@ pipeline {
 											sh 'false'
 										}
 									}else{
-										echo "Build name ${BUILD_NAME} does not exist in project ${NAMESPACE}." 
+										echo "Build name ${BUILD_NAME} does not exist in project ${PROJECT}." 
 										echo "Please provide valid build name."
 									}
 								}
@@ -53,4 +60,18 @@ pipeline {
             echo "Complete"
         }
     }
+}
+def project() {
+	def ns = "${NAMESPACE}"
+	if (ns == "Dev"){
+		return 'c5839f-dev'
+	}
+	return 'c5839f-test'
+}
+def appName() {
+	def ns = "${NAMESPACE}" 
+	if (ns == "Dev"){
+		return "hnsesb-dev"
+	}
+	return "hnsesb-test"
 }
