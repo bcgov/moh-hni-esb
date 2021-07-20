@@ -1,5 +1,9 @@
 package ca.bc.gov.hlth.hnsecure.audit.entities;
 
+/**
+ * Enum for Transaction Status values
+ *
+ */
 public enum TransactionStatus {
 
 	/**
