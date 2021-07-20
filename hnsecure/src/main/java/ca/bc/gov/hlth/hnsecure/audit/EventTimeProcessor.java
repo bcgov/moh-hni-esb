@@ -8,20 +8,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 public class EventTimeProcessor implements Processor {
 
     private static Logger logger = LoggerFactory.getLogger(EventTimeProcessor.class);
 
+    private TransactionEventType eventType;
+    
+	public EventTimeProcessor(TransactionEventType eventType) {
+		super();
+		this.eventType = eventType;
+	}
+
 	@Override
 	public void process(Exchange exchange) throws Exception {
 		
     	String methodName = LoggingUtil.getMethodName();
-        logger.debug("{} - Started...", methodName);
+		logger.info("{} - Begin {}", methodName, eventType);
         
         exchange.getIn().setHeader(Util.HEADER_TRANSACTION_EVENT_TIME, new Date());
+        exchange.getIn().setHeader(Util.HEADER_TRANSACTION_EVENT_TYPE, eventType);
         
-        logger.debug("{} - Finished. ", methodName);
+        logger.debug("{} - End", methodName);
 	}
 }

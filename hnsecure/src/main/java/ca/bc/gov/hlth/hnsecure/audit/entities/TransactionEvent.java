@@ -91,4 +91,11 @@ public class TransactionEvent {
 			eventTime = new Date();
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "TransactionEvent [transactionEventId=" + transactionEventId + ", eventTime=" + eventTime
+				+ ", messageId=" + messageId + ", transactionId=" + transactionId + ", type=" + type + "]";
+	}	
+	
 }
