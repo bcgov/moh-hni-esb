@@ -46,9 +46,10 @@ public abstract class FileDropGenerater {
 			msgType = Util.getMsgType(v2MsgRequest);
 		}
 					
-		if(sendingFacility == null)
+		if(sendingFacility == null) {
 			sendingFacility = Util.getSendingFacility(accessToken);
-						
+		}
+		
 		String fileName = Util.buildFileName(sendingFacility,transactionid,msgType);
 		return fileName;
 	}
