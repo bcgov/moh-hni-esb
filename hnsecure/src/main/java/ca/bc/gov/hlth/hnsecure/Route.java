@@ -24,9 +24,8 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.audit.EventTimeProcessor;
-import ca.bc.gov.hlth.hnsecure.audit.TransactionEventProcessor;
-import ca.bc.gov.hlth.hnsecure.audit.TransactionProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
@@ -114,8 +113,8 @@ public class Route extends RouteBuilder {
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 				.end()
 	            // Audit "Transaction Complete"
-	    		.process(new EventTimeProcessor())
-	            .wireTap("direct:transactionComplete").end()
+	    		.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_COMPLETE))
+	            .wireTap("direct:audit").end()
 	    		//encoding response before sending to consumer
 	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
 	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")	            
@@ -135,7 +134,8 @@ public class Route extends RouteBuilder {
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
         	// Added wireTap for asynchronous call to filedrop request
-        	.process(new EventTimeProcessor())
+        	.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_START))
+			.wireTap("direct:audit").end()
 			.wireTap("direct:start").end()
         	// Validate the message
         	.process(validator).id("Validator")
@@ -149,8 +149,8 @@ public class Route extends RouteBuilder {
 	            // Sending message to PharmaNet
             	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
                 	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
-                	.process(new EventTimeProcessor())
-                	.wireTap("direct:messageSent").end()
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit").end()
             		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
             		.setBody(body().regexReplaceAll("\r\n","\r"))
                     .setBody().method(new Base64Encoder())
@@ -165,8 +165,8 @@ public class Route extends RouteBuilder {
 		            .log("Received response from Pharmanet")
 		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 		            .process(new PharmaNetPayloadExtractor())
-		            .process(new EventTimeProcessor())
-		            .wireTap("direct:messageReceived").end()
+		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		            .wireTap("direct:audit").end()
 		            
 	            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
@@ -181,13 +181,13 @@ public class Route extends RouteBuilder {
 	            // others sending to JMB
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
-                	.process(new EventTimeProcessor())
-                	.wireTap("direct:messageSent")
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit")
                 		.endChoice()
                     .setBody(simple(SampleMessages.R09_RESPONSE_MESSAGE))
 		            .log("Received response from JMB")
-		            .process(new EventTimeProcessor())
-		            .wireTap("direct:messageReceived")
+		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		            .wireTap("direct:audit")
 		            	.endChoice()
             .end();        
         
@@ -195,35 +195,14 @@ public class Route extends RouteBuilder {
         	.choice()
 				.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 				.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
-			.end()
-			.choice()
-				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-					.process(new TransactionProcessor())
-					.setHeader(Util.HEADER_TRANSACTION_EVENT_TYPE).simple(TransactionEventType.TRANSACTION_START.name())					
-					.process(new TransactionEventProcessor())
 			.end();
         
-		from("direct:transactionComplete").log("wireTap transactionComplete")
+		from("direct:audit").log("wireTap audit")
 			.choice()
 				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-					.setHeader(Util.HEADER_TRANSACTION_EVENT_TYPE).simple(TransactionEventType.TRANSACTION_COMPLETE.name())
-					.process(new TransactionEventProcessor())				
+					.process(new AuditProcessor())				
 			.end();
 		
-		from("direct:messageSent").log("wireTap messageSent")
-		.choice()
-			.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-				.setHeader(Util.HEADER_TRANSACTION_EVENT_TYPE).simple(TransactionEventType.MESSAGE_SENT.name())
-				.process(new TransactionEventProcessor())				
-		.end();
-		
-		from("direct:messageReceived").log("wireTap messageReceived")
-		.choice()
-			.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-				.setHeader(Util.HEADER_TRANSACTION_EVENT_TYPE).simple(TransactionEventType.MESSAGE_RECEIVED.name())
-				.process(new TransactionEventProcessor())				
-		.end();
-
     }
 
 	private String buildBasicToken(String username, String password) {

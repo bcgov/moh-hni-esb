@@ -11,13 +11,17 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
-public class EventTimeProcessor implements Processor {
+/**
+ * Processor for setting up meta data required for logging audits 
+ *
+ */
+public class AuditSetupProcessor implements Processor {
 
-    private static Logger logger = LoggerFactory.getLogger(EventTimeProcessor.class);
+    private static Logger logger = LoggerFactory.getLogger(AuditSetupProcessor.class);
 
     private TransactionEventType eventType;
     
-	public EventTimeProcessor(TransactionEventType eventType) {
+	public AuditSetupProcessor(TransactionEventType eventType) {
 		super();
 		this.eventType = eventType;
 	}
