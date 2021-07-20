@@ -58,6 +58,13 @@ public abstract class AbstractAuditPersistence {
 		properties.put("javax.persistence.jdbc.password", DATABASE_PASSWORD);
     }
     
+   	/**
+   	 * Inserts a single record.
+   	 * 
+   	 * @param <T>
+   	 * @param record
+   	 * @return
+   	 */
 	public <T> T insert(T record) {
 		EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, properties).createEntityManager();
         EntityTransaction et = em.getTransaction();
@@ -69,6 +76,13 @@ public abstract class AbstractAuditPersistence {
         return record;
     }
 
+	/**
+	 * Handles insert a list of records.
+	 * 
+	 * @param <T>
+	 * @param records
+	 * @return
+	 */
 	public <T> List<T> insertList(List<T> records) {
 		EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, properties).createEntityManager();
         EntityTransaction et = em.getTransaction();
@@ -82,6 +96,15 @@ public abstract class AbstractAuditPersistence {
         return records;
     }
 
+	/**
+	 * Creates a {@link Transaction} entity populated with the values based on the transaction being processed 
+	 * 
+	 * @param v2Message
+	 * @param transactionId
+	 * @param organizationId
+	 * @param eventTime
+	 * @return
+	 */
 	public Transaction createTransaction(String v2Message, String transactionId, String organizationId, Date eventTime) {
 		Transaction transaction = new Transaction();
     	transaction.setTransactionId(UUID.fromString(transactionId));
@@ -109,6 +132,13 @@ public abstract class AbstractAuditPersistence {
 		return hostname;
 	}
 	
+	/**
+	 * Create {@link AffectedParty} entity populated with values based on the persons in the v2 message being processed.
+	 * 
+	 * @param v2Message
+	 * @param transactionId
+	 * @return
+	 */
 	public List<AffectedParty> createAffectedParties(String v2Message, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
 		AffectedParty affectedParty = null;
@@ -170,6 +200,13 @@ public abstract class AbstractAuditPersistence {
 		return affectedParties;
 	}
 
+	/**
+	 * Set the fields in the {@link AffectedParty} entity with the provided or default values.
+	 * 
+	 * @param affectedParty
+	 * @param transactionUuid
+	 * @param identifier
+	 */
 	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier) {
 	    affectedParty.setTransactionId(transactionUuid);						
 		affectedParty.setIdentifier(identifier);
@@ -178,10 +215,27 @@ public abstract class AbstractAuditPersistence {
 		affectedParty.setStatus(STATUS_CODE_ACTIVE);
 	}
 
+	/**
+	 * Creates a {@link TransactionEvent} with the values provided. Defaults message ID to null.
+	 * 
+	 * @param transactionId
+	 * @param eventType
+	 * @param eventTime
+	 * @return
+	 */
 	public TransactionEvent createTransactionEvent(String transactionId, TransactionEventType eventType, Date eventTime) {
 		return createTransactionEvent(transactionId, eventType, eventTime, null);
 	}
 	
+	/**
+	 * Creates a {@link TransactionEvent} with the values provided.
+	 * 
+	 * @param transactionId
+	 * @param eventType
+	 * @param eventTime
+	 * @param messageId
+	 * @return
+	 */
 	public TransactionEvent createTransactionEvent(String transactionId, TransactionEventType eventType, Date eventTime, String messageId) {
 		TransactionEvent transactionEvent = new TransactionEvent();
 		transactionEvent.setTransactionId(UUID.fromString(transactionId));
