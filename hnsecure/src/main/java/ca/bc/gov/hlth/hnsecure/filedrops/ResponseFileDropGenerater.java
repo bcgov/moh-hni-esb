@@ -27,7 +27,7 @@ public class ResponseFileDropGenerater extends FileDropGenerater {
 	@Handler
 	public void createFileDrops(Exchange exchange) {
 		String methodName = LoggingUtil.getMethodName();
-		logger.debug("Beging {}", methodName);
+		logger.debug("{} - Started... ", methodName);
 
 		Object body = exchange.getIn().getBody();
 		if (body != null && StringUtils.isNotBlank(body.toString())) {
@@ -38,7 +38,7 @@ public class ResponseFileDropGenerater extends FileDropGenerater {
 					LoggingUtil.getMethodName(), exchange.getExchangeId(), responseFileName);
 		}
 
-		logger.debug("End {}", methodName);
+		logger.debug("{} - Finished.", methodName);
 	}
 
 }

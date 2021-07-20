@@ -24,23 +24,26 @@ public class RequestFileDropGenerater extends FileDropGenerater {
 	@Handler
 	public void createFileDrops(Exchange exchange) {		
 		String methodName = LoggingUtil.getMethodName();
-		logger.debug("Beging {}", methodName);
+		logger.debug("{} - Started... ", methodName);
 		
 		Object body = exchange.getIn().getBody();
+		if (body != null && StringUtils.isNotBlank(body.toString())) {
+			logger.info("{} - No v2 message was found in the request so it cannot be logged to file.", methodName);
+			return;
+		}
+		
 		/*
 		 * when we use wiretap then the tapped exchange has its own exchange id
 		 * But the wire tap will store the exchange id from its parent as a
 		 * "correlated exchange id".
 		 */
-		if (body != null && StringUtils.isNotBlank(body.toString())) {
-			String corId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
-			String fileName = buildFileNameParameters(exchange,corId);
-			String requestFileName = fileName + REQUEST_FILE;
-			writeFiledrop(body.toString(), requestFileName);
-			logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",methodName, exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);
-		}
+		String corId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
+		String fileName = buildFileNameParameters(exchange,corId);
+		String requestFileName = fileName + REQUEST_FILE;
+		writeFiledrop(body.toString(), requestFileName);
+		logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",methodName, exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);
 
-		logger.debug("End {}", methodName);
+		logger.debug("{} - Finished.", methodName);
 	}
 
 }
