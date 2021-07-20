@@ -18,10 +18,10 @@ public class EventTimeProcessor implements Processor {
 	public void process(Exchange exchange) throws Exception {
 		
     	String methodName = LoggingUtil.getMethodName();
-        logger.debug("Begin {}", methodName);
-
+        logger.debug("{} - Started...", methodName);
+        
         exchange.getIn().setHeader(Util.HEADER_TRANSACTION_EVENT_TIME, new Date());
         
-        logger.debug("End {}", methodName);
+        logger.debug("{} - Finished. ", methodName);
 	}
 }
