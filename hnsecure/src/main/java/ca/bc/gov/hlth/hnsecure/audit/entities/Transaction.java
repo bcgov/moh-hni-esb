@@ -66,8 +66,8 @@ public class Transaction {
 	 * time that the transaction was started/created
 	 */
 	@Basic
-	@Column(name="start_time", columnDefinition="timestamptz")
-	private Date timestamp;
+	@Column(name="start_time", columnDefinition="startTimetz")
+	private Date startTime;
 
 	public UUID getTransactionId() {
 		return transactionId;
@@ -125,19 +125,19 @@ public class Transaction {
 		this.facilityId = facilityId;
 	}
 
-	public Date getTimestamp() {
-		return timestamp;
+	public Date getStartTime() {
+		return startTime;
 	}
 
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+	public void setStartTime(Date startTime) {
+		this.startTime = startTime;
 	}
 
 	@Override
 	public String toString() {
 		return "Transaction [transactionId=" + transactionId + ", type=" + type + ", server=" + server + ", source="
 				+ source + ", organization=" + organization + ", userId=" + userId + ", facilityId=" + facilityId
-				+ ", timestamp=" + timestamp + "]";
+				+ ", startTime=" + startTime + "]";
 	}
 	
 	}

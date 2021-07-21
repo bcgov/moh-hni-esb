@@ -116,7 +116,7 @@ public abstract class AbstractAuditPersistence {
     	transaction.setFacilityId(V2MessageUtil.getSendingFacility(v2Message));
 		transaction.setOrganization(organizationId);
 		transaction.setUserId(V2MessageUtil.getSecurity(v2Message));	
-    	transaction.setTimestamp(eventTime);
+    	transaction.setStartTime(eventTime);
 		return transaction;
 	}
 
