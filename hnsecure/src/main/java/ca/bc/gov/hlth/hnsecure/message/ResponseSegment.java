@@ -3,17 +3,18 @@ package ca.bc.gov.hlth.hnsecure.message;
 import java.util.Optional;
 
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 public abstract class ResponseSegment {
-	private static final String ack = "ACK";
 
-	private static final String fieldSeperator = "|";
+	private static final String UNKNOWN_APP = "UNKNOWNAPP";
 
-	private static final String encodingChar = "^~\\&";
-
-	private static final String unknownApp = "UNKNOWNAPP";
-
-	private static final String unknownClient = "UNKNOWNCLIENT";
+	private static final String UNKNOWN_CLIENT = "UNKNOWNCLIENT";
+	
+	private static final String PROCESSING_ID_UNKNOWN = "?";
+	
+	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 
 	abstract String constructResponse(HL7Message messageObj, ErrorMessage error);
 
@@ -44,7 +45,7 @@ public abstract class ResponseSegment {
 		sb.append(Optional.ofNullable(messageObj.getSegmentIdentifier()).orElse(""));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(encodingChar);
+		sb.append(Util.ENCODING_CHARACTERS);
 		sb.append(messageObj.getFieldSeparator());
 
 		sb.append(Optional.ofNullable(messageObj.getReceivingApplication()).orElse(""));
@@ -53,47 +54,40 @@ public abstract class ResponseSegment {
 		sb.append(Optional.ofNullable(messageObj.getReceivingFacility()).orElse(""));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(Optional.ofNullable(messageObj.getSendingApplication()).orElse(unknownApp));
+		sb.append(Optional.ofNullable(messageObj.getSendingApplication()).orElse(UNKNOWN_APP));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(Optional.ofNullable(messageObj.getSendingFacility()).orElse(unknownClient));
+		sb.append(Optional.ofNullable(messageObj.getSendingFacility()).orElse(UNKNOWN_CLIENT));
 		sb.append(messageObj.getFieldSeparator());
 
-		if (messageObj.getMessageType() == null || !messageObj.getMessageType().equals(Util.MESSAGE_TYPE_PNP))
+		if (messageObj.getMessageType() == null || !messageObj.getMessageType().equals(Util.MESSAGE_TYPE_PNP)) {
 			sb.append(Util.getGenericDateTime());
-		else
+		} else {
 			sb.append(Util.getPharmanetDateTime());
+		}
 
 		sb.append(messageObj.getFieldSeparator());
 
 		sb.append(Optional.ofNullable(messageObj.getSecurity()).orElse(""));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(getAck());
-		sb.append(messageObj.getFieldSeparator());
-
-		sb.append(Optional.ofNullable(messageObj.getMessageType()).orElse(""));
+		// When constructing responses directly in HNS ESB (as opposed to something returned from a downstream system)
+		// the Message Type will always be ACK
+		sb.append(Util.ACK);
 		sb.append(messageObj.getFieldSeparator());
 
 		sb.append(Optional.ofNullable(messageObj.getMessageControlId()).orElse(""));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(Optional.ofNullable(messageObj.getProcessingId()).orElse(""));
+		sb.append(Optional.ofNullable(messageObj.getProcessingId()).orElse(PROCESSING_ID_UNKNOWN));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(Optional.ofNullable(messageObj.getVersionId()).orElse(""));
+		sb.append(Optional.ofNullable(messageObj.getVersionId()).orElse(properties.getValue(ApplicationProperty.VERSION)));
 
-		sb.append("\n");
+		sb.append(Util.LINE_BREAK);
 
 		return sb.toString();
 
 	}
 
-	public String getAck() {
-		return ack;
-	}
-
-	public static String getFieldseperator() {
-		return fieldSeperator;
-	}
 }
