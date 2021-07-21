@@ -26,7 +26,10 @@ public enum ApplicationProperty {
 	HIBC_R50_ENDPOINT("hibc-r50-endpoint"),
 	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
 	FILE_DROPS_LOCATION("file-drops-location"),
-	IS_AUDITS_ENABLED("audits.enabled");
+	IS_AUDITS_ENABLED("audits.enabled"),
+	RTRANS_R03_ENDPOINT("rtrans-r03-endpoint"),
+	RTRANS_R07_ENDPOINT("rtrans-r07-endpoint"),
+	RTRANS_R09_ENDPOINT("rtrans-r09-endpoint");
 	
 	// Key should be same as the key in application.properties
 	private String key;

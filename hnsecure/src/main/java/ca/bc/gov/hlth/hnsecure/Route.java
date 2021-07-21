@@ -14,8 +14,10 @@ import javax.sql.DataSource;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.PropertyInject;
+import org.apache.camel.builder.PredicateBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.spi.Registry;
@@ -37,10 +39,12 @@ import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
@@ -94,6 +98,8 @@ public class Route extends RouteBuilder {
 
     private static ApplicationProperties properties;
     
+
+    
     private Validator validator;
     
     @SuppressWarnings("unchecked")
@@ -105,10 +111,11 @@ public class Route extends RouteBuilder {
 
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
-
+			
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
+		Predicate isRTrans = isRTrans();
 		
     	onException(CustomHNSException.class, HttpHostConnectException.class)
         	.process(new ExceptionHandler())
@@ -174,7 +181,19 @@ public class Route extends RouteBuilder {
 		            .to(pharmaNetUrl).id("ToPharmaNet")
 		            .log("Received response from Pharmanet")
 		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-		            .process(new PharmaNetPayloadExtractor())
+		            .process(new PharmaNetPayloadExtractor())	
+		            
+		       //Sending message to RTrans     
+		      .when(isRTrans)
+		      		.log("Message identified as RTrans message. Preparing message for RTrans.")
+		      		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
+                    .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
+		            .log("Sending to RTrans")		            
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
+		            .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
+		            .log("Received response from RTrans")
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+		            
 		            
 	            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
@@ -272,9 +291,25 @@ public class Route extends RouteBuilder {
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
+		//isRTrans = isRTrans();
     	loadValidator();
     	
     }
+
+	/**
+	 * This method is used to append multiple Predicates for RTrans message type
+	 * Builds a compound predicate to use it in the Route
+	 */
+	private Predicate isRTrans() {
+		String r03 = properties.getValue(ApplicationProperty.RTRANS_R03_ENDPOINT);
+		String r07 = properties.getValue(ApplicationProperty.RTRANS_R07_ENDPOINT);
+		String r09 = properties.getValue(ApplicationProperty.RTRANS_R09_ENDPOINT);
+		Predicate isR03 = header("messageType").isEqualToIgnoreCase(r03);
+		Predicate isR07 = header("messageType").isEqualToIgnoreCase(r07);	
+		Predicate isR09 = header("messageType").isEqualToIgnoreCase(r09);	
+		Predicate pBuilder = PredicateBuilder.or(isR03,isR07,isR09);
+		return pBuilder;
+	}
     
 	/**
      * This method injects application properties set in the context to ApplicationProperties class
