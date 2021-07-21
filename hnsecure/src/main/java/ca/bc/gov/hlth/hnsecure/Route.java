@@ -291,7 +291,6 @@ public class Route extends RouteBuilder {
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
-		//isRTrans = isRTrans();
     	loadValidator();
     	
     }
