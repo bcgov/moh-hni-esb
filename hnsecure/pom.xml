@@ -20,7 +20,8 @@
     <maven-shade-plugin-version>3.2.1</maven-shade-plugin-version>
     <camel-maven-plugin-version>3.4.0</camel-maven-plugin-version>
     <postgresql-version>42.2.22</postgresql-version>
-	<hibernate-entitymanager-version>5.4.32.Final</hibernate-entitymanager-version>    
+	<hibernate-entitymanager-version>5.4.32.Final</hibernate-entitymanager-version>	    
+	<mockito-core-version>3.11.2</mockito-core-version>
   </properties>
   
   <repositories>
@@ -140,7 +141,15 @@
 	    <version>${hibernate-entitymanager-version}</version>
 	</dependency>
 	
-  </dependencies>
+	<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+	<dependency>
+	    <groupId>org.mockito</groupId>
+	    <artifactId>mockito-core</artifactId>
+	    <version>${mockito-core-version}</version>
+	    <scope>test</scope>
+	</dependency>
+   
+ </dependencies>
 
   <build>
     <defaultGoal>install</defaultGoal>
