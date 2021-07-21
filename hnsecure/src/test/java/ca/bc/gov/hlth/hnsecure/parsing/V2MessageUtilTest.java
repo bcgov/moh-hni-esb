@@ -3,7 +3,7 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -21,14 +21,14 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetSendingApplicationR50() {
 		String expectedValue ="HNWeb";
-		String actualValue = V2MessageUtil.getSendingApplication(MSG_R50);
+		String actualValue = V2MessageUtil.getSendingApplication(MSG_R50_Z05);
 		assertEquals(expectedValue, actualValue);
 	}
 	
 	@Test
 	public void testGetSendingFacilityR50() {
 		String expectedValue ="BC01000030";
-		String actualValue = V2MessageUtil.getSendingFacility(MSG_R50);
+		String actualValue = V2MessageUtil.getSendingFacility(MSG_R50_Z05);
 		assertEquals(expectedValue, actualValue);
 	}
 	
@@ -49,14 +49,14 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetReceivingAppR50() {
 		String expectedValue ="RAIENROL-EMP";
-		String actualValue = V2MessageUtil.getReceivingApp(MSG_R50);
+		String actualValue = V2MessageUtil.getReceivingApp(MSG_R50_Z05);
 		assertEquals(expectedValue, actualValue);
 	}
 
 	@Test
 	public void testGetMsgTypeR50() {
 		String expectedValue ="R50";
-		String actualValue = V2MessageUtil.getMsgType(MSG_R50);
+		String actualValue = V2MessageUtil.getMsgType(MSG_R50_Z05);
 		assertEquals(expectedValue, actualValue);
 	}
 	

@@ -7,7 +7,7 @@ import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -62,10 +62,10 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 	public void testParseV2MessageInfoR50() throws Exception {
 		MockEndpoint mock = getMockEndpoint("mock:outputHNSecure");
 		mock.expectedMessageCount(1);
-		mock.expectedBodiesReceived(MSG_R50);
+		mock.expectedBodiesReceived(MSG_R50_Z05);
 		mock.expectedHeaderReceived(HEADER_MESSAGE_TYPE, "R50");
 		mock.expectedHeaderReceived(HEADER_RECEIVING_APP, "RAIENROL-EMP");
-		template.sendBody("direct:sampleHNSecure", MSG_R50);
+		template.sendBody("direct:sampleHNSecure", MSG_R50_Z05);
 		assertMockEndpointsSatisfied();
 	}
 
