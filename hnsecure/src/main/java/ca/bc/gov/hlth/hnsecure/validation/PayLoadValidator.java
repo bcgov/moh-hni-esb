@@ -82,7 +82,6 @@ public class PayLoadValidator extends AbstractValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {
 		if (isPharmanetMode) {
 			if (!Util.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
-				populateFieldsForErrorResponse(messageObj);
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFormatError, exchange);
 			}
 		}

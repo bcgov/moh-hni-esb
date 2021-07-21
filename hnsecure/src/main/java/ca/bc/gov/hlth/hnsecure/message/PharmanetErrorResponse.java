@@ -36,13 +36,13 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 */
 	public String buildZCA() {
 		StringBuilder sb = new StringBuilder(ZCA_IDENTIFIER );
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
 		sb.append(TRANSACTION_CODE);
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
 		sb.append(Util.LINE_BREAK);
 		return sb.toString();
 	}
@@ -57,9 +57,9 @@ public class PharmanetErrorResponse extends ResponseSegment {
 
 	public String buildZCB() {
 		StringBuilder sb = new StringBuilder(ZCB_IDENTIFIER );
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
 		sb.append(Util.LINE_BREAK);
 		return sb.toString();
 	}
@@ -70,17 +70,17 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 */
 	public String buildZZZ(ErrorMessage errorMessage) {
 		StringBuilder sb = new StringBuilder(ZZZ_IDENTIFIER );
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
 		sb.append(RESPONSE_STATUS);
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
-		sb.append(errorMessage.getErrorSequence()+ "  " + errorMessage.getErrorMessage());
-		sb.append(getFieldseperator());
-		sb.append(getFieldseperator());
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
+		sb.append(errorMessage.getErrorSequence() + "  " + errorMessage.getErrorMessage());
+		sb.append(FIELD_SEPARATOR);
+		sb.append(FIELD_SEPARATOR);
 		return sb.toString();
 	}
 
