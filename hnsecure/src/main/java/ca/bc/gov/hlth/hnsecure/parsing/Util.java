@@ -37,6 +37,7 @@ public final class Util {
 	public static final String ACK = "ACK";
 	public static final String PHARMACY_ID = "pharmacyId";
 	public static final String TRACING_ID = "traceId";
+	public static final String ENCODING_CHARACTERS = "^~\\&";
 
 	/**
 	 * return a Base64 encoding string

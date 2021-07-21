@@ -2,6 +2,8 @@ package ca.bc.gov.hlth.hnsecure.message;
 
 import java.util.Optional;
 
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
+
 public class ErrorResponse extends ResponseSegment {
 	
 	private static final String segmentIdentifier = "MSA";
@@ -15,13 +17,13 @@ public class ErrorResponse extends ResponseSegment {
 	
 	public String constructMSA(String messageControlID, ErrorMessage errorMessage) {
 		StringBuilder sb = new StringBuilder(segmentIdentifier);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(ackKnowledgementCode);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(Optional.ofNullable(messageControlID).orElse(""));
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(errorMessage.getErrorSequence() + "  " + errorMessage.getErrorMessage());
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
 
 		return sb.toString();
 	}

@@ -36,13 +36,13 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 */
 	public String buildZCA() {
 		StringBuilder sb = new StringBuilder(ZCA_IDENTIFIER );
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(TRANSACTION_CODE);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(Util.LINE_BREAK);
 		return sb.toString();
 	}
@@ -57,9 +57,9 @@ public class PharmanetErrorResponse extends ResponseSegment {
 
 	public String buildZCB() {
 		StringBuilder sb = new StringBuilder(ZCB_IDENTIFIER );
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(Util.LINE_BREAK);
 		return sb.toString();
 	}
@@ -70,17 +70,17 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 */
 	public String buildZZZ(ErrorMessage errorMessage) {
 		StringBuilder sb = new StringBuilder(ZZZ_IDENTIFIER );
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(RESPONSE_STATUS);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 		sb.append(errorMessage.getErrorSequence() + "  " + errorMessage.getErrorMessage());
-		sb.append(FIELD_SEPARATOR);
-		sb.append(FIELD_SEPARATOR);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 		return sb.toString();
 	}
 

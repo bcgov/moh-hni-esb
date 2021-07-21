@@ -8,10 +8,6 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 public abstract class ResponseSegment {
 
-	protected static final String FIELD_SEPARATOR = "|";
-
-	private static final String ENCODING_CHARACTERS = "^~\\&";
-
 	private static final String UNKNOWN_APP = "UNKNOWNAPP";
 
 	private static final String UNKNOWN_CLIENT = "UNKNOWNCLIENT";
@@ -49,7 +45,7 @@ public abstract class ResponseSegment {
 		sb.append(Optional.ofNullable(messageObj.getSegmentIdentifier()).orElse(""));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(ENCODING_CHARACTERS);
+		sb.append(Util.ENCODING_CHARACTERS);
 		sb.append(messageObj.getFieldSeparator());
 
 		sb.append(Optional.ofNullable(messageObj.getReceivingApplication()).orElse(""));
