@@ -10,11 +10,8 @@ import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
 
-import javax.sql.DataSource;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
@@ -22,12 +19,14 @@ import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
@@ -76,23 +75,7 @@ public class Route extends RouteBuilder {
 
     private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
     
-    /** Audits properties **/
-    
-	private static final String HN_DATA_SOURCE = "hnDataSource";
-
-	private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
-
-    private static final String DATABASE_HOST = System.getenv("DATABASE_HOST");
-    
-    private static final String DATABASE_PORT = System.getenv("DATABASE_PORT");
-    
-    private static final String DATABASE_NAME = System.getenv("DATABASE_NAME");
-
-    private static final String DATABASE_USERNAME = System.getenv("DATABASE_USERNAME");
-
-    private static final String DATABASE_PASSWORD = System.getenv("DATABASE_PASSWORD");
-
-    private static ApplicationProperties properties;
+	private static ApplicationProperties properties;
     
     private Validator validator;
     
@@ -119,9 +102,8 @@ public class Route extends RouteBuilder {
                 .handled(true)
                 .id("ValidationException");
 
-       	setUpDatabase();
-        
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
+
 			// This route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			// Making it global will generate two response file drops.
@@ -130,10 +112,14 @@ public class Route extends RouteBuilder {
 		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 				.end()
-				//encoding response before sending to consumer
-				.setBody().method(new Base64Encoder()).id("Base64Encoder")
-				.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+	            // Audit "Transaction Complete"
+	    		.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_COMPLETE))
+	            .wireTap("direct:audit").end()
+	    		//encoding response before sending to consumer
+	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
+	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")	            
 			.end()
+
         	.log("HNSecure received a request")
 			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
 			.choice()
@@ -148,19 +134,23 @@ public class Route extends RouteBuilder {
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
         	// Added wireTap for asynchronous call to filedrop request
+        	.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_START))
+			.wireTap("direct:audit").end()
 			.wireTap("direct:start").end()
         	// Validate the message
         	.process(validator).id("Validator")
             // Set the receiving app, message type into headers
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-            .log("The message receiving application is <${in.header.receivingApp}> and the message type is <${in.header.messageType}>.")     
-            
+            .log("The message receiving application is <${in.header.receivingApp}> and the message type is <${in.header.messageType}>.")
+             
             // Dispatch the message based on the receiving application code and message type
             .choice()
 	            // Sending message to PharmaNet
             	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
                 	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit").end()
             		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
             		.setBody(body().regexReplaceAll("\r\n","\r"))
                     .setBody().method(new Base64Encoder())
@@ -175,6 +165,8 @@ public class Route extends RouteBuilder {
 		            .log("Received response from Pharmanet")
 		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 		            .process(new PharmaNetPayloadExtractor())
+		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		            .wireTap("direct:audit").end()
 		            
 	            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
@@ -185,53 +177,35 @@ public class Route extends RouteBuilder {
 	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
 	                .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
                     .setBody(simple(SampleMessages.r50ResponseMessage))
-	            
+                 
 	            // others sending to JMB
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
-                    .setBody(simple(SampleMessages.r03ResponseMessage))
-            .end();
-           
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit")
+                		.endChoice()
+                    .setBody(simple(SampleMessages.R09_RESPONSE_MESSAGE))
+		            .log("Received response from JMB")
+		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		            .wireTap("direct:audit")
+		            	.endChoice()
+            .end();        
         
         from("direct:start").log("wireTap route")
         	.choice()
 				.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
 				.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
-			.end()
+			.end();
+        
+		from("direct:audit").log("wireTap audit")
 			.choice()
 				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-					.process(new Processor() {			
-						@Override
-						public void process(Exchange exchange) throws Exception {
-							String messageId = exchange.getIn().getMessageId();
-					        String insertQuery = "INSERT INTO hnsecure.transaction (TRANSACTION_ID, TYPE, SERVER,	SOURCE,	ORGANIZATION, USER_ID,	FACILITY_ID, START_TIME) VALUES ('" + messageId + "', 'E45', 'test_server', 'Sending_App', 'sending_org', 'user_1', 'FAC_001', NOW())";
-					        logger.info("Insert Query: {}", insertQuery);
-					        exchange.getIn().setBody(insertQuery);					
-						}
-					})
-			    	.to("jdbc:" + HN_DATA_SOURCE)
+					.process(new AuditProcessor()).log("wireTap audit done")				
 			.end();
+		
     }
 
-	private void setUpDatabase() {
-		String url = String.format("jdbc:postgresql://%s:%s/%s", DATABASE_HOST, DATABASE_PORT, DATABASE_NAME);
-        DataSource dataSource = setupDataSource(url);
-        Registry registry = getContext().getRegistry();
-        registry.bind(HN_DATA_SOURCE, dataSource);
-	}
-
-    private static DataSource setupDataSource(String connectURI) {
-    	logger.info("Audit Database connection URI: {}", connectURI);
-    	logger.info("DB Name: {}; DB User: {}; DB Password: {}", DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD);
-        BasicDataSource ds = new BasicDataSource();
-        ds.setDriverClassName(POSTGRESQL_DRIVER);
-        ds.setUsername(DATABASE_USERNAME);
-        ds.setPassword(DATABASE_PASSWORD);
-        ds.setUrl(connectURI);
-        return ds;
-    }
-    
-    private String buildBasicToken(String username, String password) {
+	private String buildBasicToken(String username, String password) {
 		String usernamePassword = username + ":" + password;
 		Charset charSet = Charset.forName("UTF-8");
 		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(charSet)));

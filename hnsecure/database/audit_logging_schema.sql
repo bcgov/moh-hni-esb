@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS hnsecure.AFFECTED_PARTY;
 DROP TABLE IF EXISTS hnsecure.TRANSACTION;
 DROP SCHEMA IF EXISTS hnsecure;
 
--- Begin Creating schema
+-- Beging Creating schema
 
 CREATE SCHEMA hnsecure;
 
@@ -47,7 +47,8 @@ CREATE TABLE hnsecure.AFFECTED_PARTY(
 	TRANSACTION_ID	UUID
 );
 
-CREATE UNIQUE INDEX IXFX_AFFECTED_PARTY_TRANSACTION ON hnsecure.AFFECTED_PARTY (TRANSACTION_ID);
+DROP INDEX IF EXISTS IXFX_AFFECTED_PARTY_TRANSACTION;
+CREATE INDEX IXFX_AFFECTED_PARTY_TRANSACTION ON hnsecure.AFFECTED_PARTY (TRANSACTION_ID);
 
 COMMENT ON TABLE hnsecure.AFFECTED_PARTY IS 'Affected party stores data relevant to the parties that are the subject of the transaction. An example of an affected party would be a patient.';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.AFFECTED_PARTY_ID IS 'primary key';
@@ -56,22 +57,6 @@ COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER_SOURCE IS 'name of the sour
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER_TYPE IS 'the type of identifier (PHN, MRN, drivers license no, etc)';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.STATUS IS 'Status of the identifier (Active, Merged, Deleted)';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.TRANSACTION_ID IS 'Foreign key to the transaction the party is the subject OF.';
-
-
---TRANSACTION_INFO
-
-CREATE TABLE hnsecure.TRANSACTION_INFO(
-	TRANSACTION_ID	UUID,	
-	STATUS	VARCHAR(255),
-	TYPE	VARCHAR(255)
-);
-
-CREATE UNIQUE INDEX IXFX_TRANSACTION_INFO_TRANSACTION ON hnsecure.TRANSACTION_INFO (TRANSACTION_ID);
-
-COMMENT ON TABLE hnsecure.TRANSACTION_INFO IS 'Transaction info is a table used to store status changes of a transaction.';
-COMMENT ON COLUMN hnsecure.TRANSACTION_INFO.TRANSACTION_ID IS 'foreign key to the transaction this event belongs TO.';
-COMMENT ON COLUMN hnsecure.TRANSACTION_INFO.STATUS IS 'Status of the transaction. For example transaction_complete';
-COMMENT ON COLUMN hnsecure.TRANSACTION_INFO.TYPE IS 'transation type';
 
 
 --TRANSACTION_EVENT
@@ -84,7 +69,8 @@ CREATE TABLE hnsecure.TRANSACTION_EVENT(
 	TRANSACTION_ID	UUID
 );
 
-CREATE UNIQUE INDEX IXFX_TRANSACTION_EVENT_TRANSACTION ON hnsecure.TRANSACTION_EVENT (TRANSACTION_ID);
+DROP INDEX IF EXISTS IXFX_TRANSACTION_EVENT_TRANSACTION;
+CREATE INDEX IXFX_TRANSACTION_EVENT_TRANSACTION ON hnsecure.TRANSACTION_EVENT (TRANSACTION_ID);
 
 COMMENT ON TABLE hnsecure.TRANSACTION_EVENT IS 'The transaction event table is used to store information about events that occured during the course of a transaction.';
 COMMENT ON COLUMN hnsecure.TRANSACTION_EVENT.TRANSACTION_EVENT_ID IS 'primary key';
@@ -104,7 +90,8 @@ CREATE TABLE hnsecure.EVENT_MESSAGE(
 	TRANSACTION_EVENT_ID	BIGINT
 );
 
-CREATE UNIQUE INDEX IXFX_EVENT_MESSAGE_TRANSACTION_EVENT ON hnsecure.EVENT_MESSAGE (TRANSACTION_EVENT_ID);
+DROP INDEX IF EXISTS IXFX_EVENT_MESSAGE_TRANSACTION_EVENT;
+CREATE INDEX IXFX_EVENT_MESSAGE_TRANSACTION_EVENT ON hnsecure.EVENT_MESSAGE (TRANSACTION_EVENT_ID);
 
 COMMENT ON TABLE hnsecure.EVENT_MESSAGE IS 'The event message table stores data such as errors and warnings relevant to a transaction event that occurred. An event can have multiple messages.';
 COMMENT ON COLUMN hnsecure.EVENT_MESSAGE.EVENT_MESSAGE_ID IS 'primary key';

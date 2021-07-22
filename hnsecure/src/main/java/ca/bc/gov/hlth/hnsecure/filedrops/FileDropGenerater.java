@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 
 /**
@@ -43,7 +44,7 @@ public abstract class FileDropGenerater {
 		//In case of validation error, headers are not populated
 		if(msgType == null) {
 			String v2MsgRequest = exchange.getIn().getBody().toString();
-			msgType = Util.getMsgType(v2MsgRequest);
+			msgType = V2MessageUtil.getMsgType(v2MsgRequest);
 		}
 					
 		if(sendingFacility == null) {
