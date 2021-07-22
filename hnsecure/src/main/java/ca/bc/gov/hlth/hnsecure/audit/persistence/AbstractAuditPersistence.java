@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
@@ -26,6 +27,8 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEvent;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 /**
  * Handles persistence for ESB database audits.
@@ -49,15 +52,25 @@ public abstract class AbstractAuditPersistence {
 
    	private static final String DATABASE_PASSWORD = System.getenv("DATABASE_PASSWORD");    
        
-   	private static final Map<String, String> properties = new HashMap<String, String>();
+	private static final Boolean IS_AUDITS_ENABLED = Boolean.valueOf(ApplicationProperties.getInstance().getValue(ApplicationProperty.IS_AUDITS_ENABLED));
+
+   	private static Map<String, String> persistenceUnitProperties = new HashMap<String, String>();
     
    	static {   
    		String url = String.format("jdbc:postgresql://%s:%s/%s", DATABASE_HOST, DATABASE_PORT, DATABASE_NAME);
-        properties.put("javax.persistence.jdbc.url", url);
-        properties.put("javax.persistence.jdbc.user", DATABASE_USERNAME);
-		properties.put("javax.persistence.jdbc.password", DATABASE_PASSWORD);
+        persistenceUnitProperties.put("javax.persistence.jdbc.url", url);
+        persistenceUnitProperties.put("javax.persistence.jdbc.user", DATABASE_USERNAME);
+		persistenceUnitProperties.put("javax.persistence.jdbc.password", DATABASE_PASSWORD);
     }
     
+	private EntityManagerFactory emf;
+
+   	public AbstractAuditPersistence() {
+   		if (Boolean.TRUE.equals(IS_AUDITS_ENABLED)) {
+   			emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
+   		}
+   	}
+   	
    	/**
    	 * Inserts a single record.
    	 * 
@@ -66,13 +79,13 @@ public abstract class AbstractAuditPersistence {
    	 * @return
    	 */
 	public <T> T insert(T record) {
-		EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, properties).createEntityManager();
+		EntityManager em = emf.createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
         em.persist(record);
         et.commit();
-        
+        em.close();
         return record;
     }
 
@@ -84,7 +97,7 @@ public abstract class AbstractAuditPersistence {
 	 * @return
 	 */
 	public <T> List<T> insertList(List<T> records) {
-		EntityManager em = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, properties).createEntityManager();
+		EntityManager em = emf.createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
@@ -92,6 +105,7 @@ public abstract class AbstractAuditPersistence {
         records.forEach(r -> em.persist(r));
         
         et.commit();
+        em.close();
         
         return records;
     }

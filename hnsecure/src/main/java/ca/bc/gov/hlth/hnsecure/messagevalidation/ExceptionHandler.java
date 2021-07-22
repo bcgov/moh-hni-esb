@@ -28,7 +28,7 @@ public class ExceptionHandler implements Processor {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileDropGenerater.class);
 	
-	private static final Boolean isAuditsEnabled = Boolean.valueOf(ApplicationProperties.getInstance().getValue(ApplicationProperty.IS_AUDITS_ENABLED));
+	private static final Boolean IS_AUDITS_ENABLED = Boolean.valueOf(ApplicationProperties.getInstance().getValue(ApplicationProperty.IS_AUDITS_ENABLED));
 
     /**
      * Handle the exception thrown from the route. Based on the exception content it will add an
@@ -68,7 +68,7 @@ public class ExceptionHandler implements Processor {
 	private void handleException(Exchange exchange, ErrorMessage errorMessage, Integer httpStatusCode, TransactionEventType eventType) {
 		generateErrorResponse(exchange, errorMessage, httpStatusCode, eventType);
 		// Write to Audit tables if enabled
-		if (Boolean.TRUE.equals(isAuditsEnabled)) {
+		if (Boolean.TRUE.equals(IS_AUDITS_ENABLED)) {
 			writeEventMessageAudit(exchange, errorMessage, httpStatusCode, eventType);	
 		}		
 	}
