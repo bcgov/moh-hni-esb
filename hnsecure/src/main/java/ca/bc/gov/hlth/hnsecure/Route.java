@@ -98,8 +98,6 @@ public class Route extends RouteBuilder {
 
     private static ApplicationProperties properties;
     
-
-    
     private Validator validator;
     
     @SuppressWarnings("unchecked")
@@ -299,13 +297,10 @@ public class Route extends RouteBuilder {
 	 * This method is used to append multiple Predicates for RTrans message type
 	 * Builds a compound predicate to use it in the Route
 	 */
-	private Predicate isRTrans() {
-		String r03 = properties.getValue(ApplicationProperty.RTRANS_R03_ENDPOINT);
-		String r07 = properties.getValue(ApplicationProperty.RTRANS_R07_ENDPOINT);
-		String r09 = properties.getValue(ApplicationProperty.RTRANS_R09_ENDPOINT);
-		Predicate isR03 = header("messageType").isEqualToIgnoreCase(r03);
-		Predicate isR07 = header("messageType").isEqualToIgnoreCase(r07);	
-		Predicate isR09 = header("messageType").isEqualToIgnoreCase(r09);	
+	private Predicate isRTrans() {		
+		Predicate isR03 = header("messageType").isEqualToIgnoreCase(Util.R03);
+		Predicate isR07 = header("messageType").isEqualToIgnoreCase(Util.R07);	
+		Predicate isR09 = header("messageType").isEqualToIgnoreCase(Util.R09);	
 		Predicate pBuilder = PredicateBuilder.or(isR03,isR07,isR09);
 		return pBuilder;
 	}
