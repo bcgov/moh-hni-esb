@@ -102,7 +102,7 @@ public class Route extends RouteBuilder {
                 .handled(true)
                 .id("ValidationException");
 
-        from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}").routeId("hnsecure-route")
+        from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}?httpMethodRestrict=POST").routeId("hnsecure-route")
 
 			// This route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.

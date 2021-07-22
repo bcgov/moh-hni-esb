@@ -41,7 +41,6 @@ import net.minidev.json.parser.JSONParser;
  */
 public class PayLoadValidator extends AbstractValidator {
 	private static final Logger logger = LoggerFactory.getLogger(PayLoadValidator.class);
-	private static final String expectedEncodingChar = "^~\\&";
 	private static final String segmentIdentifier = "MSH";
 
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
@@ -195,7 +194,7 @@ public class PayLoadValidator extends AbstractValidator {
 		if (StringUtils.isEmpty(messageObj.getEncodingCharacter())
 				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
-		} else if (!sameChars(messageObj.getEncodingCharacter(), expectedEncodingChar)) {
+		} else if (!sameChars(messageObj.getEncodingCharacter(), Util.ENCODING_CHARACTERS)) {
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidMSHSegment, exchange);
 		}
 	}

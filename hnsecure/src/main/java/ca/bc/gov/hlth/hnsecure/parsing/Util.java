@@ -16,8 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 public final class Util {
 	private static final Logger logger = LoggerFactory.getLogger(Util.class);
@@ -88,16 +90,21 @@ public final class Util {
 	 * field
 	 */
 	public static String getSendingFacility(String auth) {
+		String methodName = LoggingUtil.getMethodName();
 		String clientId = "";
 		if (!StringUtils.isEmpty(auth)) {
 			String[] split = auth.split("\\.");
-			String decodeAuth = Util.decodeBase64(split[1]);
+			if (split.length < 2) {
+				logger.warn("{} - Authorization header incorrectly formatted", methodName);
+				return clientId;
+			}			
 			try {
+				String decodeAuth = Util.decodeBase64(split[1]);
 				JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
 				JSONObject jsonObject = (JSONObject) jsonParser.parse(decodeAuth);
 				clientId = (String) jsonObject.get("azp");
-			} catch (net.minidev.json.parser.ParseException e) {
-				logger.error(e.getMessage());
+			} catch (IllegalArgumentException | ParseException e) {
+				logger.error("{} - Error retrieving clientId from Header: {}", methodName, e.getMessage());
 			}
 		}
 		return clientId;
