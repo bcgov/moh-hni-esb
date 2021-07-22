@@ -33,11 +33,7 @@ public class EventMessageProcessor extends AbstractAuditPersistence {
 		TransactionEvent transactionEvent = createTransactionEvent(exchange.getExchangeId(), eventType, new Date(), messageId);		
 		insert(transactionEvent);
 
-		EventMessage eventMessage = new EventMessage();
-		eventMessage.setErrorLevel(errorLevel.name());
-		eventMessage.setErrorCode(errorCode);
-		eventMessage.setMessageText(messageText);
-		eventMessage.setTransactionEventId(transactionEvent.getTransactionEventId());
+		EventMessage eventMessage = createEventMessage(errorLevel, errorCode, messageText, transactionEvent);
 		insert(eventMessage);
 							
         logger.debug("{} - End", methodName);

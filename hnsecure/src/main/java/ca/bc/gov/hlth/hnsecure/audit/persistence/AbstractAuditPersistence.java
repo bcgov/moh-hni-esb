@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
+import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessage;
+import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEvent;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
@@ -65,6 +67,10 @@ public abstract class AbstractAuditPersistence {
     
 	private EntityManagerFactory emf;
 
+	/**
+	 * Constructor that sets up the Entity Manager Factory so that it is only created once.
+	 * 
+	 */
    	public AbstractAuditPersistence() {
    		if (Boolean.TRUE.equals(IS_AUDITS_ENABLED)) {
    			emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
@@ -242,7 +248,7 @@ public abstract class AbstractAuditPersistence {
 	}
 	
 	/**
-	 * Creates a {@link TransactionEvent} with the values provided.
+	 * Creates a {@link TransactionEvent} populated with the values provided.
 	 * 
 	 * @param transactionId
 	 * @param eventType
@@ -260,4 +266,22 @@ public abstract class AbstractAuditPersistence {
 		return transactionEvent;
 	}
     
+	/**
+	 * Creates a {@link EventMessage} populated with the values provided.
+	 * @param errorLevel
+	 * @param errorCode
+	 * @param messageText
+	 * @param transactionEvent
+	 * @return
+	 */
+	public EventMessage createEventMessage(EventMessageErrorLevel errorLevel, String errorCode, String messageText,
+			TransactionEvent transactionEvent) {
+		EventMessage eventMessage = new EventMessage();
+		eventMessage.setErrorLevel(errorLevel.name());
+		eventMessage.setErrorCode(errorCode);
+		eventMessage.setMessageText(messageText);
+		eventMessage.setTransactionEventId(transactionEvent.getTransactionEventId());
+		return eventMessage;
+	}
+
 }

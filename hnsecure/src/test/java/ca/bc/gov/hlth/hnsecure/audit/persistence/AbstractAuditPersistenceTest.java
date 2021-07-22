@@ -16,7 +16,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
+import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessage;
+import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
+import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEvent;
+import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 
@@ -121,4 +125,55 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 		assertEquals(STATUS_CODE_ACTIVE, affectedParty.getStatus());
 	}
 
+	
+	@Test
+	public void testCreateTransactionEvent() {
+		UUID transactionId = UUID.randomUUID();
+		Date eventTime = new Date();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		
+		TransactionEvent transactionEvent = abstractAuditPersistence.createTransactionEvent(transactionId.toString(), TransactionEventType.ERROR, eventTime, "10001");
+		assertEquals(transactionId, transactionEvent.getTransactionId());
+		assertEquals(eventTime, transactionEvent.getEventTime());
+		assertEquals(TransactionEventType.ERROR.getValue(), transactionEvent.getType());
+		assertEquals("10001", transactionEvent.getMessageId());				
+	}
+
+	@Test
+	public void testCreateTransactionEvent_no_message_id() {
+		UUID transactionId = UUID.randomUUID();
+		Date eventTime = new Date();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		
+		TransactionEvent transactionEvent = abstractAuditPersistence.createTransactionEvent(transactionId.toString(), TransactionEventType.ERROR, eventTime);
+		assertEquals(transactionId, transactionEvent.getTransactionId());
+		assertEquals(eventTime, transactionEvent.getEventTime());
+		assertEquals(TransactionEventType.ERROR.getValue(), transactionEvent.getType());
+		assertEquals(null, transactionEvent.getMessageId());				
+	}
+
+
+	@Test
+	public void testCreateEventMessage() {
+		UUID transactionId = UUID.randomUUID();
+		Date eventTime = new Date();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		
+		TransactionEvent transactionEvent = abstractAuditPersistence.createTransactionEvent(transactionId.toString(), TransactionEventType.ERROR, eventTime);
+
+		EventMessage em = abstractAuditPersistence.createEventMessage(EventMessageErrorLevel.ERROR, "403", "403 Forbidden", transactionEvent);
+		assertEquals(transactionEvent.getTransactionEventId(), em.getTransactionEventId());
+		assertEquals(EventMessageErrorLevel.ERROR.getValue(), em.getErrorLevel());
+		assertEquals("403", em.getErrorCode());
+		assertEquals("403 Forbidden", em.getMessageText());
+	}
 }

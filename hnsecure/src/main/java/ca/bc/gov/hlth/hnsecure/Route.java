@@ -24,8 +24,8 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
+import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
@@ -200,7 +200,7 @@ public class Route extends RouteBuilder {
 		from("direct:audit").log("wireTap audit")
 			.choice()
 				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
-					.process(new AuditProcessor())				
+					.process(new AuditProcessor()).log("wireTap audit done")				
 			.end();
 		
     }
