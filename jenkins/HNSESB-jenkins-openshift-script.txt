@@ -1,7 +1,9 @@
+// This is old pipeline script.
+// This script was useful if we have either docker running on the jenkins server or docker cloud configured
 pipeline {
     agent any
     environment {
-        OC_DEPLOYER_SECRET = credentials ('deployer-tools')
+        OC_DEPLOYER_SECRET = credentials ('deployer')
         BUILD_NUM=1.0
         OC_DEPLOYER = 'deployer'
         IMAGE_REPO='image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools'

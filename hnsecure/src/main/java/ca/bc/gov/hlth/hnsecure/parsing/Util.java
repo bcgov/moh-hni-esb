@@ -31,8 +31,7 @@ public final class Util {
 	public final static String RECEIVING_APP_HNSECURE = "HNSECURE";
 	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
 	public final static String DATE_PATTERN = "yyyyMMddHHmmss";
-	public final static String GENERIC_PATTERN = "yyyyMMddHHmmss Z";
-	
+	public final static String GENERIC_PATTERN = "yyyyMMddHHmmssZ";
 	public final static String LINE_BREAK = "\n";
 	public final static String CARRIAGE_RETURN_LINE_BREAK = "\r\n";
 	
@@ -40,6 +39,7 @@ public final class Util {
 	public static final String ACK = "ACK";
 	public static final String PHARMACY_ID = "pharmacyId";
 	public static final String TRACING_ID = "traceId";
+	public static final String ENCODING_CHARACTERS = "^~\\&";
 
 	public static final String HEADER_SENDING_APPLICATION = "sendingApplication";
 	public static final String HEADER_SENDING_FACILITY = "sendingFacility";

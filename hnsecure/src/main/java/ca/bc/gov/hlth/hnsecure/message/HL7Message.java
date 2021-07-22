@@ -4,27 +4,27 @@ public class HL7Message {
 
 	private String segmentIdentifier;
 	
-	private  String encodingCharacter;
+	private String encodingCharacter;
 
-	private  String sendingApplication;
+	private String sendingApplication;
 
-	private  String sendingFacility;
+	private String sendingFacility;
 
-	private  String receivingApplication;
+	private String receivingApplication;
 
-	private  String receivingFacility;
+	private String receivingFacility;
 
-	private  String dateTime;
+	private String dateTime;
 
-	private  String security;
+	private String security;
 
-	private  String messageType;
+	private String messageType;
 
-	private  String messageControlId;
+	private String messageControlId;
 
-	private  String processingId;
+	private String processingId;
 
-	private  String versionId;
+	private String versionId;
 
 	private final String fieldSeparator = "|";
 
