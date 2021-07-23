@@ -39,6 +39,7 @@ public final class Util {
 	public static final String ACK = "ACK";
 	public static final String PHARMACY_ID = "pharmacyId";
 	public static final String TRACING_ID = "traceId";
+
 	public static final String ENCODING_CHARACTERS = "^~\\&";
 
 	public static final String HEADER_SENDING_APPLICATION = "sendingApplication";
@@ -53,6 +54,7 @@ public final class Util {
     public static final String R03 = "R03";
 	public static final String R07 = "R07";
 	public static final String R09 = "R09";
+
 
 
 	/**

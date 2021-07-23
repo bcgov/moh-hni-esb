@@ -13,6 +13,8 @@ import java.util.Properties;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
+
+import org.apache.camel.Processor;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.PredicateBuilder;
 import org.apache.camel.builder.RouteBuilder;
@@ -43,6 +45,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
@@ -91,7 +94,7 @@ public class Route extends RouteBuilder {
 
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
-
+			
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
@@ -171,18 +174,20 @@ public class Route extends RouteBuilder {
 		            .process(new PharmaNetPayloadExtractor())
 		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		            .wireTap("direct:audit").end()
+
+		            .process(new PharmaNetPayloadExtractor())	
 		            
-		          //Sending message to RTrans     
-				.when(isRTrans)
-				     .log("Message identified as RTrans message. Preparing message for RTrans.")
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
-		             .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
-				     .log("Sending to RTrans")		            
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
-				     .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
-				     .log("Received response from RTrans")
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-				      
+		       //Sending message to RTrans     
+		      .when(isRTrans)
+		      		.log("Message identified as RTrans message. Preparing message for RTrans.")
+		      		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
+                    .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
+		            .log("Sending to RTrans")		            
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
+		            .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
+		            .log("Received response from RTrans")
+		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+			      
 		            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
 	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
@@ -276,7 +281,7 @@ public class Route extends RouteBuilder {
     	loadValidator();
     	
     }
-    
+
 	/**
      * This method injects application properties set in the context to ApplicationProperties class
      * This helps in using the properties across the application without extending classes as RouteBuilder.
