@@ -12,7 +12,9 @@ import java.util.Properties;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.Predicate;
 import org.apache.camel.PropertyInject;
+import org.apache.camel.builder.PredicateBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.spi.Registry;
@@ -36,6 +38,7 @@ import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -92,6 +95,7 @@ public class Route extends RouteBuilder {
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
+		Predicate isRTrans = isRTrans();
 		
     	onException(CustomHNSException.class, HttpHostConnectException.class)
         	.process(new ExceptionHandler())
@@ -168,7 +172,18 @@ public class Route extends RouteBuilder {
 		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		            .wireTap("direct:audit").end()
 		            
-	            // sending message to HIBC for ELIG
+		          //Sending message to RTrans     
+				.when(isRTrans)
+				     .log("Message identified as RTrans message. Preparing message for RTrans.")
+				     .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
+		             .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
+				     .log("Sending to RTrans")		            
+				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
+				     .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
+				     .log("Received response from RTrans")
+				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+				      
+		            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
 	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
                     .setBody(simple(SampleMessages.e45ResponseMessage))
@@ -233,6 +248,18 @@ public class Route extends RouteBuilder {
         Registry registry = camelContext.getRegistry();
         registry.bind(SSL_CONTEXT_PHARMANET, sslContextParameters);
         registry.bind("ssl2", new SSLContextParameters()); //TODO (dbarrett) If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this for now. Can be removed when another endpoint is configured with it's context. 
+	}
+	
+	/**
+	 * This method is used to append multiple Predicates for RTrans message type
+	 * Builds a compound predicate to use it in the Route
+	 */
+	private Predicate isRTrans() {		
+		Predicate isR03 = header("messageType").isEqualToIgnoreCase(Util.R03);
+		Predicate isR07 = header("messageType").isEqualToIgnoreCase(Util.R07);	
+		Predicate isR09 = header("messageType").isEqualToIgnoreCase(Util.R09);	
+		Predicate pBuilder = PredicateBuilder.or(isR03,isR07,isR09);
+		return pBuilder;
 	}
 	
     /**

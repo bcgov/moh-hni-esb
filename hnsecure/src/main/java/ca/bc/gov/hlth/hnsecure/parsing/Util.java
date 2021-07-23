@@ -50,6 +50,10 @@ public final class Util {
 	public static final String BCPHN = "BCPHN";
 
     public static final String STATUS_CODE_ACTIVE = "active";
+    public static final String R03 = "R03";
+	public static final String R07 = "R07";
+	public static final String R09 = "R09";
+
 
 	/**
 	 * return a Base64 encoding string
