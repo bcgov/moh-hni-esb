@@ -27,19 +27,18 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
  *
  */
 public abstract class FileDropGenerater {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(FileDropGenerater.class);
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
-	
-	
+
 	/**
 	 * @param exchange
 	 * @return
 	 */
 	protected String buildFileNameParameters(Exchange exchange, String transactionid) {		
-		String accessToken = (String) exchange.getIn().getHeader("Authorization");
-		String msgType = (String)exchange.getIn().getHeader("messageType");
-		String sendingFacility = (String)exchange.getIn().getHeader("sendingFacility");
+		String accessToken = (String) exchange.getIn().getHeader(Util.AUTHORIZATION);
+		String msgType = (String)exchange.getIn().getHeader(Util.HEADER_MESSAGE_TYPE);
+		String sendingFacility = (String)exchange.getIn().getHeader(Util.HEADER_SENDING_FACILITY);
 		
 		//In case of validation error, headers are not populated
 		if(msgType == null) {
@@ -55,7 +54,6 @@ public abstract class FileDropGenerater {
 		return fileName;
 	}
 
-	
 	/**
 	 * writes v2 request/response message to file
 	 * @param message
