@@ -2,8 +2,7 @@
 pipeline {
 	environment {
 		CLUSTER = "openshift"
-    	DEPLOY_BUILD = "jenkins-hnsesb-buildAndDeploy-openshift-${DEPLOY_BUILD_NUMBER}"
-		OC_JEKNINS_USER = "deployer-c5839f-tools"
+    	OC_JEKNINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
 		BUILD_NAME = appName()
 		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${BUILD_NAME}:latest"
@@ -25,30 +24,24 @@ pipeline {
 					openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
-									echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-									def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
-									if(bcSelector.exists()){
-										echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
-										def buildRun = bcSelector.startBuild("--from-dir",".")
-										buildRun.logs('-f')
-										def bStatus = buildRun.object().status.phase
-										// If build is complete add tagging
-										if("Complete"==bStatus){
-											echo "Build status is ${bStatus}.  Image created is ${IMAGE_STREAM}"
-											echo "Tagging the build with build tag: ${BUILD_TAG}"
-											openshift.tag( "${IMAGE_STREAM}", "${BUILD_NAME}:${BUILD_TAG}")
-										}
-										// if build is a failure, process should failure
-										else{
-											echo "Build status is ${bStatus}."
-											sh 'false'
-										}
-									}else{
-										echo "Build name ${BUILD_NAME} does not exist in project ${PROJECT}." 
-										echo "Please provide valid build name."
-									}
+								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+								def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
+								echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
+								def buildRun = bcSelector.startBuild("--from-dir",".")
+								buildRun.logs('-f')
+								def bStatus = buildRun.object().status.phase
+								// If build is complete add tagging
+								if("Complete"==bStatus){
+									echo "Build status is ${bStatus}.  Image created is ${IMAGE_STREAM}"
+									echo "Tagging the build with build tag: ${BUILD_TAG}"
+									openshift.tag( "${IMAGE_STREAM}", "${BUILD_NAME}:${BUILD_TAG}")
 								}
-						
+								// if build is a failure, process should failure
+								else{
+									echo "Build status is ${bStatus}."
+									sh 'false'
+								}
+							}
 						}
 					}
 				}
