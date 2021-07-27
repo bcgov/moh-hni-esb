@@ -1,42 +1,49 @@
-/* Based on:
-// https://raw.githubusercontent.com/redhat-cop/container-pipelines/master/basic-spring-boot/Jenkinsfile
-
-library identifier: "pipeline-library@v1.5",
-retriever: modernSCM(
-  [
-    $class: "GitSCMSource",
-    remote: "https://github.com/redhat-cop/pipeline-library.git"
-  ]
-)
-
-// The name you want to give your Spring Boot application
-// Each resource related to your app will be given this name
-appName = "hnsesb"
-*/
+// This pipeline is created to build the application using build config and then deploy using deployment config
 pipeline {
+	environment {
+		CLUSTER = "openshift"
+    	OC_JENKINS_USER = "deployer-c5839f-tools"
+		PROJECT = project()
+		BUILD_NAME = appName()
+		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${BUILD_NAME}:latest"
+		
+	}
     agent any
-
     stages {
-        
         stage('Checkout') {
             steps {
                 // Get some code from a GitHub repository
                 echo "Getting code from main"
-                git branch: "${BRANCH}", url: "https://github.com/bcgov/moh-hni-esb"
+                git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
             }
-            
         }
         stage("Start Openshift build process") {
             steps {
-                // This uploads your application's source code and performs a binary build in OpenShift
-                // This is a step defined in the shared library (see the top for the URL)
-                // (Or you could invoke this step using 'oc' commands!)
-                //binaryBuild(buildConfigName: appName, buildFromPath: ".")
-
-                sh """
-                    oc project "${NAMESPACE}"
-                    oc start-build "${BUILD_NAME}" --from-dir .
-                """
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+								def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
+								echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
+								def buildRun = bcSelector.startBuild("--from-dir",".")
+								buildRun.logs('-f')
+								def bStatus = buildRun.object().status.phase
+								// If build is complete add tagging
+								if("Complete"==bStatus){
+									echo "Build status is ${bStatus}.  Image created is ${IMAGE_STREAM}"
+									echo "Tagging the build with build tag: ${BUILD_TAG}"
+									openshift.tag( "${IMAGE_STREAM}", "${BUILD_NAME}:${BUILD_TAG}")
+								}
+								// if build is a failure, process should failure
+								else{
+									echo "Build status is ${bStatus}."
+									sh 'false'
+								}
+							}
+						}
+					}
+				}
             }
         }
     }
@@ -45,4 +52,12 @@ pipeline {
             echo "Complete"
         }
     }
+}
+def project() {
+	def ns = "${NAMESPACE}"
+	return "c5839f-" + ns.toLowerCase()
+}
+def appName() {
+	def ns = "${NAMESPACE}"
+	return "hnsesb-" + ns.toLowerCase() 
 }

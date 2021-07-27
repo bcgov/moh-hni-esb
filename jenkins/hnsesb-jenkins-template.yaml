@@ -5,6 +5,7 @@ metadata:
   namespace: c5839f-tools
 labels:
   template: hnsesb-jenkins
+  app: hnsesb-jenkins
 metadata:
   annotations:
     description: Creates a Jenkins master using S2I for installing plugins and configuring Jenkins
@@ -46,8 +47,6 @@ objects:
 - apiVersion: networking.k8s.io/v1
   kind: NetworkPolicy
   metadata:
-    labels:
-      app: jenkins
     name: jenkins-allow-all
   spec:
     podSelector: 
@@ -59,8 +58,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    labels:
-      app: jenkins
     name: jenkins
   spec:
     ports:
@@ -80,8 +77,6 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    labels:
-      app: jenkins
     name: jenkins
   spec:
     host: hnsesb-jenkins.apps.silver.devops.gov.bc.ca
@@ -105,6 +100,8 @@ objects:
   strategy:
     type: Docker                      
     dockerStrategy:
+      pullSecret:
+        name: docker-hub
       dockerfilePath: ${CONTEXT_DIR}    # Look for Dockerfile in: gitUri/contextDir/dockerfilePath
   output:
     to:
