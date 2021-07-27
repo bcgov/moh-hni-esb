@@ -1,4 +1,4 @@
-// This ppeline will deploy the provided build number to selected environment
+// This pipeline will deploy the provided build number to selected environment
 pipeline {
     environment {
     	// Input from user: NAMESPACE and DEPLOY_BUILD_NUMBER
@@ -12,7 +12,6 @@ pipeline {
 		IMAGE_STREAM_TAG = "imagestreamtag/${APP_NAME}:${DEPLOY_BUILD}"
 		
 		APPLY_TAG="latest"
-		//FINAL="imagestreamtag/${APP_NAME}"
 		//eg : imagestreamtag/hnsesb-test:latest 
 	}
 	
@@ -65,18 +64,11 @@ pipeline {
         }
     }
 }
-def appName() {
-	def ns = "${NAMESPACE}" 
-	if (ns == "Dev"){
-		return "hnsesb-dev"
-	}
-	return "hnsesb-test"
-}
-
 def project() {
 	def ns = "${NAMESPACE}"
-	if (ns == "Dev"){
-		return 'c5839f-dev'
-	}
-	return 'c5839f-test'
+	return "c5839f-" + ns.toLowerCase()
+}
+def appName() {
+	def ns = "${NAMESPACE}"
+	return "hnsesb-" + ns.toLowerCase() 
 }

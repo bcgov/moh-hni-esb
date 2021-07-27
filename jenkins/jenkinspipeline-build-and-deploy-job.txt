@@ -2,7 +2,7 @@
 pipeline {
 	environment {
 		CLUSTER = "openshift"
-    	OC_JEKNINS_USER = "deployer-c5839f-tools"
+    	OC_JENKINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
 		BUILD_NAME = appName()
 		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${BUILD_NAME}:latest"
@@ -15,14 +15,13 @@ pipeline {
                 // Get some code from a GitHub repository
                 echo "Getting code from main"
                 git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
-				//sh 'printenv'
             }
         }
         stage("Start Openshift build process") {
             steps {
 				script{
 					openshift.withCluster( "${CLUSTER}" ) {
-                        openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
 								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
 								def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
@@ -56,15 +55,9 @@ pipeline {
 }
 def project() {
 	def ns = "${NAMESPACE}"
-	if (ns == "Dev"){
-		return 'c5839f-dev'
-	}
-	return 'c5839f-test'
+	return "c5839f-" + ns.toLowerCase()
 }
 def appName() {
-	def ns = "${NAMESPACE}" 
-	if (ns == "Dev"){
-		return "hnsesb-dev"
-	}
-	return "hnsesb-test"
+	def ns = "${NAMESPACE}"
+	return "hnsesb-" + ns.toLowerCase() 
 }

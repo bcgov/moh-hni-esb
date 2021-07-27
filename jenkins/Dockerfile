@@ -7,15 +7,13 @@ RUN apt-get update && apt-get install -y sudo \
 maven 
 ENV PATH=$PATH:/usr/share/maven
 COPY settings.xml /usr/share/maven/conf
-Run mkdir -p /tmp/repository
-Run mkdir -p /tmp/bin
+RUN mkdir -p /tmp/repository
+RUN mkdir -p /tmp/bin
 COPY oc.tar /tmp/bin
 WORKDIR /tmp/bin
 RUN tar -xf oc.tar
 ENV PATH=$PATH:/tmp/bin
 
-
-
-# drop back to the regular jenkins user - good practice and for access to folder for jenkins user
 WORKDIR /
+# drop back to the regular jenkins user - good practice and for access to folder for jenkins user
 USER jenkins
