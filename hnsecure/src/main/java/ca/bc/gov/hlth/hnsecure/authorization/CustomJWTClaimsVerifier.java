@@ -12,11 +12,7 @@ import java.util.Set;
 
 public class CustomJWTClaimsVerifier<C extends SecurityContext> extends DefaultJWTClaimsVerifier<C> {
 
-    /**
-     * The accepted authorized party values, {@code null} if not specified. A {@code null} value present in the set
-     * allows JWTs with no authorized parties.
-     */
-    private final Set<String> acceptedAuthorizedPartyValues;
+	private static final String CLAIM_SCOPE = "scope";
 
     /**
      * The accepted scope values, {@code null} if not specified. A {@code null} value present in the set allows JWTs
@@ -29,8 +25,6 @@ public class CustomJWTClaimsVerifier<C extends SecurityContext> extends DefaultJ
      *
      * @param acceptedAudience The accepted JWT audience values, {@code null} if not specified. A {@code null} value in
      * the set allows JWTs with no audience.
-     * @param acceptedAuthorizedParties The accepted JWT authorized party values, {@code null} if not specified. A
-     * {@code null} value in the set allows JWTs with no authorized parties.
      * @param acceptedScopes The accepted JWT scope values, {@code null} if not specified. A {@code null} value in the
      * set allows JWTs with no scopes.
      * @param exactMatchClaims The JWT claims that must match exactly, {@code null} if none.
@@ -39,16 +33,12 @@ public class CustomJWTClaimsVerifier<C extends SecurityContext> extends DefaultJ
      */
     public CustomJWTClaimsVerifier(
             final Set<String> acceptedAudience,
-            final Set<String> acceptedAuthorizedParties,
             final Set<String> acceptedScopes,
             final JWTClaimsSet exactMatchClaims,
             final Set<String> requiredClaims,
             final Set<String> prohibitedClaims) {
 
         super(acceptedAudience, exactMatchClaims, requiredClaims, prohibitedClaims);
-
-        this.acceptedAuthorizedPartyValues
-                = acceptedAuthorizedParties != null ? Collections.unmodifiableSet(acceptedAuthorizedParties) : null;
 
         this.acceptedScopeValues = acceptedScopes != null ? Collections.unmodifiableSet(acceptedScopes) : null;
     }
@@ -61,19 +51,7 @@ public class CustomJWTClaimsVerifier<C extends SecurityContext> extends DefaultJ
     @Override
     public void verify(final JWTClaimsSet claimsSet, final C context) throws BadJWTException {
         super.verify(claimsSet, context);
-        verifyAzpClaim(claimsSet);
         verifyScopeClaim(claimsSet);
-    }
-
-    /**
-     * Verify an azp claim against an accepted list of azp values
-     *
-     * @param claimsSet
-     */
-    private void verifyAzpClaim(final JWTClaimsSet claimsSet) throws BadJWTException {
-        String azp = "azp";
-        String azpValues = (String) claimsSet.getClaim(azp);
-        verifyClaim(azp, azpValues, acceptedAuthorizedPartyValues);
     }
 
     /**
@@ -82,9 +60,8 @@ public class CustomJWTClaimsVerifier<C extends SecurityContext> extends DefaultJ
      * @param claimsSet
      */
     private void verifyScopeClaim(final JWTClaimsSet claimsSet) throws BadJWTException {
-        String scope = "scope";
-        String scopeValues = (String) claimsSet.getClaim(scope);
-        verifyClaim(scope, scopeValues, acceptedScopeValues);
+        String scopeValues = (String) claimsSet.getClaim(CLAIM_SCOPE);
+        verifyClaim(CLAIM_SCOPE, scopeValues, acceptedScopeValues);
     }
 
     /**

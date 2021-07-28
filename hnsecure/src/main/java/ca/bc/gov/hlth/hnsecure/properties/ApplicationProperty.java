@@ -12,7 +12,6 @@ public enum ApplicationProperty {
 	PORT("port"),
 	ENDPOINT("endpoint"),
 	AUDIENCE("audience"),
-	AUTHORIZED_PARTIES("authorized-parties"),
 	SCOPES("scopes"),
 	VALID_V2_MSG_TYPES("valid-v2-message-types"),
 	ISSUER("issuer"),
