@@ -3,7 +3,6 @@ package ca.bc.gov.hlth.hnsecure.validation;
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_MissingAuthKey;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUTHORIZED_PARTIES;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.ISSUER;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.SCOPES;
@@ -126,10 +125,8 @@ public class TokenValidator extends AbstractValidator {
 		// RSA keys sourced from the JWK set URL
 		JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(expectedJWSAlg, keySource);
 		jwtProcessor.setJWSKeySelector(keySelector);
-		
 
         Set<String> audiences =  Util.getPropertyAsSet(properties.getValue(AUDIENCE));
-    	Set<String> authorizedParties = Util.getPropertyAsSet(properties.getValue(AUTHORIZED_PARTIES));
     	Set <String> scopes = Util.getPropertyAsSet(properties.getValue(SCOPES));
 
 		// Set the required JWT claims - these must all be available in the token payload
@@ -137,8 +134,6 @@ public class TokenValidator extends AbstractValidator {
 				new CustomJWTClaimsVerifier<>(
 						// Accepted Audience -> aud
 						audiences,
-						// Accepted Authorized Parties -> azp
-						authorizedParties,
 						// Accepted Scopes -> scope
 						scopes,
 						// Exact Match Claims -> iss
