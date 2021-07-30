@@ -32,8 +32,8 @@ public class AuditSetupProcessor implements Processor {
     	String methodName = LoggingUtil.getMethodName();
 		logger.info("{} - Begin {}", methodName, eventType);
         
-        exchange.getIn().setHeader(Util.HEADER_TRANSACTION_EVENT_TIME, new Date());
-        exchange.getIn().setHeader(Util.HEADER_TRANSACTION_EVENT_TYPE, eventType);
+        exchange.setProperty(Util.PROPERTY_TRANSACTION_EVENT_TIME, new Date());
+        exchange.setProperty(Util.PROPERTY_TRANSACTION_EVENT_TYPE, eventType);
         
         logger.debug("{} - End", methodName);
 	}

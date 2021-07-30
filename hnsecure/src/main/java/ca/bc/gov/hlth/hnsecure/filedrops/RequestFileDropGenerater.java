@@ -27,7 +27,7 @@ public class RequestFileDropGenerater extends FileDropGenerater {
 		logger.debug("{} - Started... ", methodName);
 		
 		Object body = exchange.getIn().getBody();
-		if (body != null && StringUtils.isNotBlank(body.toString())) {
+		if (body == null || StringUtils.isBlank(body.toString())) {
 			logger.info("{} - No v2 message was found in the request so it cannot be logged to file.", methodName);
 			return;
 		}

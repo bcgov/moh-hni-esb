@@ -31,12 +31,12 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 	public void process(Exchange exchange) throws Exception {
 		String methodName = LoggingUtil.getMethodName();
 
-		TransactionEventType eventType = (TransactionEventType)exchange.getIn().getHeader(Util.HEADER_TRANSACTION_EVENT_TYPE);
+		TransactionEventType eventType = (TransactionEventType)exchange.getProperty(Util.PROPERTY_TRANSACTION_EVENT_TYPE);
 		logger.debug("{} - Begin {}", methodName, eventType);
 		
 		// This assumes the processor is invoked via wiretap
 		String transactionId = (String)exchange.getProperty(Exchange.CORRELATION_ID);
-		Date eventTime = (Date)exchange.getIn().getHeader(Util.HEADER_TRANSACTION_EVENT_TIME);
+		Date eventTime = (Date)exchange.getProperty(Util.PROPERTY_TRANSACTION_EVENT_TIME);
 		
 		String v2Message = (String)exchange.getIn().getBody();
 		String msgType = V2MessageUtil.getMsgType(v2Message);

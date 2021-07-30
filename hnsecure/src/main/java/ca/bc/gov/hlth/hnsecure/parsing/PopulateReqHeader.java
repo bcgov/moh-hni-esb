@@ -4,9 +4,9 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.HEADER_MESSAGE_TYPE;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.HEADER_RECEIVING_APP;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.HEADER_SENDING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
 
 import java.util.Map;
 
@@ -42,21 +42,26 @@ public class PopulateReqHeader {
 	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message)
 			throws Exception {
 		final String methodName = LoggingUtil.getMethodName();
+		
+		// The following values are properties used to control workflow
+		// and do not actually belong in the message header (which is converted to http request headers)
+		Map<String, Object> exchangeProperties = exchange.getProperties();
 		String recApp = V2MessageUtil.getReceivingApp(v2Message);
 		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
-		hm.put(HEADER_RECEIVING_APP, recApp);
-		hm.put(HEADER_MESSAGE_TYPE, msgType);
-		hm.put(HEADER_SENDING_FACILITY, sendingFacility);
-		hm.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
+		exchangeProperties.put(PROPERTY_RECEIVING_APP, recApp);
+		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
+		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
+		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 		
-		if(StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
+		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
 			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
 			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
-			hm.put(Util.PHARMACY_ID, pharmacyID);
-			hm.put(Util.TRACING_ID, traceID);
+			// These are actual http message headers that get send to Pharmanet
+			hm.put(Util.HEADER_PHARMACY_ID, pharmacyID);
+			hm.put(Util.HEADER_TRACING_ID, traceID);
 		}
 
 		logger.info("{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
