@@ -113,7 +113,7 @@ public class Route extends RouteBuilder {
 			// Making it global will generate two response file drops.
 			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).regex(HTTP_STATUS_CODES_COMPLETION_REGEX)).id("Completion")
 				// create filedrops if enabled
-		    	.choice().when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
+		    	.choice().when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
 				.end()
 	            // Audit "Transaction Complete"
@@ -121,8 +121,11 @@ public class Route extends RouteBuilder {
 	            .wireTap("direct:audit").end()
 	    		//encoding response before sending to consumer
 	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
-	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")	            
-			.end()
+	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+	    		// Set any final headers
+	    		.removeHeader(Util.AUTHORIZATION)
+	    		.setHeader(Exchange.CONTENT_TYPE, constant(Util.MEDIA_TYPE_FHIR_JSON))
+	    	.end()
 
         	.log("HNSecure received a request")
 			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
@@ -132,9 +135,8 @@ public class Route extends RouteBuilder {
 						exchange.setExchangeId(exchange.getIn().getHeader(HTTP_REQUEST_ID_HEADER, String.class));
 					}).id("SetExchangeIdFromHeader")
 			.end()
-
-        	.setHeader("isFileDropsEnabled").simple(isFileDropsEnabled)
-        	.setHeader("isAuditsEnabled").simple(isAuditsEnabled)
+        	.setProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).simple(isFileDropsEnabled)
+        	.setProperty(Util.PROPERTY_IS_AUDITS_ENABLED).simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
         	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
         	// Added wireTap for asynchronous call to filedrop request
@@ -143,7 +145,10 @@ public class Route extends RouteBuilder {
 			.wireTap("direct:start").end()
         	// Validate the message
         	.process(validator).id("Validator")
-            // Set the receiving app, message type into headers
+            // Set the receiving app, message type into headers and properties
+        	// XXX With the placement of this bean, the headers/properties aren't available to preceding Processors/Beans
+        	// such as the RequestFileDropGenerator. Ideally it should be moved up but there could be some parsing issues
+        	// since the validator wouldn't have been run yet
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
             .log("The message receiving application is <${in.header.receivingApp}> and the message type is <${in.header.messageType}>.")
@@ -151,7 +156,7 @@ public class Route extends RouteBuilder {
             // Dispatch the message based on the receiving application code and message type
             .choice()
 	            // Sending message to PharmaNet
-            	.when(header("receivingApp").isEqualTo(Util.RECEIVING_APP_PNP))
+            	.when(exchangeProperty(Util.PROPERTY_RECEIVING_APP).isEqualTo(Util.RECEIVING_APP_PNP))
                 	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit").end()
@@ -208,13 +213,13 @@ public class Route extends RouteBuilder {
         
         from("direct:start").log("wireTap route")
         	.choice()
-				.when(header("isFileDropsEnabled").isEqualToIgnoreCase(Boolean.TRUE))
-				.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
+				.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
+					.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
 			.end();
         
 		from("direct:audit").log("wireTap audit")
 			.choice()
-				.when(header("isAuditsEnabled").isEqualToIgnoreCase(Boolean.TRUE.toString()))
+				.when(exchangeProperty(Util.PROPERTY_IS_AUDITS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE.toString()))
 					.process(new AuditProcessor()).log("wireTap audit done")				
 			.end();
 		
@@ -270,10 +275,10 @@ public class Route extends RouteBuilder {
 	 * Builds a compound predicate to use it in the Route
 	 */
 	private Predicate isRTrans() {		
-		Predicate isR03 = header("messageType").isEqualToIgnoreCase(Util.R03);
-		Predicate isR07 = header("messageType").isEqualToIgnoreCase(Util.R07);	
-		Predicate isR09 = header("messageType").isEqualToIgnoreCase(Util.R09);	
-		Predicate pBuilder = PredicateBuilder.or(isR03,isR07,isR09);
+		Predicate isR03 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R03);
+		Predicate isR07 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R07);	
+		Predicate isR09 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R09);	
+		Predicate pBuilder = PredicateBuilder.or(isR03, isR07, isR09);
 		return pBuilder;
 	}
 
