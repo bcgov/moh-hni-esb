@@ -1,16 +1,17 @@
 # Build the application first using Maven
-FROM maven:3.8-openjdk-11 as build
-WORKDIR /app
-COPY . .
-WORKDIR /app/hn-common
-RUN mvn install
-WORKDIR /app/hnsecure
-RUN mvn install
+#FROM maven:3.8-openjdk-11 as build
+#WORKDIR /app
+#COPY . .
+#WORKDIR /app/hn-common
+#RUN mvn install
+#WORKDIR /app/hnsecure
+#RUN mvn install
 
 # Inject the JAR file into a new container to keep the file small
 FROM adoptopenjdk:11-jre-hotspot
 WORKDIR /tmp
-COPY --from=build /app/hnsecure/target/hni-esb.jar /tmp/hni-esb.jar
+#COPY --from=build /app/hnsecure/target/hni-esb.jar /tmp/hni-esb.jar
+COPY /hnsecure/target/hni-esb.jar /tmp
 Run mkdir -p keystore
 EXPOSE 14885
 CMD ["java","-jar","hni-esb.jar"]
