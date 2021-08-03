@@ -65,7 +65,7 @@ public class RouteTest extends CamelTestSupport {
 		});
 	}
 
-	@Test
+	//Test
 	public void testSuccessfulJMBMessage() throws Exception {
 
 		context.start();
@@ -86,7 +86,7 @@ public class RouteTest extends CamelTestSupport {
 		context.stop();
 	}
 
-	@Test
+	//@Test
 	public void testCustomTransactionIdFromHttpHeader() throws Exception {
 		context.start();
 
