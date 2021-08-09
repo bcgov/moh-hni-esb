@@ -4,22 +4,35 @@ pipeline {
 	parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the branch')
 
-        //text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+        text(name: 'APP_NAME', defaultValue: 'hnsesb-qa', description: 'Enter the name of application. This name will be used to define the URL. 
+        If application with same name already exist, this job will delete that application')
 
+		string(name: 'PHARMANET_USER', defaultValue: '', description: 'Pharmanet user for pharmanet web service')
+		
+		password(name: 'PHARMANET_PASSWORD', defaultValue: '', description: 'Passowrd for pharmanet web service')
+		
+		password(name: 'PHARMANET_CERT_PASSWORD', defaultValue: '', description: 'Passoword for pharmanet certificate')
+		
+		string(name: 'DATABASE_NAME', defaultValue: 'hnsesb-qa', description: 'Define database name for auditing database')
+		
+		string(name: 'DATABASE_USER', defaultValue: 'sample-user', description: 'Define database user for auditing database')
+		
+		string(name: 'TAG', defaultValue: 'hnsesb-qa', description: 'Name of image in repository. Preference same as app name')
+		
+		choice(name: 'NAMESPACE', choices: ['Tools','Dev', 'Test'], description: 'Project namespace in openshift')
+		
         //booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
-
-        choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift')
-
         //password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
 		// Add the custom properties 
 		
     }
 
+
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
-		BUILD_NAME = appName()
+		BUILD_NAME = ${APP_NAME}
 		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${BUILD_NAME}:latest"
 		
 	}
@@ -48,6 +61,27 @@ pipeline {
                 }	
             }
         }        
+        stage("Clean up existing application") {
+            steps {
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+								def templateSelector = openshift.selector( "template", "hnsesb-ephemeral")
+								templateSelector.describe()
+								//def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
+								//echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
+								//def buildRun = bcSelector.startBuild("--from-dir",".")
+								//buildRun.logs('-f')
+								//def bStatus = buildRun.object().status.phase
+							}
+						}
+					}
+				}
+            }
+        }
+        
     }
     post {
         always {
