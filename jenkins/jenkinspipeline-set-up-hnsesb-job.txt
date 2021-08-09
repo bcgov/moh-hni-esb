@@ -67,7 +67,10 @@ pipeline {
 					openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
-								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                            	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                            	echo "Cleaning application: ${APP_NAME} "
+								openshift.selector("all", [ app : ${APP_NAME} ]).delete()
+								openshift.selector("networkpolicy", [ app : ${APP_NAME} ]).delete()  
 								def templateSelector = openshift.selector( "template", "hnsesb-ephemeral")
 								templateSelector.describe()
 								//def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
