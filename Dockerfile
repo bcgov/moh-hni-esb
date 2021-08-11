@@ -14,7 +14,7 @@ WORKDIR /tmp
 COPY /hnsecure/target/hni-esb.jar /tmp
 Run mkdir -p keystore
 EXPOSE 14885
-CMD ["java","-jar","hni-esb.jar"]
+#CMD ["java","-jar","hni-esb.jar"]
 
 #Old docker file
 #FROM adoptopenjdk:11-jre-hotspot
