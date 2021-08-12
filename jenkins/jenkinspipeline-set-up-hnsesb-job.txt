@@ -41,23 +41,23 @@ pipeline {
         stage("Checkout") {
             steps {
                 // Get some code from a GitHub repository
-                echo "Getting code from main"
+                sh ('echo Getting code from branch: ${BRANCH_NAME})'
                 git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
             }
         }
  		stage("Package hn-common library") {
             steps {
                 dir("hn-common") {
-                    echo "Running: mvn install"
-                    sh "mvn install"
+                    sh ('echo Running: mvn install')
+                    sh 'mvn install'
                 }	
             }
         }
         stage("Package hnsecure library") {
             steps {
                 dir("hnsecure") {
-                    echo "Running: mvn install"
-                    sh "mvn install"
+                    sh ('echo Running: mvn install')
+                    sh 'mvn install'
                 }	
             }
         }        
@@ -67,16 +67,16 @@ pipeline {
 					openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
-                            	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                            	sh ('echo Using project: ${openshift.project()} in cluster ${openshift.cluster()} ')
                             	if ("${APP_NAME}"=="hnsesb-dev" || "${APP_NAME}"=="hnsesb-test" ){
-                            		echo "User can not set up an environment using hnsesb-dev or hnsesb-test as name of application."
+                            		sh ('echo User can not set up an environment using hnsesb-dev or hnsesb-test as name of application.')
                             		sh 'false'
                             	}
-                            	echo "Cleaning objects for application: ${APP_NAME} starts:"
+                            	sh ('echo Cleaning objects for application: ${APP_NAME} starts:')
 								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
-								echo "Cleaning network policy for application :  ${APP_NAME} "
+								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
 								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
-								echo "Cleaning objects for application: ${APP_NAME} complete."  
+								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
 							}
 						}
 					}
@@ -93,7 +93,6 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
                             	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-                          	    //def template = openshift.selector( "template", "hnsesb-ephemeral", "-n", "c5839f-tools").object()
                           	    def created = openshift.create( openshift.process( "c5839f-tools//hnsesb-ephemeral", 
                           	     "-l", "app=${APP_NAME}",
                           	     "-p", "APP_NAME=${APP_NAME}" ,
