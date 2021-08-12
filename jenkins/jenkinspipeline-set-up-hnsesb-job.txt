@@ -67,7 +67,7 @@ pipeline {
 					openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
-                            	sh ('echo Using project: ${openshift.project()} in cluster ${openshift.cluster()} ')
+                            	sh ('echo Using project: ${PROJECT} in cluster ${CLUSTER} ')
                             	if ("${APP_NAME}"=="hnsesb-dev" || "${APP_NAME}"=="hnsesb-test" ){
                             		sh ('echo User can not set up an environment using hnsesb-dev or hnsesb-test as name of application.')
                             		sh 'false'
