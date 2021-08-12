@@ -37,8 +37,8 @@ public abstract class FileDropGenerater {
 	 */
 	protected String buildFileNameParameters(Exchange exchange, String transactionid) {		
 		String accessToken = (String) exchange.getIn().getHeader(Util.AUTHORIZATION);
-		String msgType = (String)exchange.getIn().getHeader(Util.HEADER_MESSAGE_TYPE);
-		String sendingFacility = (String)exchange.getIn().getHeader(Util.HEADER_SENDING_FACILITY);
+		String msgType = (String)exchange.getProperty(Util.PROPERTY_MESSAGE_TYPE);
+		String sendingFacility = (String)exchange.getProperty(Util.PROPERTY_SENDING_FACILITY);
 		
 		//In case of validation error, headers are not populated
 		if(msgType == null) {

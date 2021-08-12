@@ -1,6 +1,5 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
-
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -39,25 +38,29 @@ public final class Util {
 	
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String ACK = "ACK";
-	public static final String PHARMACY_ID = "pharmacyId";
-	public static final String TRACING_ID = "traceId";
 
 	public static final String ENCODING_CHARACTERS = "^~\\&";
 
-	public static final String HEADER_SENDING_APPLICATION = "sendingApplication";
-	public static final String HEADER_SENDING_FACILITY = "sendingFacility";
-	public static final String HEADER_RECEIVING_APP = "receivingApp";
-	public static final String HEADER_MESSAGE_TYPE = "messageType";
-	public static final String HEADER_TRANSACTION_EVENT_TYPE = "eventType";
-	public static final String HEADER_TRANSACTION_EVENT_TIME = "eventTime";
+	public static final String PROPERTY_IS_AUDITS_ENABLED = "isAuditsEnabled";
+	public static final String PROPERTY_IS_FILE_DROPS_ENABLED = "isFileDropsEnabled";
+	public static final String PROPERTY_MESSAGE_TYPE = "messageType";
+	public static final String PROPERTY_RECEIVING_APP = "receivingApp";
+	public static final String PROPERTY_SENDING_FACILITY = "sendingFacility";	
+	public static final String PROPERTY_TRANSACTION_EVENT_TYPE = "eventType";
+	public static final String PROPERTY_TRANSACTION_EVENT_TIME = "eventTime";
+
+	public static final String HEADER_CONTENT_TYPE = "Content-Type";
+	public static final String HEADER_PHARMACY_ID = "pharmacyId";
+	public static final String HEADER_TRACING_ID = "traceId";
+	
+	public static final String MEDIA_TYPE_FHIR_JSON = "application/fhir+json";
+	
 	public static final String BCPHN = "BCPHN";
 
     public static final String STATUS_CODE_ACTIVE = "active";
     public static final String R03 = "R03";
 	public static final String R07 = "R07";
 	public static final String R09 = "R09";
-
-
 
 	/**
 	 * return a Base64 encoding string
@@ -66,7 +69,7 @@ public final class Util {
 	 * @return
 	 */
 	public static String encodeBase64(String stringToEncode) {
-		if (stringToEncode == null || stringToEncode.isEmpty()) {
+		if (StringUtils.isBlank(stringToEncode)) {
 			return null;
 		}
 		return new String(Base64.getEncoder().encode(stringToEncode.getBytes()));
@@ -80,7 +83,7 @@ public final class Util {
 	 * @throws IllegalArgumentException
 	 */
 	public static String decodeBase64(String stringToDecode) {
-		if (stringToDecode == null || stringToDecode.isEmpty()) {
+		if (StringUtils.isBlank(stringToDecode)) {
 			return null;
 		}
 		byte[] bytesToDecode = stringToDecode.getBytes(StandardCharsets.UTF_8);
@@ -90,7 +93,7 @@ public final class Util {
 		return decodedString;
 	}
 
-	/*
+	/**
 	 * The FacilityId is the legacy way to track connected clients and is now set as
 	 * the ClientId of the client application In the access token this is the 'azp'
 	 * field
