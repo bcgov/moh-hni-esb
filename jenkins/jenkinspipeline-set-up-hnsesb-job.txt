@@ -41,7 +41,7 @@ pipeline {
         stage("Checkout") {
             steps {
                 // Get some code from a GitHub repository
-                sh ('echo Getting code from branch: ${BRANCH_NAME})'
+                sh ('echo Getting code from branch: ${BRANCH_NAME}')
                 git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
             }
         }
