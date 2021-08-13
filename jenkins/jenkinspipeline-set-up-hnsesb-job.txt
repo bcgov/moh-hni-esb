@@ -6,21 +6,23 @@ pipeline {
 		
 		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
 		
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the branch')
+        string(name: 'BRANCH_NAME', defaultValue: '3946-jenkins-job-for-new-hnsesb-insntance', description: 'Name of the branch')
 
         text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. If application with same name already exist, this job will delete that application')
 
-		string(name: 'PHARMANET_USER', defaultValue: '', description: 'Pharmanet user for pharmanet web service')
+		string(name: 'PHARMANET_USER', defaultValue: 'hniconnectsvc', description: 'Pharmanet user for pharmanet web service')
 		
-		password(name: 'PHARMANET_PASSWORD', defaultValue: '', description: 'Passowrd for pharmanet web service')
+		password(name: 'PHARMANET_PASSWORD', defaultValue: 'greengrass123', description: 'Passowrd for pharmanet web service')
 		
-		password(name: 'PHARMANET_CERT_PASSWORD', defaultValue: '', description: 'Passoword for pharmanet certificate')
+		password(name: 'PHARMANET_CERT_PASSWORD', defaultValue: 'pwd4Hni!', description: 'Passoword for pharmanet certificate')
+		
+		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
 		string(name: 'DATABASE_NAME', defaultValue: 'hnsesb-sample', description: 'Define database name for auditing database')
 		
 		string(name: 'DATABASE_USER', defaultValue: 'sample-user', description: 'Define database user for auditing database')
 		
-		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
+		password(name: 'DATABASE_PASSWORD', defaultValue: 'sample', description: 'Set password for database')
 		
  		// Add the custom properties 
 		
@@ -34,6 +36,7 @@ pipeline {
     	IMAGE = "hnsesb"
     	TAG = "${APP_NAME}"
 		PROJECT = project()
+		PHARMANET_CERT_SECRET     = credentials("${PHARMANET_CERT_ID}")
 
 	}
     agent any
@@ -73,9 +76,11 @@ pipeline {
                             		sh 'false'
                             	}
                             	sh ('echo Cleaning objects for application: ${APP_NAME} starts:')
-								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+								//openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
-								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+								//openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+								sh ('echo Cleaningsecret for application :  ${APP_NAME} ')
+								//openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
 							}
 						}
@@ -100,6 +105,7 @@ pipeline {
                           	      "-p", "PHARMANET_CERT_PASSWORD=${PHARMANET_CERT_PASSWORD}" ,
                           	      "-p", "PHARMANET_USER=${PHARMANET_USER}" ,
                           	      "-p", "PHARMANET_PASSWORD=${PHARMANET_PASSWORD}" ,
+                          	      "-p", "PHARMANET_CERT_BASE64=${PHARMANET_CERT_SECRET}" ,
                           	      "-p", "DATABASE_NAME=${DATABASE_NAME}" ,
                           	      "-p", "DATABASE_USER=${DATABASE_USER}" ,
                           	      "-p", "DATABASE_PASSWORD=${DATABASE_PASSWORD}" ,
@@ -109,10 +115,11 @@ pipeline {
                           	    echo "Describing the created object: "
                           	    echo "Created ${created.count()} objects named: ${created.names()}"
 
-                          	    if("${created.count()}"!="8"){
+                          	    if("${created.count()}"!="9"){
                           	    	echo "All the objects are not created. So cleaning up the residue and marking this process as fail"
                           	    	openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
                           	    	openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+									openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
                           	    	sh 'false'
                           	    }
 							}
