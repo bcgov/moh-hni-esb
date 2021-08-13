@@ -12,9 +12,9 @@ pipeline {
 
 		string(name: 'PHARMANET_USER', defaultValue: 'hniconnectsvc', description: 'Pharmanet user for pharmanet web service')
 		
-		password(name: 'PHARMANET_PASSWORD', defaultValue: 'greengrass123', description: 'Passowrd for pharmanet web service')
+		password(name: 'PHARMANET_PASSWORD', defaultValue: '', description: 'Passowrd for pharmanet web service')
 		
-		password(name: 'PHARMANET_CERT_PASSWORD', defaultValue: 'pwd4Hni!', description: 'Passoword for pharmanet certificate')
+		password(name: 'PHARMANET_CERT_PASSWORD', defaultValue: '', description: 'Passoword for pharmanet certificate')
 		
 		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
@@ -22,7 +22,7 @@ pipeline {
 		
 		string(name: 'DATABASE_USER', defaultValue: 'sample-user', description: 'Define database user for auditing database')
 		
-		password(name: 'DATABASE_PASSWORD', defaultValue: 'sample', description: 'Set password for database')
+		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
 		
  		// Add the custom properties 
 		
@@ -76,11 +76,11 @@ pipeline {
                             		sh 'false'
                             	}
                             	sh ('echo Cleaning objects for application: ${APP_NAME} starts:')
-								//openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
-								//openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaningsecret for application :  ${APP_NAME} ')
-								//openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
 							}
 						}
