@@ -2,16 +2,12 @@ package ca.bc.gov.hlth.hnsecure.properties;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class ApplicationProperties {
 	
 	
 	private Properties properties;
 	private static ApplicationProperties applicationProperties;
-	private static final Logger logger = LoggerFactory.getLogger(ApplicationProperties.class);
 	
 	private ApplicationProperties() {
 		// 
