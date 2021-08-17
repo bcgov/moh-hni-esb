@@ -127,7 +127,19 @@
 	    <groupId>ca.bc.gov.hlth</groupId>
 	    <artifactId>hn-common</artifactId>
 	    <version>0.0.1-SNAPSHOT</version>
-	</dependency>    
+	</dependency>  
+	
+	<!-- For JMS -->
+	<dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-jms</artifactId>
+    	<scope>provided</scope>
+	</dependency>
+	<dependency>
+    	<groupId>com.ibm.mq</groupId>
+    	<artifactId>com.ibm.mq.allclient</artifactId>
+    	<version>9.1.0.5</version>
+	</dependency>
 
 	<!--  Database -->
 	

@@ -10,12 +10,17 @@ import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
 
+import javax.jms.JMSException;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.ExchangePattern;
+import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Predicate;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
+import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.builder.PredicateBuilder;
 import org.apache.camel.support.jsse.KeyManagersParameters;
@@ -26,6 +31,11 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.mq.MQException;
+import com.ibm.mq.jms.MQQueueConnectionFactory;
+import com.ibm.msg.client.wmq.WMQConstants;
+
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
@@ -36,9 +46,11 @@ import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
+import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
+import ca.bc.gov.hlth.hnsecure.parsing.JMBPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -68,10 +80,37 @@ public class Route extends RouteBuilder {
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
     private String pharmanetUri;
-
+		
+	// PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.cert")
-    private String pharmanetCert;
-    
+	private String pharmanetCert;
+	
+	  //MQ info 
+	  
+	@PropertyInject(value = "mq.host") 
+	private String host;
+	  
+	@PropertyInject(value = "mq.port") 
+	private String port;
+	  
+	@PropertyInject(value = "mq.queuemanager") 
+	private String queueManager;
+	  
+	@PropertyInject(value = "mq.channel") 
+	private String channel;
+	  
+	@PropertyInject(value = "mq.username") 
+	private String userName;
+	  
+	@PropertyInject(value = "mq.password") 
+	private String password;
+	  
+	@PropertyInject(value = "jmb.request.queue") 
+	private String requestQ;
+	  
+	@PropertyInject(value = "jmb.reply.queue")
+	private String replyQ;
+	     
     private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
     private static final String pharmanetUser = System.getenv("PHARMANET_USER");
@@ -85,6 +124,17 @@ public class Route extends RouteBuilder {
     @SuppressWarnings("unchecked")
 	@Override
     public void configure() {
+    	  	
+    	JmsComponent jmsComponent = new JmsComponent();
+        try {
+        	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
+        	mqQueueConnectionFactory.createConnection(userName, password);
+			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
+		} catch (JMSException e) {	
+			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());
+			
+		}
+        getContext().addComponent("jmsComponent", jmsComponent);
 
     	init();
 		setupSSLContextPharmanetRegistry(getContext());
@@ -97,7 +147,7 @@ public class Route extends RouteBuilder {
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
 		
-    	onException(CustomHNSException.class, HttpHostConnectException.class)
+    	onException(CustomHNSException.class, HttpHostConnectException.class, JMSException.class,ExchangeTimedOutException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
         
@@ -200,16 +250,46 @@ public class Route extends RouteBuilder {
                  
 	            // others sending to JMB
 	            .otherwise()
-                    .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
+                    .log("the JMB endpoint is reached and message will be dispatched to JMB!!")      
+                    .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")                  
+            		.log("jmb request message for R32 ::: ${body}")            	
+            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))          		
+                    .to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?replyTo=JMB01.HNST1.HNRT1.HNST1&exchangePattern=inOut&requestTimeout=70s&receiveTimeout=250&useMessageIDAsCorrelationID=true")
+                    .log("jmb response message for R32 ::: ${body}")
+                    .process(new JMBPayloadExtractor())
+                    .log("jmb response message for R32 ::: ${body}")
+                    //.process(new JMBPayloadExtractor())
+                    //.log("jmb response message for R32 ::: ${body}")
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
                 		.endChoice()
                     .setBody(simple(SampleMessages.R09_RESPONSE_MESSAGE))
+                   
 		            .log("Received response from JMB")
 		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		            .wireTap("direct:audit")
 		            	.endChoice()
-            .end();        
+            .end(); 
+		
+        //Getting response using different route
+		
+		/*
+		 * from("jmsComponent:queue:JMB01.HNST1.HNRT1.HNST1")
+		 * .log("got message: ${body}") .log("${headers}") .setBody(constant("reply"));
+		 */
+		 
+		/*
+		 * 2021-08-17 14:16:50.022[RT1.HNST1]] route1 INFO got message:
+		 * MSH|^~\&|RAIGT-CNT-PRDS|BC00001013|HNWeb|BC01000030|20210817131649|
+		 * asrivastava|R32|1923823|D|2.4 MSA|AA|20210813105331|HJMB001ISUCCESSFULLY
+		 * COMPLETED ERR|^^^HJMB001I&SUCCESSFULLY COMPLETED ERR|^^^HJMB121I&MORE THAN 5
+		 * COVERAGE PERIODS FOUND. NOT ALL INFORMATION RETURNED.
+		 * ZIA|||||||||||||||C-RATIONXC^BLAIRXH^NELLOXG^^^^L PID||9337796509^^^BC^PH
+		 * PID||9360338021^^^BC^PH NK1|||DP IN1||||||||0000001||||20150601|20150601
+		 * ZIH||||||||||||||||||||E PID||9301073095^^^BC^PH NK1|||DP
+		 * IN1||||||||6166052||||20150601|20150601 ZIH||||||||||||||||||||E
+		 * PID||9360338021^^^BC^PH NK1|||DP
+		 */
         
         from("direct:start").log("wireTap route")
         	.choice()
@@ -311,4 +391,21 @@ public class Route extends RouteBuilder {
 		}
     	
     }
+    
+    public MQQueueConnectionFactory mqQueueConnectionFactory()  {
+        MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
+        mqQueueConnectionFactory.setHostName(host);
+        try {
+         mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+          mqQueueConnectionFactory.setChannel(channel);
+          mqQueueConnectionFactory.setPort(Integer.valueOf(port));
+          mqQueueConnectionFactory.setQueueManager(queueManager);
+          
+        } catch (Exception e) {
+        	 logger.error(e.getMessage(), e);
+        	//throw new CustomHNSException(ErrorMessage.HL7Error_Msg_MQ_NoResponseBeforeTimeout);
+         
+        }
+        return mqQueueConnectionFactory;
+      }
 }
