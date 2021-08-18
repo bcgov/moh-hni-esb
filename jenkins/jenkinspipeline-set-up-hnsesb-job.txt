@@ -2,19 +2,15 @@
 pipeline {
 	
 	parameters {
-		choice(name: 'ACTION', choices: ['SETUP', 'DELETE'], description: 'Required action. If selected DELETE, this job will delete all references of Application in selected namespace')
+		choice(name: 'ACTION', choices: ['SETUP', 'DELETE'], description: 'Required action. If DELETE is selected, this job will delete all references of Application in selected namespace')
 		
 		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
 		
         string(name: 'BRANCH_NAME', defaultValue: '3946-jenkins-job-for-new-hnsesb-insntance', description: 'Name of the branch')
 
-        text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. If application with same name already exist, this job will delete that application')
+        text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ if value is hnsesb-sample. If application with same name already exist, this job will delete that application')
 
-		string(name: 'PHARMANET_USER', defaultValue: 'hniconnectsvc', description: 'Pharmanet user for pharmanet web service')
-		
-		password(name: 'PHARMANET_PASSWORD', defaultValue: '', description: 'Passowrd for pharmanet web service')
-		
-		password(name: 'PHARMANET_CERT_PASSWORD', defaultValue: '', description: 'Passoword for pharmanet certificate')
+		choice(name: 'PHARMANET_USER', choices: ['pharmanet-dev'], description: 'Pharmanet user for pharmanet web service. ')
 		
 		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
@@ -36,6 +32,10 @@ pipeline {
     	IMAGE = "hnsesb"
     	TAG = "${APP_NAME}"
 		PROJECT = project()
+		PHARMANET_CREDENTIALS = credentials('${PHARMANET_USER}')
+		PHARMANET_USER = $PHARMANET_CREDENTIALS_USR
+		PHARMANET_PASSWORD = $PHARMANET_CREDENTIALS_PSW
+		PHARMANET_CERT_PASSWORD = credentials('pharmanet-dev-cert-password')
 		PHARMANET_CERT_SECRET     = credentials("${PHARMANET_CERT_ID}")
 
 	}
