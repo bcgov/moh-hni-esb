@@ -10,13 +10,29 @@ pipeline {
 	}
     agent any
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
                 // Get some code from a GitHub repository
                 echo "Getting code from main"
                 git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
             }
         }
+ 		stage("Package hn-common library") {
+            steps {
+                dir("hn-common") {
+                    echo "Running: mvn install"
+                    sh "mvn install"
+                }	
+            }
+        }
+        stage("Package hnsecure library") {
+            steps {
+                dir("hnsecure") {
+                    echo "Running: mvn install"
+                    sh "mvn install"
+                }	
+            }
+        }        
         stage("Start Openshift build process") {
             steps {
 				script{

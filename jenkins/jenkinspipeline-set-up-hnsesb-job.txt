@@ -1,0 +1,193 @@
+// This pipeline is created to build the application using build config and then deploy using deployment config
+pipeline {
+	
+	parameters {
+		choice(name: 'ACTION', choices: ['SETUP', 'DELETE'], description: 'Required action. If DELETE is selected, this job will delete all references of Application in selected namespace')
+		
+		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
+		
+        string(name: 'BRANCH_NAME', defaultValue: '3946-jenkins-job-for-new-hnsesb-insntance', description: 'Name of the branch')
+
+        text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ if value is hnsesb-sample. If application with same name already exist, this job will delete that application')
+
+		string(name: 'PHARMANET_CREDENTIALS', defaultValue: 'pharmanet-dev', description: 'ID for Pharmanet credentials in Jenkins')
+		
+		string(name: 'PHARMANET_CERT_CREDENTIALS', defaultValue: 'pharmanet-dev-cert', description: 'Pharmanet certificate credentials in Jenkins')
+		
+		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
+		
+		string(name: 'DATABASE_NAME', defaultValue: 'hnsesb-sample', description: 'Define database name for auditing database')
+		
+		string(name: 'DATABASE_USER', defaultValue: 'sample-user', description: 'Define database user for auditing database')
+		
+		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
+		
+ 		// Add the custom properties 
+		
+    }
+
+
+	environment {
+		CLUSTER = "openshift"
+    	OC_JENKINS_USER = "deployer-c5839f-tools"
+    	APP_NAME = lower()
+    	IMAGE = "hnsesb"
+    	TAG = "${APP_NAME}"
+		PROJECT = project()
+		PHARMANET_CREDENTIALS = credentials("${PHARMANET_CREDENTIALS}")
+		PHARMANET_USER = '$PHARMANET_CREDENTIALS_USR'
+		PHARMANET_PASSWORD ='$PHARMANET_CREDENTIALS_PSW'
+		PHARMANET_CERT = credentials("${PHARMANET_CERT_CREDENTIALS}")
+		PHARMANET_CERT_PASSWORD = '$PHARMANET_CERT_PSW'
+		PHARMANET_CERT_SECRET     = credentials("${PHARMANET_CERT_ID}")
+
+	}
+    agent any
+    stages {
+        stage("Checkout") {
+            steps {
+                // Get some code from a GitHub repository
+                sh ('echo Getting code from branch: ${BRANCH_NAME}')
+                git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
+            }
+        }
+ 		stage("Package hn-common library") {
+            steps {
+                dir("hn-common") {
+                    sh ('echo Running: mvn install')
+                    sh 'mvn install'
+                }	
+            }
+        }
+        stage("Package hnsecure library") {
+            steps {
+                dir("hnsecure") {
+                    sh ('echo Running: mvn install')
+                    sh 'mvn install'
+                }	
+            }
+        }        
+        stage("Clean up existing application") {
+            steps {
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                            	sh ('echo Using project: ${PROJECT} in cluster ${CLUSTER} ')
+                            	if ("${APP_NAME}"=="hnsesb-dev" || "${APP_NAME}"=="hnsesb-test" ){
+                            		sh ('echo User can not set up an environment using hnsesb-dev or hnsesb-test as name of application.')
+                            		sh 'false'
+                            	}
+                            	sh ('echo Cleaning objects for application: ${APP_NAME} starts:')
+								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
+								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+								sh ('echo Cleaningsecret for application :  ${APP_NAME} ')
+								openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
+							}
+						}
+					}
+				}
+            }
+        }
+		stage("Set up new application") {
+			when {
+      		  expression { params.ACTION == 'SETUP' }
+     		}
+            steps {
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                            	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                          	    def created = openshift.create( openshift.process( "c5839f-tools//hnsesb-ephemeral", 
+                          	     "-l", "app=${APP_NAME}",
+                          	     "-p", "APP_NAME=${APP_NAME}" ,
+                          	      "-p", "LABEL=${APP_NAME}" ,
+                          	      "-p", "PHARMANET_CERT_PASSWORD=${PHARMANET_CERT_PASSWORD}" ,
+                          	      "-p", "PHARMANET_USER=${PHARMANET_USER}" ,
+                          	      "-p", "PHARMANET_PASSWORD=${PHARMANET_PASSWORD}" ,
+                          	      "-p", "PHARMANET_CERT_BASE64=${PHARMANET_CERT_SECRET}" ,
+                          	      "-p", "DATABASE_NAME=${DATABASE_NAME}" ,
+                          	      "-p", "DATABASE_USER=${DATABASE_USER}" ,
+                          	      "-p", "DATABASE_PASSWORD=${DATABASE_PASSWORD}" ,
+                          	      "-p", "IMAGE=${IMAGE}",
+                          	      "-p", "TAG=${TAG}" 
+                          	      ) )
+                          	    echo "Describing the created object: "
+                          	    echo "Created ${created.count()} objects named: ${created.names()}"
+
+                          	    if("${created.count()}"!="9"){
+                          	    	echo "All the objects are not created. So cleaning up the residue and marking this process as fail"
+                          	    	openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+                          	    	openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+									openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+                          	    	sh 'false'
+                          	    }
+							}
+						}
+					}
+				}
+            }
+        }
+		
+		stage("Start building and deploying application") {
+			when {
+      		  expression { params.ACTION == 'SETUP' }
+     		}		
+            steps {
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                            	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                          	    def bcSelector = openshift.selector( "buildconfig", "${APP_NAME}")
+								def buildRun = bcSelector.startBuild("--from-dir",".")
+								buildRun.logs('-f')
+								def bStatus = buildRun.object().status.phase
+								echo "Status of build: ${bStatus}"
+							}
+						}
+					}
+				}
+            }
+        }
+        
+        stage("Verify deployment") {
+			when {
+      		  expression { params.ACTION == 'SETUP' }
+     		}		
+            steps {
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                            	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                          	    def dcSelector = openshift.selector( "dc", "${APP_NAME}")
+								dcSelector.logs('-f')
+								def dStatus = dcSelector.object().status.phase
+								echo "Deployment status ${dStatus}"
+							}
+						}
+					}
+				}
+            }
+        }
+        
+    }
+    post {
+        always {
+            echo "Complete"
+        }
+    }
+}
+def project() {
+	def ns = "${NAMESPACE}"
+	return "c5839f-" + ns.toLowerCase()
+}
+
+def lower() {
+	def app = "${Application}"
+	return app.toLowerCase()
+}
