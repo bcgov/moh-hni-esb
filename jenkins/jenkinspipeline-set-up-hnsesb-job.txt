@@ -10,6 +10,10 @@ pipeline {
 
         text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ if value is hnsesb-sample. If application with same name already exist, this job will delete that application')
 
+		string(name: 'PHARMANET_CREDENTIALS', defaultValue: 'pharmanet-dev', description: 'ID for Pharmanet credentials in Jenkins')
+		
+		string(name: 'PHARMANET_CERT_CREDENTIALS', defaultValue: 'pharmanet-dev-cert', description: 'Pharmanet certificate credentials in Jenkins')
+		
 		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
 		string(name: 'DATABASE_NAME', defaultValue: 'hnsesb-sample', description: 'Define database name for auditing database')
@@ -30,10 +34,11 @@ pipeline {
     	IMAGE = "hnsesb"
     	TAG = "${APP_NAME}"
 		PROJECT = project()
-		PHARMANET_CREDENTIALS = credentials('pharmanet-dev')
+		PHARMANET_CREDENTIALS = credentials("${PHARMANET_CREDENTIALS}")
 		PHARMANET_USER = '$PHARMANET_CREDENTIALS_USR'
 		PHARMANET_PASSWORD ='$PHARMANET_CREDENTIALS_PSW'
-		PHARMANET_CERT_PASSWORD = credentials('pharmanet-dev-cert-password')
+		PHARMANET_CERT = credentials("${PHARMANET_CERT_CREDENTIALS}")
+		PHARMANET_CERT_PASSWORD = '$PHARMANET_CERT_PSW'
 		PHARMANET_CERT_SECRET     = credentials("${PHARMANET_CERT_ID}")
 
 	}
