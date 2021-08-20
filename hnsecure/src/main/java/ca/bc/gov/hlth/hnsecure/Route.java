@@ -52,6 +52,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.JMBPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
@@ -141,7 +142,7 @@ public class Route extends RouteBuilder {
 
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
-
+				
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
@@ -251,46 +252,27 @@ public class Route extends RouteBuilder {
 	            // others sending to JMB
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")      
-                    .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")                  
-            		.log("jmb request message for R32 ::: ${body}")            	
-            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))          		
-                    .to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?replyTo=JMB01.HNST1.HNRT1.HNST1&exchangePattern=inOut&requestTimeout=70s&receiveTimeout=250&useMessageIDAsCorrelationID=true")
-                    .log("jmb response message for R32 ::: ${body}")
-                    .process(new JMBPayloadExtractor())
-                    .log("jmb response message for R32 ::: ${body}")
-                    //.process(new JMBPayloadExtractor())
-                    //.log("jmb response message for R32 ::: ${body}")
+                    .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
+                    .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
+            		.log("jmb request message for R32 ::: ${body}")             		
+            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		
+            		.setHeader("JMSCorrelationID", simple("${header.JMSMessageID}"))
+            		.log("CorrelationId is set to: ${header.JMSCorrelationID}")
+            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?useMessageIDAsCorrelationID=true&exchangePattern=InOnly&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&includeSentJMSMessageID=true&preserveMessageQos=true&transacted=true")
+            		.pollEnrich().simple("jmsComponent:queue:JMB01.HNST1.HNRT1.HNST1")
+            		//.timeout(30000)
+            		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&exchangePattern=InOut&requestTimeout=40s&receiveTimeout=250&useMessageIDAsCorrelationID=false")        		
+                   // .log("jmb response message for R32 ::: ${body}")
+                   
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
                 		.endChoice()
-                    .setBody(simple(SampleMessages.R09_RESPONSE_MESSAGE))
-                   
 		            .log("Received response from JMB")
 		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		            .wireTap("direct:audit")
 		            	.endChoice()
             .end(); 
-		
-        //Getting response using different route
-		
-		/*
-		 * from("jmsComponent:queue:JMB01.HNST1.HNRT1.HNST1")
-		 * .log("got message: ${body}") .log("${headers}") .setBody(constant("reply"));
-		 */
-		 
-		/*
-		 * 2021-08-17 14:16:50.022[RT1.HNST1]] route1 INFO got message:
-		 * MSH|^~\&|RAIGT-CNT-PRDS|BC00001013|HNWeb|BC01000030|20210817131649|
-		 * asrivastava|R32|1923823|D|2.4 MSA|AA|20210813105331|HJMB001ISUCCESSFULLY
-		 * COMPLETED ERR|^^^HJMB001I&SUCCESSFULLY COMPLETED ERR|^^^HJMB121I&MORE THAN 5
-		 * COVERAGE PERIODS FOUND. NOT ALL INFORMATION RETURNED.
-		 * ZIA|||||||||||||||C-RATIONXC^BLAIRXH^NELLOXG^^^^L PID||9337796509^^^BC^PH
-		 * PID||9360338021^^^BC^PH NK1|||DP IN1||||||||0000001||||20150601|20150601
-		 * ZIH||||||||||||||||||||E PID||9301073095^^^BC^PH NK1|||DP
-		 * IN1||||||||6166052||||20150601|20150601 ZIH||||||||||||||||||||E
-		 * PID||9360338021^^^BC^PH NK1|||DP
-		 */
-        
+		      
         from("direct:start").log("wireTap route")
         	.choice()
 				.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
