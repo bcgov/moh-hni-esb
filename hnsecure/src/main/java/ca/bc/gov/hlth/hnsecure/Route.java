@@ -1,6 +1,9 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
@@ -14,7 +17,6 @@ import javax.jms.JMSException;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
 import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Predicate;
 import org.apache.camel.PropertyInject;
@@ -46,11 +48,9 @@ import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
-import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
-import ca.bc.gov.hlth.hnsecure.parsing.JMBPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
@@ -147,6 +147,7 @@ public class Route extends RouteBuilder {
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
+		Predicate isMessageForHIBC = isMessageForHIBC();
 		
     	onException(CustomHNSException.class, HttpHostConnectException.class, JMSException.class,ExchangeTimedOutException.class)
         	.process(new ExceptionHandler())
@@ -240,9 +241,10 @@ public class Route extends RouteBuilder {
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 
 		            // sending message to HIBC for ELIG
-	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
-	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
-                    .setBody(simple(SampleMessages.e45ResponseMessage))
+				.when(isMessageForHIBC)
+	                .log("sending to message queue(ELIG).")
+	                .transform(constant("TEST MESSAGE FOR CGICHANNEL"))
+	                .to("mq:queue:HNST1.HIBC.ELIG.HNST1")
 	            
 	            // sending message to HIBC for ENROL
 	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
@@ -264,13 +266,13 @@ public class Route extends RouteBuilder {
             		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&exchangePattern=InOut&requestTimeout=40s&receiveTimeout=250&useMessageIDAsCorrelationID=false")        		
                    // .log("jmb response message for R32 ::: ${body}")
                    
-                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-                	.wireTap("direct:audit")
-                		.endChoice()
-		            .log("Received response from JMB")
-		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-		            .wireTap("direct:audit")
-		            	.endChoice()
+            	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+            	.wireTap("direct:audit")
+            		.endChoice()
+	            .log("Received response from JMB")
+	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+	            .wireTap("direct:audit")
+	            	.endChoice()
             .end(); 
 		      
         from("direct:start").log("wireTap route")
@@ -341,6 +343,18 @@ public class Route extends RouteBuilder {
 		Predicate isR07 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R07);	
 		Predicate isR09 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R09);	
 		Predicate pBuilder = PredicateBuilder.or(isR03, isR07, isR09);
+		return pBuilder;
+	}
+	
+	/**
+	 * This method is used to concat multiple Predicates for HIBC message types. It builds a compound 
+	 * predicate to be used in the Route.
+	 */
+	private Predicate isMessageForHIBC() {		
+		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
+		Predicate isE45 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(E45);	
+		Predicate isR50 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R50);	
+		Predicate pBuilder = PredicateBuilder.or(isR15, isE45, isR50);
 		return pBuilder;
 	}
 
