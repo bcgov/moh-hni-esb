@@ -33,7 +33,6 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.mq.MQException;
 import com.ibm.mq.jms.MQQueueConnectionFactory;
 import com.ibm.msg.client.wmq.WMQConstants;
 
@@ -244,7 +243,7 @@ public class Route extends RouteBuilder {
 				.when(isMessageForHIBC)
 	                .log("sending to message queue(ELIG).")
 	                .transform(constant("TEST MESSAGE FOR CGICHANNEL"))
-	                .to("mq:queue:HNST1.HIBC.ELIG.HNST1")
+	                .to("jmsComponent:queue:HNST1.HIBC.ELIG.HNST1")
 	            
 	            // sending message to HIBC for ENROL
 	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
