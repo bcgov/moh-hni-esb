@@ -18,8 +18,10 @@ public class PopulateJMSMessageHeader {
 	public void populateReqHeader(Exchange exchange, String v2Message) {
 		final String methodName = LoggingUtil.getMethodName();
 		String msgControlId = Util.getMsgCnrtlId(v2Message);
-		exchange.getIn().setHeader("JMSMessageId", "3230313730313235313232313235");
-
+		exchange.getIn().setHeader("JMSMessageId", "20210819115331");
+		//exchange.getIn().setHeader("JMS_IBM_MQMD_MsgId", "20210819115331");
+		 logger.info("Message id: "+exchange.getIn().getMessageId());
+		 
 		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {} ", methodName, exchange.getExchangeId(),
 				msgControlId);
 	}

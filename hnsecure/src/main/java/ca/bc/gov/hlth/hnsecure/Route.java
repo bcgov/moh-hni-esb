@@ -23,6 +23,7 @@ import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.component.jms.JmsConfiguration;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.builder.PredicateBuilder;
 import org.apache.camel.support.jsse.KeyManagersParameters;
@@ -130,6 +131,10 @@ public class Route extends RouteBuilder {
         	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
         	mqQueueConnectionFactory.createConnection(userName, password);
 			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
+			
+			JmsConfiguration config = jmsComponent.getConfiguration();
+			logger.info("Value Correlation property: "+ config.getCorrelationProperty());
+			
 		} catch (JMSException e) {	
 			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());
 			
@@ -253,17 +258,19 @@ public class Route extends RouteBuilder {
 	            // others sending to JMB
 	            .otherwise()
                     .log("the JMB endpoint is reached and message will be dispatched to JMB!!")      
-                    .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
+                    .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
-            		.log("jmb request message for R32 ::: ${body}")             		
+            		.log("jmb request message for R32 ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		
-            		.setHeader("JMSCorrelationID", simple("${header.JMSMessageID}"))
+            		.setHeader("JMSCorrelationID", simple("20210819115331"))
             		.log("CorrelationId is set to: ${header.JMSCorrelationID}")
-            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?useMessageIDAsCorrelationID=true&exchangePattern=InOnly&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&includeSentJMSMessageID=true&preserveMessageQos=true&transacted=true")
-            		.pollEnrich().simple("jmsComponent:queue:JMB01.HNST1.HNRT1.HNST1")
+            		.log("jmb request message for R32 ::: ${body}")
+            		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?useMessageIDAsCorrelationID=true&exchangePattern=InOnly&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&includeSentJMSMessageID=true&preserveMessageQos=true&transacted=true")
+            		//.pollEnrich().simple("jmsComponent:queue:JMB01.HNST1.HNRT1.HNST1")
             		//.timeout(30000)
-            		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&exchangePattern=InOut&requestTimeout=40s&receiveTimeout=250&useMessageIDAsCorrelationID=false")        		
-                   // .log("jmb response message for R32 ::: ${body}")
+            		//.setExchangePattern(ExchangePattern.InOut)
+            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive")
+                    .log("jmb response message for R32 ::: ${body}")
                    
             	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
             	.wireTap("direct:audit")
