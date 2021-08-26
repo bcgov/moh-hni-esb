@@ -77,6 +77,8 @@ public class Route extends RouteBuilder {
 	private static final String BASIC = "Basic ";
 
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
+	
+	private static final String JMS_COMPONENT= "jmsComponent:queue:";
 
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
@@ -130,6 +132,10 @@ public class Route extends RouteBuilder {
 
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
+		
+		String jmbUrl = JMS_COMPONENT+requestQ+"?exchangePattern=InOut&replyTo=queue:///"+replyQ+"&replyToType=Exclusive";
+		log.info("Using jmbUrl: " + jmbUrl);		
+		
 				
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
@@ -241,18 +247,18 @@ public class Route extends RouteBuilder {
                  
 	            // others sending to JMB
 	            .otherwise()
-                    .log("Processing MQ Series Message for JMB!!")      
+                    .log("Processing MQ Series. RequestQ : {{jmb.request.queue}}, ReplyQ:{{jmb.reply.queue}}")      
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	
-            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive&useMessageIDAsCorrelationID=false")
-                    .log("jmb response message for R32 ::: ${body}")
+            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive")          			   
+            		//.to(jmbUrl)
+                    .log("Recieved response message for R32 ::: ${body}")
                    
             	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
             	.wireTap("direct:audit")
             		.endChoice()
-	            .log("Received response from JMB")
 	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	            .wireTap("direct:audit")
 	            	.endChoice()
@@ -376,7 +382,7 @@ public class Route extends RouteBuilder {
     
 
 	/**
-	 * Creates connection factory for the broker
+	 * Creates MQ connection factory for the broker
 	 */
 	protected void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
@@ -385,7 +391,7 @@ public class Route extends RouteBuilder {
         	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
         	mqQueueConnectionFactory.createConnection(userName, password);
 			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-			logger.info("{} - MQ connection is done for the QMGR: {}, requestQ: {}, replyQ:{}",methodName, queueManager, requestQ, replyQ);
+			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, queueManager);
 			
 		} catch (JMSException e) {	
 			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());

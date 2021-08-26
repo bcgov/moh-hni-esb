@@ -32,7 +32,6 @@ public class PopulateJMSMessageHeader {
 		String jmsMsgId =(String) exchange.getIn().getHeader("JMSMessageID");
 		String jmsCorId =(String) exchange.getIn().getHeader("JMSCorrelationID");
 		
-		logger.info("JMS correlationId: " + exchange.getIn().getHeader("JMSCorrelatioId"));
 		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ", methodName, exchange.getExchangeId(),
 				jmsMsgId,jmsCorId);
 	}

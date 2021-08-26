@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import io.netty.util.internal.StringUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -138,7 +139,11 @@ public final class Util {
 	}
 	
     public static String convertStringToHex(String str) {
-
+    	//JMB validates msgControlId and returns error response for mandatory field.
+    	//CorrelationId must be set to some value in order to avoid 'MQSeries failure"
+    	if(StringUtils.isBlank(str)) {
+    		str=getDateTime();
+    	}
         StringBuffer hex = new StringBuffer();
         // loop chars one by one
         for (char temp : str.toCharArray()) {
