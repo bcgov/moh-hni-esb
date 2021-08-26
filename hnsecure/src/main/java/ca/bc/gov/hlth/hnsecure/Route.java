@@ -86,8 +86,7 @@ public class Route extends RouteBuilder {
 	@PropertyInject(value = "pharmanet.cert")
 	private String pharmanetCert;
 	
-	  //MQ info 
-	  
+	//MQ info 	  
 	@PropertyInject(value = "mq.host") 
 	private String host;
 	  
@@ -126,21 +125,6 @@ public class Route extends RouteBuilder {
 	@Override
     public void configure() {
     	  	
-    	JmsComponent jmsComponent = new JmsComponent();
-        try {
-        	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
-        	mqQueueConnectionFactory.createConnection(userName, password);
-			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-			
-			JmsConfiguration config = jmsComponent.getConfiguration();
-			logger.info("Value Correlation property: "+ config.getCorrelationProperty());
-			
-		} catch (JMSException e) {	
-			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());
-			
-		}
-        getContext().addComponent("jmsComponent", jmsComponent);
-
     	init();
 		setupSSLContextPharmanetRegistry(getContext());
 
@@ -257,19 +241,12 @@ public class Route extends RouteBuilder {
                  
 	            // others sending to JMB
 	            .otherwise()
-                    .log("the JMB endpoint is reached and message will be dispatched to JMB!!")      
+                    .log("Processing MQ Series Message for JMB!!")      
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		
-            		.setHeader("JMSCorrelationID", simple("20210819115331"))
-            		.log("CorrelationId is set to: ${header.JMSCorrelationID}")
-            		.log("jmb request message for R32 ::: ${body}")
-            		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?useMessageIDAsCorrelationID=true&exchangePattern=InOnly&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&includeSentJMSMessageID=true&preserveMessageQos=true&transacted=true")
-            		//.pollEnrich().simple("jmsComponent:queue:JMB01.HNST1.HNRT1.HNST1")
-            		//.timeout(30000)
-            		//.setExchangePattern(ExchangePattern.InOut)
-            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive")
+            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	
+            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive&useMessageIDAsCorrelationID=false")
                     .log("jmb response message for R32 ::: ${body}")
                    
             	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
@@ -294,6 +271,7 @@ public class Route extends RouteBuilder {
 			.end();
 		
     }
+
 
 	private String buildBasicToken(String username, String password) {
 		String usernamePassword = username + ":" + password;
@@ -327,11 +305,13 @@ public class Route extends RouteBuilder {
 	
     /**
      * This method performs the steps required before configuring the route
-     * 1. Set the transaction id generator for messages
-     * 2. Load application properties
-     * 3. Initializes the validator classes
+     * 1. Set the MQ configuration
+     * 2. Set the transaction id generator for messages
+     * 3. Load application properties
+     * 4. Initializes the validator classes
      */
     private void init() {
+    	initMQ();
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
@@ -394,19 +374,41 @@ public class Route extends RouteBuilder {
     	
     }
     
+
+	/**
+	 * Creates connection factory for the broker
+	 */
+	protected void initMQ() {
+		final String methodName = LoggingUtil.getMethodName();
+		JmsComponent jmsComponent = new JmsComponent();
+        try {
+        	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
+        	mqQueueConnectionFactory.createConnection(userName, password);
+			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
+			logger.info("{} - MQ connection is done for the QMGR: {}, requestQ: {}, replyQ:{}",methodName, queueManager, requestQ, replyQ);
+			
+		} catch (JMSException e) {	
+			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());
+			
+		}
+        getContext().addComponent("jmsComponent", jmsComponent);
+	}
+    
+    /**
+     * Creates a connection factory and sets properties
+     * real time connection to broker
+     * @return connection factory
+     */
     public MQQueueConnectionFactory mqQueueConnectionFactory()  {
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
         mqQueueConnectionFactory.setHostName(host);
         try {
-         mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+          mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
           mqQueueConnectionFactory.setChannel(channel);
           mqQueueConnectionFactory.setPort(Integer.valueOf(port));
-          mqQueueConnectionFactory.setQueueManager(queueManager);
-          
+          mqQueueConnectionFactory.setQueueManager(queueManager);          
         } catch (Exception e) {
-        	 logger.error(e.getMessage(), e);
-        	//throw new CustomHNSException(ErrorMessage.HL7Error_Msg_MQ_NoResponseBeforeTimeout);
-         
+        	 logger.error(e.getMessage(), e);       	
         }
         return mqQueueConnectionFactory;
       }

@@ -137,6 +137,19 @@ public final class Util {
         
 	}
 	
+    public static String convertStringToHex(String str) {
+
+        StringBuffer hex = new StringBuffer();
+        // loop chars one by one
+        for (char temp : str.toCharArray()) {
+            // convert char to int, for char `a` decimal 97
+            int decimal = (int) temp;
+            // convert int to hex, for decimal 97 hex 61
+            hex.append(Integer.toHexString(decimal));
+        }
+        return hex.toString()+"00000000000000000000";
+    }
+	
 	/**
 	 * @return datetime in 'yyyymmddhhmmss' format for file drops
 	 */

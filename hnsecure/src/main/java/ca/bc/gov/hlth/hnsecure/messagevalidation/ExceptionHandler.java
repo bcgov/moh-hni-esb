@@ -63,10 +63,10 @@ public class ExceptionHandler implements Processor {
 			logger.info("{} - Failed to connect remote server. {}", LoggingUtil.getMethodName(), exception.getMessage());
 			handleException(exchange, ErrorMessage.CustomError_Msg_DownstreamConnectionFailed,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
 		} else if (exception instanceof JMSException) {
-			logger.info("{} - Failed to connect remote server. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			logger.info("{} - No response before timeout. {}", LoggingUtil.getMethodName(), exception.getMessage());
 			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_NoResponseBeforeTimeout, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
 		} else if (exception instanceof ExchangeTimedOutException) {
-			logger.info("{} - Failed to connect remote server. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			logger.info("{} - MQSeries failure. {}", LoggingUtil.getMethodName(), exception.getMessage());
 			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_MQSeriesFailure,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
 		} 
 		
