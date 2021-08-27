@@ -25,6 +25,11 @@ public enum ApplicationProperty {
 	HIBC_R50_ENDPOINT("hibc-r50-endpoint"),
 	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
 	FILE_DROPS_LOCATION("file-drops-location"),
+	MQ_HOST("mq.host"),
+	MQ_PORT("mq.port"),
+	MQ_QUEUEMANAGER("mq.queuemanager"),
+	MQ_CHANNEL("mq.channel"),
+
 
 	IS_AUDITS_ENABLED("audits.enabled");
 

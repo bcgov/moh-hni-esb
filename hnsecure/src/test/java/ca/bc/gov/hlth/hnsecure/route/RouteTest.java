@@ -30,6 +30,8 @@ public class RouteTest extends CamelTestSupport {
 			"}\n" +
 			"}]\n" +
 			"}";
+	
+	
 		
 	@Override
 	public boolean isUseAdviceWith() {
@@ -56,20 +58,21 @@ public class RouteTest extends CamelTestSupport {
 		
 		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
-			a.replaceFromWith("direct:tap");		
+			a.replaceFromWith("direct:tap");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");				
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");	
+			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 			a.weaveById("completion").after().to("mock:response");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
 		});
 	}
 
 	@Test
-	public void testSuccessfulJMBMessage() throws Exception {
+	public void testSuccessfulRTransMessage() throws Exception {
 
 		context.start();
-
+	
 		// Set expectations
 		getMockEndpoint("mock:response").expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
@@ -186,6 +189,25 @@ public class RouteTest extends CamelTestSupport {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.pnpJsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullJMBMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:jmb").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.jmbJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();

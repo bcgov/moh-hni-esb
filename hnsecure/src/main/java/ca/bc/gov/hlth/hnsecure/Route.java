@@ -6,6 +6,10 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
@@ -56,6 +60,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
@@ -89,18 +94,6 @@ public class Route extends RouteBuilder {
 	private String pharmanetCert;
 	
 	//MQ info 	  
-	@PropertyInject(value = "mq.host") 
-	private String host;
-	  
-	@PropertyInject(value = "mq.port") 
-	private String port;
-	  
-	@PropertyInject(value = "mq.queuemanager") 
-	private String queueManager;
-	  
-	@PropertyInject(value = "mq.channel") 
-	private String channel;
-	  
 	@PropertyInject(value = "mq.username") 
 	private String userName;
 	  
@@ -252,8 +245,8 @@ public class Route extends RouteBuilder {
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	
-            		.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive")          			   
-            		//.to(jmbUrl)
+            		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive")          			   
+            		.to(jmbUrl).id("ToJmbUrl")
                     .log("Recieved response message for R32 ::: ${body}")
                    
             	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
@@ -316,12 +309,12 @@ public class Route extends RouteBuilder {
      * 3. Load application properties
      * 4. Initializes the validator classes
      */
-    private void init() {
-    	initMQ();
+    private void init() {   	
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
+    	initMQ();
     	loadValidator();
     	
     }
@@ -391,7 +384,7 @@ public class Route extends RouteBuilder {
         	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
         	mqQueueConnectionFactory.createConnection(userName, password);
 			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, queueManager);
+			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));
 			
 		} catch (JMSException e) {	
 			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());
@@ -407,12 +400,14 @@ public class Route extends RouteBuilder {
      */
     public MQQueueConnectionFactory mqQueueConnectionFactory()  {
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
-        mqQueueConnectionFactory.setHostName(host);
+      
+        mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
         try {
           mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
-          mqQueueConnectionFactory.setChannel(channel);
-          mqQueueConnectionFactory.setPort(Integer.valueOf(port));
-          mqQueueConnectionFactory.setQueueManager(queueManager);          
+         
+          mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
+          mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
+          mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));          
         } catch (Exception e) {
         	 logger.error(e.getMessage(), e);       	
         }
