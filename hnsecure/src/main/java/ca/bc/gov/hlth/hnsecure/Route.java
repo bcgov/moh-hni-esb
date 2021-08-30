@@ -59,7 +59,6 @@ import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
 import ca.bc.gov.hlth.hnsecure.validation.Validator;
@@ -379,7 +378,7 @@ public class Route extends RouteBuilder {
     
 
 	/**
-	 * Creates MQ connection factory for the broker
+	 * Creates MQ connection and sets it on a JMS Component which is added to the camel context.
 	 */
 	protected void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
@@ -391,29 +390,28 @@ public class Route extends RouteBuilder {
 			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));
 			
 		} catch (JMSException e) {	
-			logger.error("{} - MQ connection failed with the error :{}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());
-			
+			logger.error("{} - MQ connection failed with the error : {}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());			
 		}
         getContext().addComponent("jmsComponent", jmsComponent);
 	}
     
     /**
-     * Creates a connection factory and sets properties
-     * real time connection to broker
-     * @return connection factory
+     * Creates a connection factory and sets its connection properties.
+     * 
+     * @return a {@link MQQueueConnectionFactory} factory
      */
     public MQQueueConnectionFactory mqQueueConnectionFactory()  {
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
       
         mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
         try {
-          mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+        	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
          
-          mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
-          mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
-          mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));          
-        } catch (Exception e) {
-        	 logger.error(e.getMessage(), e);       	
+        	mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
+        	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
+        	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
+        } catch (JMSException jmse) {
+        	 logger.error("{} - MQ connection factory initialization failed with the error : {}", LoggingUtil.getMethodName(), jmse.getMessage());       	
         }
         return mqQueueConnectionFactory;
       }
