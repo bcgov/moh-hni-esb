@@ -138,6 +138,13 @@ public final class Util {
         
 	}
 	
+    /**
+     * The purpose of this method is to convert messageControlId to hexadecimal string for MQ processing.
+     * Checks for messageControlId. If missing populates currentdatetime.
+     * Appends "00000000000000000000" to match replyQ corelationId
+     * @param str
+     * @return
+     */
     public static String convertStringToHex(String str) {
     	//JMB validates msgControlId and returns error response for mandatory field.
     	//CorrelationId must be set to some value in order to avoid 'MQSeries failure"

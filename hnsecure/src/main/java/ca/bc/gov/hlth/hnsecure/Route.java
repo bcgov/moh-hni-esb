@@ -244,8 +244,7 @@ public class Route extends RouteBuilder {
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	
-            		//.to("jmsComponent:queue:HNST1.JMBT1R.HNST1.HNRT1?exchangePattern=InOut&replyTo=queue:///JMB01.HNST1.HNRT1.HNST1&replyToType=Exclusive")          			   
+            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	         		
             		.to(jmbUrl).id("ToJmbUrl")
                     .log("Recieved response message for R32 ::: ${body}")
                    
