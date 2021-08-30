@@ -6,8 +6,8 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 import static org.apache.camel.component.http.HttpMethods.POST;
@@ -27,7 +27,6 @@ import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.component.jms.JmsComponent;
-import org.apache.camel.component.jms.JmsConfiguration;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.builder.PredicateBuilder;
 import org.apache.camel.support.jsse.KeyManagersParameters;
@@ -60,7 +59,6 @@ import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
@@ -83,7 +81,7 @@ public class Route extends RouteBuilder {
 
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
 	
-	private static final String JMS_COMPONENT= "jmsComponent:queue:";
+	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive";
 
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
@@ -106,7 +104,13 @@ public class Route extends RouteBuilder {
 	@PropertyInject(value = "jmb.reply.queue")
 	private String replyQ;
 	     
-    private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
+	@PropertyInject(value = "hibc.request.queue") 
+	private String hibcRequestQueue;
+	  
+	@PropertyInject(value = "hibc.reply.queue")
+	private String hibcReplyQueue;
+
+	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
     private static final String pharmanetUser = System.getenv("PHARMANET_USER");
 
@@ -126,10 +130,12 @@ public class Route extends RouteBuilder {
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
 		
-		String jmbUrl = JMS_COMPONENT+requestQ+"?exchangePattern=InOut&replyTo=queue:///"+replyQ+"&replyToType=Exclusive";
-		log.info("Using jmbUrl: " + jmbUrl);		
+		String hibcUrl = String.format(MQ_URL_FORMAT, hibcRequestQueue, hibcReplyQueue);
+		log.info("Using HIBC URL: " + hibcUrl);		
 		
-				
+		String jmbUrl = String.format(MQ_URL_FORMAT, requestQ, replyQ);
+		log.info("Using jmbUrl: " + jmbUrl);		
+						
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
@@ -229,14 +235,13 @@ public class Route extends RouteBuilder {
 
 		            // sending message to HIBC for ELIG
 				.when(isMessageForHIBC)
-	                .log("sending to message queue(ELIG).")
-	                .transform(constant("TEST MESSAGE FOR CGICHANNEL"))
-	                .to("jmsComponent:queue:HNST1.HIBC.ELIG.HNST1")
-	            
-	            // sending message to HIBC for ENROL
-	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
-	                .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
-                    .setBody(simple(SampleMessages.r50ResponseMessage))
+	                .log("Processing HIBC messages. Request Queue : {{hibc.request.queue}}, ReplyQ:{{hibc.reply.queue}}")
+	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+                    .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
+            		.log("HIBC request message ::: ${body}")
+            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", hibcRequestQueue)))	           		        	
+	        		.to(hibcUrl).id("ToHIBCUrl")
+                    .log("Recieved response message from HIBC queue ::: ${body}")
                  
 	            // others sending to JMB
 	            .otherwise()
@@ -336,8 +341,8 @@ public class Route extends RouteBuilder {
 	 * predicate to be used in the Route.
 	 */
 	private Predicate isMessageForHIBC() {		
-		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
 		Predicate isE45 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(E45);	
+		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
 		Predicate isR50 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R50);	
 		Predicate pBuilder = PredicateBuilder.or(isR15, isE45, isR50);
 		return pBuilder;
