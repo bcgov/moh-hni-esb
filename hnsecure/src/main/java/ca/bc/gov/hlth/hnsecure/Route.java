@@ -10,6 +10,7 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
@@ -59,6 +60,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
 import ca.bc.gov.hlth.hnsecure.validation.Validator;
@@ -89,25 +91,22 @@ public class Route extends RouteBuilder {
 	// PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.cert")
 	private String pharmanetCert;
-	
-	//MQ info 	  
-	@PropertyInject(value = "mq.username") 
-	private String userName;
-	  
-	@PropertyInject(value = "mq.password") 
-	private String password;
-	  
-	@PropertyInject(value = "jmb.request.queue") 
-	private String requestQ;
-	  
-	@PropertyInject(value = "jmb.reply.queue")
-	private String replyQ;
-	     
-	@PropertyInject(value = "hibc.request.queue") 
-	private String hibcRequestQueue;
-	  
-	@PropertyInject(value = "hibc.reply.queue")
-	private String hibcReplyQueue;
+	/*
+	 * //MQ info
+	 * 
+	 * @PropertyInject(value = "mq.username") private String userName;
+	 * 
+	 * @PropertyInject(value = "mq.password") private String password;
+	 * 
+	 * @PropertyInject(value = "jmb.request.queue") private String requestQ;
+	 * 
+	 * @PropertyInject(value = "jmb.reply.queue") private String replyQ;
+	 * 
+	 * @PropertyInject(value = "hibc.request.queue") private String
+	 * hibcRequestQueue;
+	 * 
+	 * @PropertyInject(value = "hibc.reply.queue") private String hibcReplyQueue;
+	 */
 
 	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
@@ -129,10 +128,10 @@ public class Route extends RouteBuilder {
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
 		
-		String hibcUrl = String.format(MQ_URL_FORMAT, hibcRequestQueue, hibcReplyQueue);
+		String hibcUrl = String.format(MQ_URL_FORMAT, properties.getValue(HIBC_REQUEST_QUEUE), properties.getValue(HIBC_REPLY_QUEUE));
 		log.info("Using HIBC URL: " + hibcUrl);		
 		
-		String jmbUrl = String.format(MQ_URL_FORMAT, requestQ, replyQ);
+		String jmbUrl = String.format(MQ_URL_FORMAT, properties.getValue(JMB_REQUEST_QUEUE), properties.getValue(JMB_REPLY_QUEUE));
 		log.info("Using jmbUrl: " + jmbUrl);		
 						
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
@@ -238,7 +237,7 @@ public class Route extends RouteBuilder {
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
             		.log("HIBC request message ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", hibcRequestQueue)))	           		        	
+            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", properties.getValue(HIBC_REQUEST_QUEUE))))	           		        	
 	        		.to(hibcUrl).id("ToHIBCUrl")
                     .log("Received response message from HIBC queue ::: ${body}")
                  
@@ -248,7 +247,7 @@ public class Route extends RouteBuilder {
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	         		
+            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1",properties.getValue(JMB_REQUEST_QUEUE))))  
             		.to(jmbUrl).id("ToJmbUrl")
                     .log("Received response message for R32 ::: ${body}")
                    
@@ -385,7 +384,7 @@ public class Route extends RouteBuilder {
 		JmsComponent jmsComponent = new JmsComponent();
         try {
         	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
-        	mqQueueConnectionFactory.createConnection(userName, password);
+        	mqQueueConnectionFactory.createConnection(properties.getValue(MQ_USER_NAME), properties.getValue(MQ_PASSWORD));
 			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
 			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));			
 		} catch (JMSException e) {	

@@ -123,25 +123,11 @@ public final class Util {
 		return clientId;
 	}
 	
-
-	public static String getMsgCnrtlId(String v2Msg) {
-		String methodName = LoggingUtil.getMethodName();
-		String controlId = null;
-		if (StringUtils.isBlank(v2Msg)) {
-			logger.warn("{} - MessageControlId is blank", methodName);
-        } else {
-        	String[] v2DataLines = v2Msg.split("\n");
-			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
-			controlId = v2Segments[9];
-        }
-            return controlId;
-        
-	}
 	
     /**
      * The purpose of this method is to convert messageControlId to hexadecimal string for MQ processing.
      * Checks for messageControlId. If missing populates currentdatetime.
-     * Appends "00000000000000000000" to match replyQ corelationId
+     * Appends "0" to match replyQ corelationId(The corelationId must be string of 48 hexadecimal digit)
      * @param str
      * @return
      */
@@ -159,9 +145,22 @@ public final class Util {
             // convert int to hex, for decimal 97 hex 61
             hex.append(Integer.toHexString(decimal));
         }
-        return hex.toString()+"00000000000000000000";
+        //check the length of the hexstring
+        if(hex.length()<48) {
+        	int hexlength = 48-hex.length();
+        	  for (var i = 0; i < hexlength; i++) {
+        		  hex= hex.append("0");
+        	}
+        }
+        return hex.toString();
+        
     }
 	
+    
+    public static void main(String args[]) {
+    	String hex = convertStringToHex("202108");
+    	System.out.println(hex);
+    }
 	/**
 	 * @return datetime in 'yyyymmddhhmmss' format for file drops
 	 */
