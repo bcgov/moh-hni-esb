@@ -20,19 +20,13 @@ public enum ApplicationProperty {
 	VERSION("version"),
 	CERTS_ENDPOINT("certs-endpoint"),
 	PHARMANET_ENDPOINT("pharmanet-endpoint"),
-	HIBC_E45_ENDPOINT("hibc-e45-endpoint"),
-	HIBC_R15_ENDPOINT("hibc-r15-endpoint"),
-	HIBC_R50_ENDPOINT("hibc-r50-endpoint"),
 	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
 	FILE_DROPS_LOCATION("file-drops-location"),
 	MQ_HOST("mq.host"),
 	MQ_PORT("mq.port"),
 	MQ_QUEUEMANAGER("mq.queuemanager"),
 	MQ_CHANNEL("mq.channel"),
-
-
 	IS_AUDITS_ENABLED("audits.enabled");
-
 
 	// Key should be same as the key in application.properties
 	private String key;
