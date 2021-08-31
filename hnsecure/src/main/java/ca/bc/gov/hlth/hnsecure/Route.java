@@ -240,7 +240,7 @@ public class Route extends RouteBuilder {
             		.log("HIBC request message ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", hibcRequestQueue)))	           		        	
 	        		.to(hibcUrl).id("ToHIBCUrl")
-                    .log("Recieved response message from HIBC queue ::: ${body}")
+                    .log("Received response message from HIBC queue ::: ${body}")
                  
 	            // others sending to JMB
 	            .otherwise()
@@ -250,7 +250,7 @@ public class Route extends RouteBuilder {
             		.log("jmb request message for R32 ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	         		
             		.to(jmbUrl).id("ToJmbUrl")
-                    .log("Recieved response message for R32 ::: ${body}")
+                    .log("Received response message for R32 ::: ${body}")
                    
             	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
             	.wireTap("direct:audit")
@@ -387,10 +387,9 @@ public class Route extends RouteBuilder {
         	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
         	mqQueueConnectionFactory.createConnection(userName, password);
 			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));
-			
+			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));			
 		} catch (JMSException e) {	
-			logger.error("{} - MQ connection failed with the error : {}", LoggingUtil.getMethodName(), e.getLinkedException().getLocalizedMessage());			
+			logger.error("{} - MQ connection failed with the error : {}", methodName, e.getLinkedException().getLocalizedMessage());			
 		}
         getContext().addComponent("jmsComponent", jmsComponent);
 	}
@@ -405,8 +404,7 @@ public class Route extends RouteBuilder {
       
         mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
         try {
-        	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
-         
+        	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);         
         	mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
         	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
         	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
