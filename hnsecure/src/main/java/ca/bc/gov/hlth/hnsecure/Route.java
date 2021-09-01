@@ -95,22 +95,6 @@ public class Route extends RouteBuilder {
 	// PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.cert")
 	private String pharmanetCert;
-	/*
-	 * //MQ info
-	 * 
-	 * @PropertyInject(value = "mq.username") private String userName;
-	 * 
-	 * @PropertyInject(value = "mq.password") private String password;
-	 * 
-	 * @PropertyInject(value = "jmb.request.queue") private String requestQ;
-	 * 
-	 * @PropertyInject(value = "jmb.reply.queue") private String replyQ;
-	 * 
-	 * @PropertyInject(value = "hibc.request.queue") private String
-	 * hibcRequestQueue;
-	 * 
-	 * @PropertyInject(value = "hibc.reply.queue") private String hibcReplyQueue;
-	 */
 
 	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
