@@ -6,7 +6,7 @@ pipeline {
 		
 		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
 		
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the branch')
+        string(name: 'BRANCH_NAME', defaultValue: '4236_Overwrite-application-properties-with-environment-variable', description: 'Name of the branch')
 
         text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ if value is hnsesb-sample. If application with same name already exist, this job will delete that application')
 
