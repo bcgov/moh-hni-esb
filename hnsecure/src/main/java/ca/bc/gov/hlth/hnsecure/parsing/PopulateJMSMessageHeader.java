@@ -21,19 +21,16 @@ public class PopulateJMSMessageHeader {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateJMSMessageHeader.class);
 
 	@Handler
-	public void populateJMSReqHeader(Exchange exchange, String v2Message) {
+	public void populateJMSRequestHeader(Exchange exchange, String v2Message) {
 		final String methodName = LoggingUtil.getMethodName();
-		String msgControlId = Util.getMsgCnrtlId(v2Message);
+		String msgControlId = V2MessageUtil.getMsgCnrtlId(v2Message);
 		String hexString = Util.convertStringToHex(msgControlId);
 		
 		exchange.getIn().setHeader("JMSMessageID", hexString);
-		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexString);
-		
-		String jmsMsgId =(String) exchange.getIn().getHeader("JMSMessageID");
-		String jmsCorId =(String) exchange.getIn().getHeader("JMSCorrelationID");
-		
+		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexString);	
+						
 		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ", methodName, exchange.getExchangeId(),
-				jmsMsgId,jmsCorId);
+				hexString,hexString);
 	}
 
 }

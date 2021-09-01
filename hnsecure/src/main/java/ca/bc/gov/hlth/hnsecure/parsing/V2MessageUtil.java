@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+
 /**
  * Utility class for V2 Message related tasks.
  * 
@@ -168,6 +170,21 @@ public class V2MessageUtil {
 		}
 	
 		return msgId;
+	}
+	
+
+	public static String getMsgCnrtlId(String v2Msg) {
+		String methodName = LoggingUtil.getMethodName();
+		String controlId = null;
+		if (StringUtils.isBlank(v2Msg)) {
+			logger.warn("{} - MessageControlId is blank", methodName);
+        } else {
+        	String[] v2DataLines = v2Msg.split("\n");
+			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
+			controlId = v2Segments[9];
+        }
+            return controlId;
+        
 	}
 
 	/**

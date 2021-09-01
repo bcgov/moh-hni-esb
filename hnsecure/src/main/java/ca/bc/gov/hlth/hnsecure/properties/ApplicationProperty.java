@@ -1,5 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.properties;
 
+import org.apache.camel.PropertyInject;
+
 /**
  * Enum to map all the properties from application.properties 
  * @author pankaj.kathuria
@@ -26,8 +28,14 @@ public enum ApplicationProperty {
 	MQ_PORT("mq.port"),
 	MQ_QUEUEMANAGER("mq.queuemanager"),
 	MQ_CHANNEL("mq.channel"),
-	IS_AUDITS_ENABLED("audits.enabled");
-
+	IS_AUDITS_ENABLED("audits.enabled"),
+	MQ_USER_NAME("mq.username"),
+	MQ_PASSWORD("mq.password"),
+	JMB_REQUEST_QUEUE("jmb.request.queue"),
+	JMB_REPLY_QUEUE("jmb.reply.queue"),
+	HIBC_REQUEST_QUEUE("hibc.request.queue"),
+	HIBC_REPLY_QUEUE("hibc.reply.queue");
+	
 	// Key should be same as the key in application.properties
 	private String key;
 	
