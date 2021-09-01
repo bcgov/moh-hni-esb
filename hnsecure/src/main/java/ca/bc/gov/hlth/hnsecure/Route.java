@@ -3,6 +3,7 @@ package ca.bc.gov.hlth.hnsecure;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
@@ -219,7 +220,7 @@ public class Route extends RouteBuilder {
 				     .log("Received response from RTrans")
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 
-		            // sending message to HIBC for ELIG
+		        // sending message to HIBC for ELIG
 				.when(isMessageForHIBC)
 	                .log("Processing HIBC messages. Request Queue : {{hibc.request.queue}}, ReplyQ:{{hibc.reply.queue}}")
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
@@ -233,21 +234,23 @@ public class Route extends RouteBuilder {
 		            .wireTap("direct:audit").end()
                     .log("Received response message from HIBC queue ::: ${body}")
                  
-	            // others sending to JMB
-	            .otherwise()
-                    .log("Processing MQ Series. RequestQ : {{jmb.request.queue}}, ReplyQ:{{jmb.reply.queue}}")      
+    	        // sending to JMB
+                .when(exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualTo(R32))                
+                	.log("Processing MQ Series. RequestQ : {{jmb.request.queue}}, ReplyQ:{{jmb.reply.queue}}")
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1",properties.getValue(JMB_REQUEST_QUEUE))))  
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
-                		.endChoice()
             		.to(jmbUrl).id("ToJmbUrl")
-                    .log("Received response message for R32 ::: ${body}")
     	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
     	            .wireTap("direct:audit")
     	            	.endChoice()
+                    .log("Received response message for R32 ::: ${body}")
+                // handle unexpected message types     
+	            .otherwise()
+	            	.log("Found unexpected message of type: ${in.header.messageType}")      
                    
             .end(); 
 		      
