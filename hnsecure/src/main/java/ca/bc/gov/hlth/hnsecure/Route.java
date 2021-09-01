@@ -8,6 +8,7 @@ import static org.apache.camel.component.http.HttpMethods.POST;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.camel.CamelContext;
@@ -43,6 +44,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
@@ -266,8 +268,14 @@ public class Route extends RouteBuilder {
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
+    	Iterator<String> locations = getContext().getPropertiesComponent().getLocations().iterator();
+    	logger.info("Printing locations: --------------------->");
+    	while( locations.hasNext()) {
+			logger.info("Value of location is "+locations.next());
+		}
+    	logger.info("Value of sample property: "+properties.getValue(ApplicationProperty.TEST_PROP));
+    	logger.info("Value of sample property: "+properties.getValue(ApplicationProperty.VALID_RECIEVING_FACILITY));
     	loadValidator();
-    	
     }
     
 	/**
