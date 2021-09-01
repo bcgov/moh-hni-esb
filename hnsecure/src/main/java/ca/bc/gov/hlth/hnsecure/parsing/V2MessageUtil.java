@@ -16,8 +16,10 @@ public class V2MessageUtil {
 	private static final Logger logger = LoggerFactory.getLogger(V2MessageUtil.class);
 
 	public enum MessageType {
-		ZPN,	//PharmaNet
-		R03, R09, R15, E45, R50;
+		ZPN,			//PharmaNet
+		R03, R07, R09,	//RTrans
+		R32,
+		R15, E45, R50; 	//HIBC
 	}
 	
 	public enum SegmentType {

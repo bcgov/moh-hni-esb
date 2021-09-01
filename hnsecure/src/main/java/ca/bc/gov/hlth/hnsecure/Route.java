@@ -238,8 +238,12 @@ public class Route extends RouteBuilder {
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
             		.log("HIBC request message ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", hibcRequestQueue)))	           		        	
+            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", hibcRequestQueue)))
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit").end()
 	        		.to(hibcUrl).id("ToHIBCUrl")
+		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		            .wireTap("direct:audit").end()
                     .log("Received response message from HIBC queue ::: ${body}")
                  
 	            // others sending to JMB
@@ -249,15 +253,15 @@ public class Route extends RouteBuilder {
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
             		.setHeader("CamelJmsDestinationName", constant("queue:///HNST1.JMBT1R.HNST1.HNRT1?targetClient=1"))             		            		           		        	         		
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit")
+                		.endChoice()
             		.to(jmbUrl).id("ToJmbUrl")
                     .log("Received response message for R32 ::: ${body}")
+    	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+    	            .wireTap("direct:audit")
+    	            	.endChoice()
                    
-            	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-            	.wireTap("direct:audit")
-            		.endChoice()
-	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-	            .wireTap("direct:audit")
-	            	.endChoice()
             .end(); 
 		      
         from("direct:start").log("wireTap route")
