@@ -13,7 +13,6 @@ public enum ApplicationProperty {
 	ENDPOINT("endpoint"),
 	AUDIENCE("audience"),
 	SCOPES("scopes"),
-	VALID_V2_MSG_TYPES("valid-v2-message-types"),
 	ISSUER("issuer"),
 	VALID_RECIEVING_FACILITY("valid-receiving-facility"),
 	PROCESSING_DOMAIN("processing-domain"),
