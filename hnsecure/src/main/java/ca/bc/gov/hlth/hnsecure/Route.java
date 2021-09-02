@@ -39,6 +39,7 @@ import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransResponse;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -185,7 +186,8 @@ public class Route extends RouteBuilder {
 				     .log("Sending to RTrans")		            
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
 				     .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
-				     .log("Received response from RTrans")
+				     .setBody().method(new FormatRTransResponse()).id("FormatRTransResponse")
+				     .log("Received response from RTrans: ${body}")
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 
 		            // sending message to HIBC for ELIG
