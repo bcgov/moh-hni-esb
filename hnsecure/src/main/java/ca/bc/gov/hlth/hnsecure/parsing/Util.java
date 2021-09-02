@@ -1,7 +1,5 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
-
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -18,8 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
-import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import io.netty.util.internal.StringUtil;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -145,15 +141,8 @@ public final class Util {
             // convert int to hex, for decimal 97 hex 61
             hex.append(Integer.toHexString(decimal));
         }
-        //check the length of the hexstring
-        if(hex.length()<48) {
-        	int hexlength = 48-hex.length();
-        	  for (var i = 0; i < hexlength; i++) {
-        		  hex= hex.append("0");
-        	}
-        }
-        return hex.toString();
-        
+        //format the length of the hexstring to be 48 in length
+        return StringUtils.rightPad(hex.toString(), 48, '0');
     }
 	
     
