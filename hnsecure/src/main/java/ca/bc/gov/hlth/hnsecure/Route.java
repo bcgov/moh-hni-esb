@@ -13,10 +13,8 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.JMB_REPLY_Q
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.JMB_REQUEST_QUEUE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PASSWORD;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_USER_NAME;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
@@ -377,14 +375,9 @@ public class Route extends RouteBuilder {
 	protected void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
 		JmsComponent jmsComponent = new JmsComponent();
-        try {
-        	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
-        	mqQueueConnectionFactory.createConnection(properties.getValue(MQ_USER_NAME), properties.getValue(MQ_PASSWORD));
-			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-			logger.info("{} - MQ connection is done for the QMGR: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));			
-		} catch (JMSException e) {	
-			logger.error("{} - MQ connection failed with the error : {}", methodName, e.getLinkedException().getLocalizedMessage());			
-		}
+    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
+		jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
+		logger.info("{} - MQ connection is done for the MQ Manager: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));			
         getContext().addComponent("jmsComponent", jmsComponent);
 	}
     
