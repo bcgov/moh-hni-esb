@@ -13,10 +13,14 @@ import ca.bc.gov.hlth.hnsecure.test.TestMessages;
 public class FormatRTransResponseTest{
 
 	@Test
-	public void testParseV2MessageInfoE45() throws Exception {
+	public void testFormat_when_responseStartsWithMSH(){
 		String formatResponse = new FormatRTransResponse().format(TestMessages.MSG_R09_WITH_PREFIX);
 		assertEquals(TestMessages.MSG_R09, formatResponse);
 	}
-
-
+	
+	@Test
+	public void testFormat_when_responseNotStartsWithMSH(){
+		String formatResponse = new FormatRTransResponse().format(TestMessages.MSG_R09);
+		assertEquals(TestMessages.MSG_R09, formatResponse);
+	}
 }
