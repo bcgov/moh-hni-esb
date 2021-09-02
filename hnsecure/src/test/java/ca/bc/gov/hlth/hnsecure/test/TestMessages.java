@@ -19,6 +19,7 @@ public class TestMessages {
 			+ "HDR|||TRAININGAdmin\r\n" + "SFT|1.0||testorg^^orgid^^^MOH|1.0|barebones||\r\n"
 			+ "QPD|E45^^HNET0003|1|^^00000001^^^CANBC^XX^MOH|^^00000001^^^CANBC^XX^MOH|^^00000754^^^CANBC^XX^MOH|9020198746^^^CANBC^JHN^MOH||19421112||||||19980601||PVC^^HNET9909||\r\n"
 			+ "RCP|I|";
+	
 
 	/**
 	 * Sample R50^Z05 - Enroll Visa Subscriber without PHN
@@ -28,11 +29,18 @@ public class TestMessages {
 			+ "PID|||||||19990101|M\r\n"
 			+ "ZIA||20200801|||||||||||||Gordon^Tom^^^^^L|1102 hilda st^^^^^^^^^^^^^^^^^^^Victoria^BC^v8v2z3^^H~1102 hilda st^^^^^^^^^^^^^^^^^^^Victoria^BC^v8v2z3^^M||||||||S|AB\r\n"
 			+ "IN1||||||||6337109||||20210101|20221";
-
+	
 	public static String MSG_R09 = "MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
 			+ "ZHD|20191108082211|^^00000010|HNAIADMINISTRATION||||2.4\r\n" 
 			+ "QRD|||||||^RD||PSN\r\n"
 			+ "PID||^^^BC^PH|||||1989|M\r\n" + "ZIA|||||||||||||||branton\r\n";
+
+	public static String MSG_R09_WITH_PREFIX = "00000165MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
+			+ "ZHD|20191108082211|^^00000010|HNAIADMINISTRATION||||2.4\r\n" 
+			+ "QRD|||||||^RD||PSN\r\n"
+			+ "PID||^^^BC^PH|||||1989|M\r\n" + "ZIA|||||||||||||||branton\r\n";
+	
+
 
 	public static String R09_RESPONSE_MESSAGE = "MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
             + "MSA|AA|20191108082211|HJMB001ISUCCESSFULLY COMPLETED\r\n"
