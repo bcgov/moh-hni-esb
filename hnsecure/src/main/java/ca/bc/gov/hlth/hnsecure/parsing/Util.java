@@ -145,11 +145,6 @@ public final class Util {
         return StringUtils.rightPad(hex.toString(), 48, '0');
     }
 	
-    
-    public static void main(String args[]) {
-    	String hex = convertStringToHex("202108");
-    	System.out.println(hex);
-    }
 	/**
 	 * @return datetime in 'yyyymmddhhmmss' format for file drops
 	 */
