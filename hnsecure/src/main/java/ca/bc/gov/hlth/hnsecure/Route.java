@@ -105,13 +105,10 @@ public class Route extends RouteBuilder {
 		setupSSLContextPharmanetRegistry(getContext());
 
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
-		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
 		
 		String hibcUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
-		log.info("Using HIBC URL: " + hibcUrl);		
 		
 		String jmbUrl = String.format(MQ_URL_FORMAT, System.getenv("JMB_REQUEST_QUEUE"), System.getenv("JMB_REPLY_QUEUE"));
-		log.info("Using jmbUrl: " + jmbUrl);		
 						
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
