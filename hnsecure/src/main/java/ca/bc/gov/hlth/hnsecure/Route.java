@@ -183,12 +183,15 @@ public class Route extends RouteBuilder {
 				     .log("Message identified as RTrans message. Preparing message for RTrans.")
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 		             .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
-				     .log("Sending to RTrans")		            
+				     .log("Sending to RTrans")
+				     .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+	                 .wireTap("direct:audit").end()
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
 				     .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
 				     .setBody().method(new FormatRTransResponse()).id("FormatRTransResponse")
 				     .log("Received response from RTrans: ${body}")
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+				     .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+			         .wireTap("direct:audit").end()				     
 
 		            // sending message to HIBC for ELIG
 	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
