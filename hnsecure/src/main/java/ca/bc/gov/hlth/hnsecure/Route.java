@@ -79,6 +79,8 @@ public class Route extends RouteBuilder {
 	
 	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive";
 
+	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1";
+	
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
     private String pharmanetUri;
@@ -213,7 +215,7 @@ public class Route extends RouteBuilder {
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
             		.log("HIBC request message ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit").end()
 	        		.to(hibcUrl).id("ToHIBCUrl")
@@ -227,7 +229,7 @@ public class Route extends RouteBuilder {
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1",System.getenv("JMB_REQUEST_QUEUE"))))  
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT,System.getenv("JMB_REQUEST_QUEUE"))))  
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
             		.to(jmbUrl).id("ToJmbUrl")
@@ -360,7 +362,7 @@ public class Route extends RouteBuilder {
 	/**
 	 * Creates MQ connection and sets it on a JMS Component which is added to the camel context.
 	 */
-	protected void initMQ() {
+	private void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
 		JmsComponent jmsComponent = new JmsComponent();
     	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
@@ -374,7 +376,7 @@ public class Route extends RouteBuilder {
      * 
      * @return a {@link MQQueueConnectionFactory} factory
      */
-    public MQQueueConnectionFactory mqQueueConnectionFactory()  {
+    private MQQueueConnectionFactory mqQueueConnectionFactory()  {
 		final String methodName = LoggingUtil.getMethodName();
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
       
