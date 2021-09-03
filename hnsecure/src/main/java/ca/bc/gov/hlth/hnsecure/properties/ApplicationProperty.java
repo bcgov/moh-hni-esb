@@ -22,15 +22,7 @@ public enum ApplicationProperty {
 	PHARMANET_ENDPOINT("pharmanet-endpoint"),
 	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
 	FILE_DROPS_LOCATION("file-drops-location"),
-	MQ_HOST("mq.host"),
-	MQ_PORT("mq.port"),
-	MQ_QUEUEMANAGER("mq.queuemanager"),
-	MQ_CHANNEL("mq.channel"),
-	IS_AUDITS_ENABLED("audits.enabled"),
-	JMB_REQUEST_QUEUE("jmb.request.queue"),
-	JMB_REPLY_QUEUE("jmb.reply.queue"),
-	HIBC_REQUEST_QUEUE("hibc.request.queue"),
-	HIBC_REPLY_QUEUE("hibc.reply.queue");
+	IS_AUDITS_ENABLED("audits.enabled");
 	
 	// Key should be same as the key in application.properties
 	private String key;

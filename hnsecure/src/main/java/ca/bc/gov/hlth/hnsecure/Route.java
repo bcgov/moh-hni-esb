@@ -5,16 +5,8 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.JMB_REPLY_QUEUE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.JMB_REQUEST_QUEUE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
@@ -115,10 +107,10 @@ public class Route extends RouteBuilder {
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
 		
-		String hibcUrl = String.format(MQ_URL_FORMAT, properties.getValue(HIBC_REQUEST_QUEUE), properties.getValue(HIBC_REPLY_QUEUE));
+		String hibcUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
 		log.info("Using HIBC URL: " + hibcUrl);		
 		
-		String jmbUrl = String.format(MQ_URL_FORMAT, properties.getValue(JMB_REQUEST_QUEUE), properties.getValue(JMB_REPLY_QUEUE));
+		String jmbUrl = String.format(MQ_URL_FORMAT, System.getenv("JMB_REQUEST_QUEUE"), System.getenv("JMB_REPLY_QUEUE"));
 		log.info("Using jmbUrl: " + jmbUrl);		
 						
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
@@ -224,7 +216,7 @@ public class Route extends RouteBuilder {
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
             		.log("HIBC request message ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", properties.getValue(HIBC_REQUEST_QUEUE))))	           		        	
+            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1", System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit").end()
 	        		.to(hibcUrl).id("ToHIBCUrl")
@@ -238,7 +230,7 @@ public class Route extends RouteBuilder {
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1",properties.getValue(JMB_REQUEST_QUEUE))))  
+            		.setHeader("CamelJmsDestinationName", constant(String.format("queue:///%s?targetClient=1",System.getenv("JMB_REQUEST_QUEUE"))))  
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
             		.to(jmbUrl).id("ToJmbUrl")
@@ -366,8 +358,7 @@ public class Route extends RouteBuilder {
 			System.exit(0);
 		}
     	
-    }
-    
+    }    
 
 	/**
 	 * Creates MQ connection and sets it on a JMS Component which is added to the camel context.
@@ -377,26 +368,28 @@ public class Route extends RouteBuilder {
 		JmsComponent jmsComponent = new JmsComponent();
     	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
 		jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-		logger.info("{} - MQ connection is done for the MQ Manager: {}",methodName, properties.getValue(MQ_QUEUEMANAGER));			
         getContext().addComponent("jmsComponent", jmsComponent);
+		logger.info("{} - Added JMS Component to context with connection factory. {}",methodName);			
 	}
     
     /**
-     * Creates a connection factory and sets its connection properties.
+     * Creates a MQ connection factory and sets its connection properties.
      * 
      * @return a {@link MQQueueConnectionFactory} factory
      */
     public MQQueueConnectionFactory mqQueueConnectionFactory()  {
+		final String methodName = LoggingUtil.getMethodName();
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
       
-        mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
+        mqQueueConnectionFactory.setHostName(System.getenv("MQ_HOST"));
         try {
         	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);         
-        	mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
-        	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
-        	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
+        	mqQueueConnectionFactory.setChannel(System.getenv("MQ_CHANNEL"));
+        	mqQueueConnectionFactory.setPort(Integer.valueOf(System.getenv("MQ_PORT")));
+        	mqQueueConnectionFactory.setQueueManager(System.getenv("MQ_QUEUEMANAGER"));
+    		logger.debug("{} - MQ connection factory has been created.",methodName);			
         } catch (JMSException jmse) {
-        	 logger.error("{} - MQ connection factory initialization failed with the error : {}", LoggingUtil.getMethodName(), jmse.getMessage());       	
+        	 logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, jmse.getMessage());       	
         }
         return mqQueueConnectionFactory;
       }
