@@ -82,13 +82,13 @@ pipeline {
                             		sh 'false'
                             	}
                             	sh ('echo Cleaning objects for application: ${APP_NAME} starts:')
-								//openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
-								//openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning secret for application :  ${APP_NAME} ')
-								//openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning config map for application :  ${APP_NAME} ')
-								//openshift.selector("configmap", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("configmap", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
 							}
 						}
