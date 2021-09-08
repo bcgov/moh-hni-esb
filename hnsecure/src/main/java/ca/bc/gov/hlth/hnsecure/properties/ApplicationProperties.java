@@ -9,7 +9,6 @@ public class ApplicationProperties {
 	private Properties properties;
 	private static ApplicationProperties applicationProperties;
 	
-	
 	private ApplicationProperties() {
 		// 
 	}

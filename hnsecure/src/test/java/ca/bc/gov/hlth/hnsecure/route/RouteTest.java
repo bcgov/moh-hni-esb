@@ -30,18 +30,16 @@ public class RouteTest extends CamelTestSupport {
 			"}\n" +
 			"}]\n" +
 			"}";
-	
-	
 		
 	@Override
 	public boolean isUseAdviceWith() {
 		return true;
 	}
 
-	@Produce("direct:tap")// Cannot have multiple consumers for same endpoint. "direct:start" is being used for filedrops wiretap
+	@Produce("direct:testRouteStart")
 	private ProducerTemplate mockRouteStart;
 
-	@EndpointInject("mock:response")
+	@EndpointInject("mock:testRouteEnd")
 	private MockEndpoint responseEndpoint;
 
 	@EndpointInject("mock:validationExceptionResponse")
@@ -58,13 +56,12 @@ public class RouteTest extends CamelTestSupport {
 		
 		context.addRoutes(new Route());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
-			a.replaceFromWith("direct:tap");
+			a.replaceFromWith("direct:testRouteStart");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");
-			a.weaveById("ToRTrans").replace().to("mock:rtrans");
-			a.weaveById("ToJmbUrl").replace().to("mock:jmb");		
-			a.weaveById("completion").after().to("mock:response");
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
+			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
+			a.weaveById("completion").after().to("mock:testRouteEnd");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
 		});
 	}
@@ -73,16 +70,16 @@ public class RouteTest extends CamelTestSupport {
 	public void testSuccessfulRTransMessage() throws Exception {
 
 		context.start();
-	
+
 		// Set expectations
-		getMockEndpoint("mock:rtrans").expectedMessageCount(1);
+		getMockEndpoint("mock:rtransEndpoint").expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
 
 		// Send a message with header
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		// trigger route execution by sending input to route
-		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsgLocal, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r03JsonMsgLocal, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -95,7 +92,7 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:response").expectedMessageCount(1);
+		getMockEndpoint("mock:testRouteEnd").expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
 		// Not an ideal way to test if the code to set the exchangeId works, but the mock ResponseEndpoint doesn't
 		// return the updated ExchangeId even though it shows correctly in all logging.
@@ -110,7 +107,7 @@ public class RouteTest extends CamelTestSupport {
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		headers.put("X-Request-Id", customTransactionId);
 		// trigger route execution by sending input to route
-		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsgLocal, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r03JsonMsgLocal, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -141,7 +138,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.r03JsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r03JsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -170,7 +167,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:start", SamplesToSend.pnpJsonErrorMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.pnpJsonErrorMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
@@ -184,31 +181,12 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:pharmanet").expectedMessageCount(1);
+		getMockEndpoint("mock:pharmanetEndpoint").expectedMessageCount(1);
 		
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.pnpJsonMsg, headers);
-
-		// Verify our expectations were met
-		assertMockEndpointsSatisfied();
-
-		context.stop();
-	}
-	
-	@Test
-	public void testSuccessFullJMBMessage() throws Exception {
-
-		context.start();
-
-		// Set expectations
-		getMockEndpoint("mock:jmb").expectedMessageCount(1);
-		
-		// Send a message
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:tap", SamplesToSend.jmbJsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.pnpJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
