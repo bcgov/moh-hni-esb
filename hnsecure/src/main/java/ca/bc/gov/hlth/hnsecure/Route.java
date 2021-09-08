@@ -77,7 +77,7 @@ public class Route extends RouteBuilder {
 
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
 	
-	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive";
+	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive&allowAdditionalHeaders=JMS_IBM_MQMD_MsgId";
 
 	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1";
 	
@@ -211,7 +211,7 @@ public class Route extends RouteBuilder {
 
 		        // sending message to HIBC for ELIG
 				.when(isMessageForHIBC)
-	                .log("Processing HIBC messages. Request Queue : {{hibc.request.queue}}, ReplyQ:{{hibc.reply.queue}}")
+	                .log("Processing HIBC messages. Request Queue : ${sysenv.HIBC_REQUEST_QUEUE}, ReplyQ:${sysenv.HIBC_REPLY_QUEUE}")
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
             		.log("HIBC request message ::: ${body}")
@@ -225,11 +225,11 @@ public class Route extends RouteBuilder {
                  
     	        // sending to JMB
                 .when(exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualTo(R32))                
-                	.log("Processing MQ Series. RequestQ : {{jmb.request.queue}}, ReplyQ:{{jmb.reply.queue}}")
+                	.log("Processing MQ Series. RequestQ : ${sysenv.JMB_REQUEST_QUEUE}, ReplyQ:${sysenv.JMB_REPLY_QUEUE}")
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT,System.getenv("JMB_REQUEST_QUEUE"))))  
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("JMB_REQUEST_QUEUE"))))  
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
             		.to(jmbUrl).id("ToJmbUrl")
@@ -368,7 +368,7 @@ public class Route extends RouteBuilder {
     	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
 		jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
         getContext().addComponent("jmsComponent", jmsComponent);
-		logger.info("{} - Added JMS Component to context with connection factory. {}",methodName);			
+		logger.info("{} - Added JMS Component to context with connection factory. {}", methodName);			
 	}
     
     /**
@@ -386,7 +386,7 @@ public class Route extends RouteBuilder {
         	mqQueueConnectionFactory.setChannel(System.getenv("MQ_CHANNEL"));
         	mqQueueConnectionFactory.setPort(Integer.valueOf(System.getenv("MQ_PORT")));
         	mqQueueConnectionFactory.setQueueManager(System.getenv("MQ_QUEUEMANAGER"));
-    		logger.debug("{} - MQ connection factory has been created.",methodName);			
+    		logger.debug("{} - MQ connection factory has been created.", methodName);			
         } catch (JMSException jmse) {
         	 logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, jmse.getMessage());       	
         }

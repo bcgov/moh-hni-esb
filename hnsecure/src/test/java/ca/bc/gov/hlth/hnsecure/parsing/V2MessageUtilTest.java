@@ -148,4 +148,12 @@ public class V2MessageUtilTest {
 		assertEquals("CANBC", patientIdentifierSections[3]);
 		assertEquals("JHN", patientIdentifierSections[4]);
 	}
+	
+	@Test
+	public void testGetMsgId() {
+		String mshSegment =  "MSH|^~\\&|HNWEB|BC01000121|RAIGT-PRSN-DMGR|BC00001013|20170125122125|train96|R03|20170125122125|D|2.4||";
+		String actualValue = V2MessageUtil.getMsgId(mshSegment);
+		String expectedValue = "20170125122125";		
+		assertEquals(expectedValue, actualValue);;
+	}
 }

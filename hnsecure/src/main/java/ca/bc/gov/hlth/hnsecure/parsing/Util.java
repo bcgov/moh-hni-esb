@@ -130,10 +130,10 @@ public final class Util {
     public static String convertStringToHex(String str) {
     	//JMB validates msgControlId and returns error response for mandatory field.
     	//CorrelationId must be set to some value in order to avoid 'MQSeries failure"
-    	if(StringUtils.isBlank(str)) {
-    		str=getDateTime();
+    	if (StringUtils.isBlank(str)) {
+    		str = getDateTime();
     	}
-        StringBuffer hex = new StringBuffer();
+        StringBuilder hex = new StringBuilder();
         // loop chars one by one
         for (char temp : str.toCharArray()) {
             // convert char to int, for char `a` decimal 97
@@ -196,7 +196,7 @@ public final class Util {
 	/**
 	 * @param exchange
 	 * @return filename in the format
-	 *         {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
+	 * {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
 	 */
 	public static String buildFileName(String sendingFacility, String transactionId,
 			String msgType) {

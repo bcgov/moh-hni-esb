@@ -61,8 +61,9 @@ public class RouteTest extends CamelTestSupport {
 			a.replaceFromWith("direct:tap");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");	
-			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanet");
+			a.weaveById("ToRTrans").replace().to("mock:rtrans");
+			a.weaveById("ToJmbUrl").replace().to("mock:jmb");		
 			a.weaveById("completion").after().to("mock:response");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
 		});
@@ -74,7 +75,7 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 	
 		// Set expectations
-		getMockEndpoint("mock:response").expectedMessageCount(1);
+		getMockEndpoint("mock:rtrans").expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
 
 		// Send a message with header

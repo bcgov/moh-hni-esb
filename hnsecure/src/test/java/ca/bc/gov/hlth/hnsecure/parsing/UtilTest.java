@@ -33,24 +33,24 @@ public class UtilTest {
 	}
 	
 	@Test
-	public void testhexadecimallength_whenMgCntrlIdIsBlank() {
-	String hexa = Util.convertStringToHex(null);
-	assertEquals(48,hexa.length());
+	public void testConvertStringToHex_msgControlIdIsBlank() {
+		String hexa = Util.convertStringToHex(null);
+		assertEquals(48,hexa.length());
 	}
 	
 	@Test
-	public void testhexadecimallength_whenMgCntrlIdIsNotBlank() {
-	String hexaString = Util.convertStringToHex("20210831112325");
-	assertEquals(48,hexaString.length());
+	public void testConvertStringToHex_forLength_whenMgCntrlIdIsNotBlank() {
+		String hexaString = Util.convertStringToHex("20210831112325");
+		assertEquals(48, hexaString.length());
 	
-	String hexa = Util.convertStringToHex("202108");
-	assertEquals(48,hexa.length());
+		String hexa = Util.convertStringToHex("202108");
+		assertEquals(48, hexa.length());
 	}
 	
 	@Test
-	public void testhexadecimalString_whenMgCntrlIdIsNotBlank() {
-	String hexaString = Util.convertStringToHex("20210831112325");
-	assertEquals("323032313038333131313233323500000000000000000000", hexaString);
+	public void testConvertStringToHex_whenMgCntrlIdIsNotBlank() {
+		String hexaString = Util.convertStringToHex("20210831112325");
+		assertEquals("323032313038333131313233323500000000000000000000", hexaString);
 	
 	}
 	
