@@ -61,6 +61,7 @@ public class RouteTest extends CamelTestSupport {
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
 			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
 			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
+			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 			a.weaveById("completion").after().to("mock:testRouteEnd");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
 		});
@@ -187,6 +188,25 @@ public class RouteTest extends CamelTestSupport {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.pnpJsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullJMBMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:jmb").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.jmbJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
