@@ -1,43 +1,24 @@
-kind: List
 apiVersion: v1
-items:
-- kind: ImageStream
-  apiVersion: v1
-  metadata:
-    name: openshift-hnsesb-sample
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: openshift-hnsesb-sample-docker
-  spec:
-    strategy:
-      type: Docker
-    source:
-      type: Docker
-      dockerfile: |-
-        FROM adoptopenjdk:11-jre-hotspot
-        COPY /hnsecure/target/hni-esb.jar /tmp
-        WORKDIR /tmp
-        CMD ["java","-jar","hni-esb.jar"]
-      binary:
-        asFile: ROOT.war
-    output:
-      to:
-        kind: ImageStreamTag
-        name: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools/hnsesb:bc
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: openshift-hnsesb-sample
-  spec:
-    strategy:
-      type: JenkinsPipeline
-      jenkinsPipelineStrategy:
-        jenkinsfile: |-
-          node("maven") {
-            sh "git clone https://github.com/bcgov/moh-hni-esb.git ."
-            sh "mvn -B clean package"
-            sh "oc start-build -F openshift-hnsesb-sample-docker --from-file=target/ROOT.war"
-          }
-    triggers:
-    - type: ConfigChange
+kind: BuildConfig
+metadata:
+  #labels:
+  #  app: ${LABEL}
+  name: hnsesb-sample
+spec:
+  source:
+    type: Binary
+    binary: {}      
+  output:
+    to:
+      kind: "ImageStreamTag"
+      #name: "image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools/${IMAGE_STREAM_TAG}"
+      #name: "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:latest"
+      namespace: "c5839f-tools"
+      name: "hnsesb:hnsesb-ephimeral"
+  strategy:
+    type: Docker
+    dockerStrategy:
+      pullSecret:
+        name: docker-hub
+      # Find the image build instructions in ./Dockerfile
+      dockerfilePath: Dockerfile
