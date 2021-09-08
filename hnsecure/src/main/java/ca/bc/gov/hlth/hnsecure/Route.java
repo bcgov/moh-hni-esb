@@ -79,7 +79,7 @@ public class Route extends RouteBuilder {
 	
 	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive&allowAdditionalHeaders=JMS_IBM_MQMD_MsgId";
 
-	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1";
+	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1&&mdWriteEnabled=true";
 	
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
