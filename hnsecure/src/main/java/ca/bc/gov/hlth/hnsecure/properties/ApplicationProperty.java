@@ -24,7 +24,6 @@ public enum ApplicationProperty {
 	HIBC_R50_ENDPOINT("hibc-r50-endpoint"),
 	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
 	FILE_DROPS_LOCATION("file-drops-location"),
-	TEST_PROP("test-property"),
 	IS_AUDITS_ENABLED("audits.enabled");
 	
 

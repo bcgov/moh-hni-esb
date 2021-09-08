@@ -268,13 +268,6 @@ public class Route extends RouteBuilder {
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
-    	Iterator<String> locations = getContext().getPropertiesComponent().getLocations().iterator();
-    	logger.info("Printing locations: --------------------->");
-    	while( locations.hasNext()) {
-			logger.info("Value of location is "+locations.next());
-		}
-    	logger.info("Value of sample property: "+properties.getValue(ApplicationProperty.TEST_PROP));
-    	logger.info("Value of sample property: "+properties.getValue(ApplicationProperty.VALID_RECIEVING_FACILITY));
     	loadValidator();
     }
     
