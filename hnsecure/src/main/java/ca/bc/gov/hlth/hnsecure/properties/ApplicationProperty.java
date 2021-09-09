@@ -2,7 +2,6 @@ package ca.bc.gov.hlth.hnsecure.properties;
 
 /**
  * Enum to map all the properties from application.properties 
- * @author pankaj.kathuria
  *
  */
 public enum ApplicationProperty {
