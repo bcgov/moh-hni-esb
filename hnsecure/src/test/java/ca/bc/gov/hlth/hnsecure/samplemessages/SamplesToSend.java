@@ -52,6 +52,16 @@ public class SamplesToSend {
             "}\n" +
             "}]\n" +
             "}";
+    public static final String jmbJsonMsg = "{\n" +
+            "\"resourceType\": \"DocumentReference\",\n" +
+            "\"status\" : \"current\",\n" +
+            "\"content\": [{\n" +
+            "\"attachment\": {\n" +
+            "\"contentType\": \"x-application/hl7-v2+er7\",\n" +
+            "\"data\": \"TVNIfF5+XCZ8UkFJR1QtQ05ULVBSRFN8QkMwMDAwMTAxM3xITldlYnxCQzAxMDAwMDMwfDIwMjEwODI3MDkxNjM5fGFudS0yNi1ibGFua01zZ0NudHJsfFIzMnwyMDIxMDgyNzA5MTYzOXxEfDIuNA1NU0F8QUV8fEhKTUIwMDFFUmVxdWlyZWQgZmllbGQgbWlzc2luZzpNU0gvTWVzc2FnZUNvbnRyb2xJRA1FUlJ8Xl5eSEpNQjAwMUUmUmVxdWlyZWQgZmllbGQgbWlzc2luZzpNU0gvTWVzc2FnZUNvbnRyb2xJRA0=\"\n" +        
+            "}\n" +
+            "}]\n" +
+            "}";
     
     public static final String pnpJsonErrorMsg = "{\n" +
             "\"resourceType\": \"DocumentReference\",\n" +

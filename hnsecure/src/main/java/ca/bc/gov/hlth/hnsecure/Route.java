@@ -1,6 +1,10 @@
 package ca.bc.gov.hlth.hnsecure;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
+import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
@@ -10,12 +14,16 @@ import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
 
+import javax.jms.JMSException;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Predicate;
 import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
+import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.builder.PredicateBuilder;
 import org.apache.camel.support.jsse.KeyManagersParameters;
@@ -26,6 +34,10 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.mq.jms.MQQueueConnectionFactory;
+import com.ibm.msg.client.wmq.WMQConstants;
+
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
@@ -39,11 +51,12 @@ import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransResponse;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import ca.bc.gov.hlth.hnsecure.temporary.samplemessages.SampleMessages;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
 import ca.bc.gov.hlth.hnsecure.validation.Validator;
@@ -64,15 +77,20 @@ public class Route extends RouteBuilder {
 	private static final String BASIC = "Basic ";
 
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
+	
+	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive&allowAdditionalHeaders=JMS_IBM_MQMD_MsgId";
 
+	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1&&mdWriteEnabled=true";
+	
     // PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.uri")
     private String pharmanetUri;
-
+		
+	// PharmaNet Endpoint values
 	@PropertyInject(value = "pharmanet.cert")
-    private String pharmanetCert;
-    
-    private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
+	private String pharmanetCert;
+
+	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
     
     private static final String pharmanetUser = System.getenv("PHARMANET_USER");
 
@@ -85,19 +103,23 @@ public class Route extends RouteBuilder {
     @SuppressWarnings("unchecked")
 	@Override
     public void configure() {
-
+    	  	
     	init();
 		setupSSLContextPharmanetRegistry(getContext());
 
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
-		log.info("Using pharmaNetUrl: " + pharmaNetUrl);
-
+		
+		String hibcUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
+		
+		String jmbUrl = String.format(MQ_URL_FORMAT, System.getenv("JMB_REQUEST_QUEUE"), System.getenv("JMB_REPLY_QUEUE"));
+						
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
+		Predicate isMessageForHIBC = isMessageForHIBC();
 		
-    	onException(CustomHNSException.class, HttpHostConnectException.class)
+    	onException(CustomHNSException.class, HttpHostConnectException.class, JMSException.class,ExchangeTimedOutException.class)
         	.process(new ExceptionHandler())
         	.handled(true);
         
@@ -182,35 +204,50 @@ public class Route extends RouteBuilder {
 				     .log("Message identified as RTrans message. Preparing message for RTrans.")
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 		             .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
-				     .log("Sending to RTrans")		            
+				     .log("Sending to RTrans")
+				     .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+	                 .wireTap("direct:audit").end()
 				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
 				     .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
-				     .log("Received response from RTrans")
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+				     .setBody().method(new FormatRTransResponse()).id("FormatRTransResponse")
+				     .log("Received response from RTrans: ${body}")
+				     .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+			         .wireTap("direct:audit").end()				     
 
-		            // sending message to HIBC for ELIG
-	            .when(simple("${in.header.messageType} == {{hibc-r15-endpoint}} || ${in.header.messageType} == {{hibc-e45-endpoint}}"))
-	                .log("the HIBC endpoint(${in.header.messageType}) is reached and message will be dispatched to message queue(ELIG).")
-                    .setBody(simple(SampleMessages.e45ResponseMessage))
-	            
-	            // sending message to HIBC for ENROL
-	            .when(simple("${in.header.messageType} == {{hibc-r50-endpoint}}"))
-	                .log("the HIBC endpoint (${in.header.messageType}) is reached and message will be dispatched to message queue(ENROL).")
-                    .setBody(simple(SampleMessages.r50ResponseMessage))
+		        // sending message to HIBC for ELIG
+				.when(isMessageForHIBC)
+	                .log("Processing HIBC messages. Request Queue : ${sysenv.HIBC_REQUEST_QUEUE}, ReplyQ:${sysenv.HIBC_REPLY_QUEUE}")
+	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+                    .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
+            		.log("HIBC request message ::: ${body}")
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
+                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+                	.wireTap("direct:audit").end()
+	        		.to(hibcUrl).id("ToHIBCUrl")
+		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		            .wireTap("direct:audit").end()
+                    .log("Received response message from HIBC queue ::: ${body}")
                  
-	            // others sending to JMB
-	            .otherwise()
-                    .log("the JMB endpoint is reached and message will be dispatched to JMB!!")
+    	        // sending to JMB
+                .when(exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualTo(R32))                
+                	.log("Processing MQ Series. RequestQ : ${sysenv.JMB_REQUEST_QUEUE}, ReplyQ:${sysenv.JMB_REPLY_QUEUE}")
+                    .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+                    .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
+            		.log("jmb request message for R32 ::: ${body}")
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("JMB_REQUEST_QUEUE"))))  
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
-                		.endChoice()
-                    .setBody(simple(SampleMessages.R09_RESPONSE_MESSAGE))
-		            .log("Received response from JMB")
-		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-		            .wireTap("direct:audit")
-		            	.endChoice()
-            .end();        
-        
+            		.to(jmbUrl).id("ToJmbUrl")
+    	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+    	            .wireTap("direct:audit")
+    	            	.endChoice()
+                    .log("Received response message for R32 ::: ${body}")
+                // handle unexpected message types     
+	            .otherwise()
+	            	.log("Found unexpected message of type: ${in.header.messageType}")      
+                   
+            .end(); 
+		      
         from("direct:start").log("wireTap route")
         	.choice()
 				.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
@@ -224,6 +261,7 @@ public class Route extends RouteBuilder {
 			.end();
 		
     }
+
 
 	private String buildBasicToken(String username, String password) {
 		String usernamePassword = username + ":" + password;
@@ -257,15 +295,17 @@ public class Route extends RouteBuilder {
 	
     /**
      * This method performs the steps required before configuring the route
-     * 1. Set the transaction id generator for messages
-     * 2. Load application properties
-     * 3. Initializes the validator classes
+     * 1. Set the MQ configuration
+     * 2. Set the transaction id generator for messages
+     * 3. Load application properties
+     * 4. Initializes the validator classes
      */
-    private void init() {
+    private void init() {   	
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
+    	initMQ();
     	loadValidator();
     }
     
@@ -278,6 +318,18 @@ public class Route extends RouteBuilder {
 		Predicate isR07 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R07);	
 		Predicate isR09 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R09);	
 		Predicate pBuilder = PredicateBuilder.or(isR03, isR07, isR09);
+		return pBuilder;
+	}
+	
+	/**
+	 * This method is used to concat multiple Predicates for HIBC message types. It builds a compound 
+	 * predicate to be used in the Route.
+	 */
+	private Predicate isMessageForHIBC() {		
+		Predicate isE45 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(E45);	
+		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
+		Predicate isR50 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R50);	
+		Predicate pBuilder = PredicateBuilder.or(isR15, isE45, isR50);
 		return pBuilder;
 	}
 
@@ -309,5 +361,39 @@ public class Route extends RouteBuilder {
 			System.exit(0);
 		}
     	
-    }
+    }    
+
+	/**
+	 * Creates MQ connection and sets it on a JMS Component which is added to the camel context.
+	 */
+	private void initMQ() {
+		final String methodName = LoggingUtil.getMethodName();
+		JmsComponent jmsComponent = new JmsComponent();
+    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
+		jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
+        getContext().addComponent("jmsComponent", jmsComponent);
+		logger.info("{} - Added JMS Component to context with connection factory. {}", methodName);			
+	}
+    
+    /**
+     * Creates a MQ connection factory and sets its connection properties.
+     * 
+     * @return a {@link MQQueueConnectionFactory} factory
+     */
+    private MQQueueConnectionFactory mqQueueConnectionFactory()  {
+		final String methodName = LoggingUtil.getMethodName();
+        MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
+      
+        mqQueueConnectionFactory.setHostName(System.getenv("MQ_HOST"));
+        try {
+        	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);         
+        	mqQueueConnectionFactory.setChannel(System.getenv("MQ_CHANNEL"));
+        	mqQueueConnectionFactory.setPort(Integer.valueOf(System.getenv("MQ_PORT")));
+        	mqQueueConnectionFactory.setQueueManager(System.getenv("MQ_QUEUEMANAGER"));
+    		logger.debug("{} - MQ connection factory has been created.", methodName);			
+        } catch (JMSException jmse) {
+        	 logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, jmse.getMessage());       	
+        }
+        return mqQueueConnectionFactory;
+      }
 }

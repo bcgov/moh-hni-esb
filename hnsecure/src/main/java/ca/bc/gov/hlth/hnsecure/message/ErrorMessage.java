@@ -17,6 +17,11 @@ public enum ErrorMessage {
 	// Pharmanet error message
 	HL7Error_Msg_TransactionFormatError("PNPA004E", "Transaction format error detected"),
 	
+	// MQ series error message
+	HL7Error_Msg_MQ_NoResponseBeforeTimeout("MQSE001E", "No response before timeout"),
+	HL7Error_Msg_MQ_FailedToConnectQM("MQSE002E", "Unable to connect to queue manager"),
+	HL7Error_Msg_MQ_MQSeriesFailure("MQSE003E", "MQSeries failure"),
+	
 	// Custom error message so custom sequence added
 	CustomError_Msg_MissingAuthKey("HNSE001E", "No authorization key passed in request header."),
 	CustomError_Msg_InvalidAuthKey("HNSE002E", "Invalid token passed in request header."),

@@ -1,6 +1,9 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
+import javax.jms.JMSException;
+
 import org.apache.camel.Exchange;
+import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Processor;
 import org.apache.http.conn.HttpHostConnectException;
 import org.eclipse.jetty.http.HttpStatus;
@@ -59,7 +62,15 @@ public class ExceptionHandler implements Processor {
 		} else if (exception instanceof HttpHostConnectException) {
 			logger.info("{} - Failed to connect remote server. {}", LoggingUtil.getMethodName(), exception.getMessage());
 			handleException(exchange, ErrorMessage.CustomError_Msg_DownstreamConnectionFailed,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
-		} else {
+		} else if (exception instanceof JMSException) {
+			logger.info("{} - No response before timeout. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_NoResponseBeforeTimeout, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
+		} else if (exception instanceof ExchangeTimedOutException) {
+			logger.info("{} - MQSeries failure. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_MQSeriesFailure,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
+		} 
+		
+		else {
 			// Should not reach here as the specific exception should be handled above, add default error in case the specific handling not added
 			handleException(exchange, ErrorMessage.HL7Error_Msg_Unknown, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);
 		}

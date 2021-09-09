@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+
 /**
  * Utility class for V2 Message related tasks.
  * 
@@ -16,8 +18,10 @@ public class V2MessageUtil {
 	private static final Logger logger = LoggerFactory.getLogger(V2MessageUtil.class);
 
 	public enum MessageType {
-		ZPN,	//PharmaNet
-		R03, R09, R15, E45, R50;
+		ZPN,			//PharmaNet
+		R03, R07, R09,	//RTrans
+		R32,
+		R15, E45, R50; 	//HIBC
 	}
 	
 	public enum SegmentType {
@@ -159,13 +163,27 @@ public class V2MessageUtil {
 			return msgId;
 		}
 		
-	
 		String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 		if (hl7MessageAtt.length > 9) {
 			msgId = hl7MessageAtt[9];
 		}
 	
 		return msgId;
+	}
+	
+
+	public static String getMsgControlId(String v2Msg) {
+		String methodName = LoggingUtil.getMethodName();
+		String controlId = null;
+		if (StringUtils.isBlank(v2Msg)) {
+			logger.warn("{} - MessageControlId is blank", methodName);
+			return controlId;
+        }
+        String[] v2DataLines = v2Msg.split("\n");
+		String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
+		controlId = v2Segments[9];
+        
+         return controlId;        
 	}
 
 	/**

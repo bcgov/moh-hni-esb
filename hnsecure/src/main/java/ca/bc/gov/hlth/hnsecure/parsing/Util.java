@@ -119,6 +119,32 @@ public final class Util {
 		return clientId;
 	}
 	
+	
+    /**
+     * The purpose of this method is to convert messageControlId to hexadecimal string for MQ processing.
+     * Checks for messageControlId. If missing populates currentdatetime.
+     * Appends "0" to match replyQ corelationId(The corelationId must be string of 48 hexadecimal digit)
+     * @param str
+     * @return
+     */
+    public static String convertStringToHex(String str) {
+    	//JMB validates msgControlId and returns error response for mandatory field.
+    	//CorrelationId must be set to some value in order to avoid 'MQSeries failure"
+    	if (StringUtils.isBlank(str)) {
+    		str = getDateTime();
+    	}
+        StringBuilder hex = new StringBuilder();
+        // loop chars one by one
+        for (char temp : str.toCharArray()) {
+            // convert char to int, for char `a` decimal 97
+            int decimal = (int) temp;
+            // convert int to hex, for decimal 97 hex 61
+            hex.append(Integer.toHexString(decimal));
+        }
+        //format the length of the hexstring to be 48 in length
+        return StringUtils.rightPad(hex.toString(), 48, '0');
+    }
+	
 	/**
 	 * @return datetime in 'yyyymmddhhmmss' format for file drops
 	 */
@@ -170,7 +196,7 @@ public final class Util {
 	/**
 	 * @param exchange
 	 * @return filename in the format
-	 *         {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
+	 * {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
 	 */
 	public static String buildFileName(String sendingFacility, String transactionId,
 			String msgType) {
