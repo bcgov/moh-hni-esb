@@ -22,6 +22,7 @@ pipeline {
 		
 		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
 		
+		base64File(name: 'propertiesFile',  description: 'Application properties file.')
  		// Add the custom properties 
 		
     }
@@ -32,6 +33,7 @@ pipeline {
     	OC_JENKINS_USER = "deployer-c5839f-tools"
     	APP_NAME = lower()
     	IMAGE = "hnsesb"
+    	PROP_FILE_NAME = "application-external.properties"
     	TAG = "${APP_NAME}"
 		PROJECT = project()
 		PHARMANET_CREDENTIALS = credentials("${PHARMANET_CREDENTIALS}")
@@ -39,7 +41,8 @@ pipeline {
 		PHARMANET_PASSWORD ='$PHARMANET_CREDENTIALS_PSW'
 		PHARMANET_CERT = credentials("${PHARMANET_CERT_CREDENTIALS}")
 		PHARMANET_CERT_PASSWORD = '$PHARMANET_CERT_PSW'
-		PHARMANET_CERT_SECRET     = credentials("${PHARMANET_CERT_ID}")
+		PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
+		
 
 	}
     agent any
@@ -82,8 +85,10 @@ pipeline {
 								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
 								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
-								sh ('echo Cleaningsecret for application :  ${APP_NAME} ')
+								sh ('echo Cleaning secret for application :  ${APP_NAME} ')
 								openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+								sh ('echo Cleaning config map for application :  ${APP_NAME} ')
+								openshift.selector("configmap", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
 							}
 						}
@@ -101,30 +106,38 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
                             	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-                          	    def created = openshift.create( openshift.process( "c5839f-tools//hnsesb-ephemeral", 
-                          	     "-l", "app=${APP_NAME}",
-                          	     "-p", "APP_NAME=${APP_NAME}" ,
-                          	      "-p", "LABEL=${APP_NAME}" ,
-                          	      "-p", "PHARMANET_CERT_PASSWORD=${PHARMANET_CERT_PASSWORD}" ,
-                          	      "-p", "PHARMANET_USER=${PHARMANET_USER}" ,
-                          	      "-p", "PHARMANET_PASSWORD=${PHARMANET_PASSWORD}" ,
-                          	      "-p", "PHARMANET_CERT_BASE64=${PHARMANET_CERT_SECRET}" ,
-                          	      "-p", "DATABASE_NAME=${DATABASE_NAME}" ,
-                          	      "-p", "DATABASE_USER=${DATABASE_USER}" ,
-                          	      "-p", "DATABASE_PASSWORD=${DATABASE_PASSWORD}" ,
-                          	      "-p", "IMAGE=${IMAGE}",
-                          	      "-p", "TAG=${TAG}" 
-                          	      ) )
-                          	    echo "Describing the created object: "
-                          	    echo "Created ${created.count()} objects named: ${created.names()}"
-
-                          	    if("${created.count()}"!="9"){
-                          	    	echo "All the objects are not created. So cleaning up the residue and marking this process as fail"
-                          	    	openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
-                          	    	openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
-									openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
-                          	    	sh 'false'
-                          	    }
+                            	withFileParameter('propertiesFile'){
+	                            	// Creating config map
+									sh 'mv $propertiesFile $PROP_FILE_NAME'
+									openshift.raw("create configmap ${APP_NAME} --from-file=${PROP_FILE_NAME} --output=yaml")
+									openshift.raw("label configmap ${APP_NAME} app=${APP_NAME}")                            	
+	                            	
+	                            	// Creating config map
+	                          	    def created = openshift.create( openshift.process( "c5839f-tools//hnsesb-ephemeral", 
+	                          	     "-l", "app=${APP_NAME}",
+	                          	     "-p", "APP_NAME=${APP_NAME}" ,
+	                          	      "-p", "LABEL=${APP_NAME}" ,
+	                          	      "-p", "PHARMANET_CERT_PASSWORD=${PHARMANET_CERT_PASSWORD}" ,
+	                          	      "-p", "PHARMANET_USER=${PHARMANET_USER}" ,
+	                          	      "-p", "PHARMANET_PASSWORD=${PHARMANET_PASSWORD}" ,
+	                          	      "-p", "PHARMANET_CERT_BASE64=${PHARMANET_CERT_SECRET}" ,
+	                          	      "-p", "DATABASE_NAME=${DATABASE_NAME}" ,
+	                          	      "-p", "DATABASE_USER=${DATABASE_USER}" ,
+	                          	      "-p", "DATABASE_PASSWORD=${DATABASE_PASSWORD}" ,
+	                          	      "-p", "IMAGE=${IMAGE}",
+	                          	      "-p", "TAG=${TAG}" 
+	                          	      ) )
+	                          	    echo "Describing the created object: "
+	                          	    echo "Created ${created.count()} objects named: ${created.names()}"
+	
+	                          	    if("${created.count()}"!="9"){
+	                          	    	echo "All the objects are not created. So cleaning up the residue and marking this process as fail"
+	                          	    	openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+	                          	    	openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+										openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+	                          	    	sh 'false'
+	                          	    }
+	                          	}
 							}
 						}
 					}
@@ -167,6 +180,14 @@ pipeline {
                           	    def dcSelector = openshift.selector( "dc", "${APP_NAME}")
 								dcSelector.logs('-f')
 								def dStatus = dcSelector.object().status.phase
+								def latestDeploymentVersion = openshift.selector('dc',"${APP_NAME}").object().status.latestVersion
+								def rc = openshift.selector('rc', "${APP_NAME}-${latestDeploymentVersion}")
+								timeout (time: 10, unit: 'MINUTES') {
+									rc.untilEach(1){
+										def rcMap = it.object()
+										return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
+									}
+								}
 								echo "Deployment status ${dStatus}"
 							}
 						}

@@ -307,7 +307,6 @@ public class Route extends RouteBuilder {
     	properties = ApplicationProperties.getInstance();
     	initMQ();
     	loadValidator();
-    	
     }
     
 	/**

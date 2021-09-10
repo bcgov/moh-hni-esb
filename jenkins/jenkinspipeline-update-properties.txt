@@ -1,0 +1,110 @@
+// This pipeline is created to build the application using build config and then deploy using deployment config
+pipeline {
+	
+	parameters {
+		
+		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
+		
+        text(name: 'Application', defaultValue: 'hnsesb-dev', description: 'For hnsesb test environment, use test namespace and hnsesb-test as application name. ')
+
+		base64File(name: 'propertiesFile',  description: 'Application properties file.')
+		
+		// Add the custom properties 
+		
+    }
+
+
+	environment {
+		CLUSTER = "openshift"
+    	OC_JENKINS_USER = "deployer-c5839f-tools"
+		PROJECT = project()
+		APP_NAME = lower()
+		// hard code to hnsesb-dev and later change to same as app name. 
+		CONFIG_MAP = lower()
+		PROP_FILE_NAME = "application-external.properties"
+	}
+    agent any
+    stages {
+        stage('Verify if application exists') {
+            steps {
+            	script {
+                    openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+                                echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+                                echo "Checking if application exists"
+								def podObj =  openshift.selector( 'pods', [ app: '${APP_NAME}' ] ).object()
+								def podStatus =  podObj.status.phase
+                                if ("${podStatus}"=='Running'){
+                                	echo 'Application exists'
+                                }
+                                else {
+                                	echo "${APP_NAME} Application does not exist. So exiting the job"
+                                	sh 'False'
+                                }
+                            }
+                        }
+                    }            		
+            	}
+            }
+        }
+		stage('Delete the existing config map') {
+            steps {
+            	script {
+                    openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+								// Process will fail if it does not find object 	
+                            	openshift.selector('configMap/${CONFIG_MAP}').delete()
+								echo "Config map ${CONFIG_MAP} deleted."
+                            }
+                        }
+                    }            		
+            	}
+            }
+        }
+		stage('Create new config map and restart application') {
+            steps {
+            	script {
+                    openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+								withFileParameter('propertiesFile'){
+									sh 'mv $propertiesFile $PROP_FILE_NAME'
+									openshift.raw("create configmap ${CONFIG_MAP} --from-file=${PROP_FILE_NAME} --output=yaml")
+									openshift.raw("label configmap ${CONFIG_MAP} app=${APP_NAME}")
+									echo " Config map ${CONFIG_MAP} created"
+									
+									openshift.selector("dc", "${APP_NAME}").rollout().latest()
+									def latestDeploymentVersion = openshift.selector('dc',"${APP_NAME}").object().status.latestVersion
+									def rc = openshift.selector('rc', "${APP_NAME}-${latestDeploymentVersion}")
+									timeout (time: 10, unit: 'MINUTES') {
+										rc.untilEach(1){
+											def rcMap = it.object()
+											return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
+										}
+									}
+									echo 'Application restarted with new properties'
+								}
+                            }
+                        }
+                    }            		
+            	}
+            }
+        }
+    }
+    post {
+        always {
+            echo "Complete"
+        }
+    }
+}
+def project() {
+	def ns = "${NAMESPACE}"
+	return "c5839f-" + ns.toLowerCase()
+}
+
+def lower() {
+	def app = "${Application}"
+	return app.toLowerCase()
+}
