@@ -41,10 +41,10 @@ public class ProcessV2ToPharmaNetJson {
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();
-			String pharmacyId = exchange.getIn().getHeader(Util.HEADER_PHARMACY_ID,String.class);
-			String traceId = exchange.getIn().getHeader(Util.HEADER_TRACING_ID,String.class);			
-			logger.info("{} - TransactionId: {}, PharmacyId: {}, TraceNumber: {}, transactionUUID: {} ",
-					methodName, transactionUUID, pharmacyId, traceId, transactionUUID);
+			//String pharmacyId = exchange.getIn().getHeader(Util.HEADER_PHARMACY_ID,String.class);
+			//String traceId = exchange.getIn().getHeader(Util.HEADER_TRACING_ID,String.class);			
+			//logger.info("{} - TransactionId: {}, PharmacyId: {}, TraceNumber: {}, transactionUUID: {} ",
+					//methodName, transactionUUID, pharmacyId, traceId, transactionUUID);
 			return PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString();
 		}
 	}

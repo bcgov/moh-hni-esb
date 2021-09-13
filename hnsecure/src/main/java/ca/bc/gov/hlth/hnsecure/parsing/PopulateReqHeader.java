@@ -60,8 +60,8 @@ public class PopulateReqHeader {
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
 			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
 			// These are actual http message headers that get send to Pharmanet
-			hm.put(Util.HEADER_PHARMACY_ID, pharmacyID);
-			hm.put(Util.HEADER_TRACING_ID, traceID);
+			//hm.put(Util.HEADER_PHARMACY_ID, pharmacyID);
+			//hm.put(Util.HEADER_TRACING_ID, traceID);
 		}
 
 		logger.info("{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
