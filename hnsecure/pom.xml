@@ -22,6 +22,7 @@
     <postgresql-version>42.2.22</postgresql-version>
 	<hibernate-entitymanager-version>5.4.32.Final</hibernate-entitymanager-version>	    
 	<mockito-core-version>3.11.2</mockito-core-version>
+	<ibm-mq-allclient-version>9.2.3.0</ibm-mq-allclient-version>
   </properties>
   
   <repositories>
@@ -130,15 +131,17 @@
 	</dependency>  
 	
 	<!-- For JMS -->
+	
 	<dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-jms</artifactId>
-    	<scope>provided</scope>
+		<groupId>org.apache.camel</groupId>
+		<artifactId>camel-jms</artifactId>
 	</dependency>
+	
+	<!-- https://mvnrepository.com/artifact/com.ibm.mq/com.ibm.mq.allclient -->
 	<dependency>
-    	<groupId>com.ibm.mq</groupId>
-    	<artifactId>com.ibm.mq.allclient</artifactId>
-    	<version>9.1.0.5</version>
+		<groupId>com.ibm.mq</groupId>
+		<artifactId>com.ibm.mq.allclient</artifactId>
+		<version>${ibm-mq-allclient-version}</version>
 	</dependency>
 
 	<!--  Database -->
@@ -198,6 +201,16 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+			  <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>executable-jar</shadedClassifierName>
               <finalName>hni-esb</finalName>
