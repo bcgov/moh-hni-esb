@@ -57,12 +57,11 @@ public class PopulateReqHeader {
 		
 		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
 			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
-			String pharmacyId = V2MessageUtil.getPharmacyId(zcbSegment);
-			String traceId = V2MessageUtil.getTraceNumber(zcbSegment);
-			
-			//log PharmacyId and TraceId as per Pharmanet logging standards.		
-			logger.info("{} -  PharmacyId: {}, TraceId: {} ",
-					methodName, pharmacyId, traceId);
+			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
+			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
+			// These are actual http message headers that get send to Pharmanet
+			hm.put(Util.HEADER_PHARMACY_ID, pharmacyID);
+			hm.put(Util.HEADER_TRACING_ID, traceID);
 		}
 
 		logger.info("{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
