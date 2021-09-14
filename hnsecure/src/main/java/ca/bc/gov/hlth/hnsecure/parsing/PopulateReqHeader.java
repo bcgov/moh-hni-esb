@@ -42,6 +42,7 @@ public class PopulateReqHeader {
 	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message)
 			throws Exception {
 		final String methodName = LoggingUtil.getMethodName();
+		String transactionUUID = exchange.getExchangeId();
 		
 		// The following values are properties used to control workflow
 		// and do not actually belong in the message header (which is converted to http request headers)
@@ -58,13 +59,13 @@ public class PopulateReqHeader {
 		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
 			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
-			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
+			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);		
 			logger.info("{} - Transaction Id : {}, Pharmacy Id : {}, TraceId : {}",
-					methodName, exchange.getExchangeId(), pharmacyID , traceID);
+					methodName, transactionUUID, pharmacyID , traceID);
 		}
 
 		logger.info("{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
-				methodName, exchange.getExchangeId(), recApp , msgType, sendingFacility);
+				methodName, transactionUUID, recApp , msgType, sendingFacility);
 	}
 	
 	

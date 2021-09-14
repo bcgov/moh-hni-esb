@@ -40,7 +40,9 @@ public class ProcessV2ToPharmaNetJson {
 			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
 		} else {
 			String message = exchangeBody.toString();							
-			String transactionUUID = exchange.getExchangeId();			
+			String transactionUUID = exchange.getExchangeId();
+			logger.info("{} - transactionUUID: {}", methodName, transactionUUID);
+			
 			return PharmaNetJsonUtil.createJsonObjectPharmanet(transactionUUID, message).toString();
 		}
 	}
