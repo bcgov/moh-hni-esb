@@ -13,6 +13,10 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.bc.gov.hlth.hnsecure.HIBCRoute;
+import ca.bc.gov.hlth.hnsecure.JMBRoute;
+import ca.bc.gov.hlth.hnsecure.PharmanetRoute;
+import ca.bc.gov.hlth.hnsecure.RTransRoute;
 import ca.bc.gov.hlth.hnsecure.Route;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
@@ -55,15 +59,25 @@ public class RouteTest extends CamelTestSupport {
 		properties.injectProperties(pc.loadProperties());
 		
 		context.addRoutes(new Route());
+		context.addRoutes(new PharmanetRoute());
+		context.addRoutes(new RTransRoute());
+		context.addRoutes(new HIBCRoute());
+		context.addRoutes(new JMBRoute());
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:testRouteStart");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
-			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
-			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 			a.weaveById("completion").after().to("mock:testRouteEnd");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "pharmanet-route", a -> {
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "rtrans-route", a -> {
+			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "jmb-route", a -> {
+			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 		});
 	}
 

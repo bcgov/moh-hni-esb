@@ -13,6 +13,10 @@ public final class HnsEsbMainMethod {
         		"file:${env:HNSESB_HOME}/properties/application-external.properties;optional=true,"
         		+ "classpath:application.properties");
         main.configure().addRoutesBuilder(Route.class);
+        main.configure().addRoutesBuilder(PharmanetRoute.class);
+        main.configure().addRoutesBuilder(RTransRoute.class);
+        main.configure().addRoutesBuilder(HIBCRoute.class);
+        main.configure().addRoutesBuilder(JMBRoute.class);
         main.run(args);
     }
     

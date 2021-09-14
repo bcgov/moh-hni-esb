@@ -1,36 +1,24 @@
 package ca.bc.gov.hlth.hnsecure;
 
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
-import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
-import java.nio.charset.Charset;
-import java.util.Base64;
 import java.util.Properties;
 
 import javax.jms.JMSException;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Predicate;
-import org.apache.camel.PropertyInject;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.component.jms.JmsComponent;
-import org.apache.camel.spi.Registry;
 import org.apache.camel.support.builder.PredicateBuilder;
-import org.apache.camel.support.jsse.KeyManagersParameters;
-import org.apache.camel.support.jsse.KeyStoreParameters;
-import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +35,8 @@ import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
-import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
-import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
-import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransResponse;
-import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
-import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
@@ -68,34 +51,8 @@ public class Route extends RouteBuilder {
 	// HTTP Status codes for which the onCompletion logic will be invoked
 	private static final String HTTP_STATUS_CODES_COMPLETION_REGEX = "^[245][0-9][0-9]$";
 
-	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
-    
-    private static final String SSL_CONTEXT_PHARMANET = "ssl_context_pharmanet";
-
-	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
-
-	private static final String BASIC = "Basic ";
-
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
-	
-	private static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive&allowAdditionalHeaders=JMS_IBM_MQMD_MsgId";
 
-	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1&&mdWriteEnabled=true";
-	
-    // PharmaNet Endpoint values
-	@PropertyInject(value = "pharmanet.uri")
-    private String pharmanetUri;
-		
-	// PharmaNet Endpoint values
-	@PropertyInject(value = "pharmanet.cert")
-	private String pharmanetCert;
-
-	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
-    
-    private static final String pharmanetUser = System.getenv("PHARMANET_USER");
-
-    private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
-    
 	private static ApplicationProperties properties;
     
     private Validator validator;
@@ -105,15 +62,7 @@ public class Route extends RouteBuilder {
     public void configure() {
     	  	
     	init();
-		setupSSLContextPharmanetRegistry(getContext());
-
-		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
-		
-		String hibcUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
-		
-		String jmbUrl = String.format(MQ_URL_FORMAT, System.getenv("JMB_REQUEST_QUEUE"), System.getenv("JMB_REPLY_QUEUE"));
-						
-		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
+   
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
@@ -173,78 +122,29 @@ public class Route extends RouteBuilder {
         	// since the validator wouldn't have been run yet
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-            .log("The message receiving application is <${in.header.receivingApp}> and the message type is <${in.header.messageType}>.")
+            .log("The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")
              
             // Dispatch the message based on the receiving application code and message type
             .choice()
 	            // Sending message to PharmaNet
             	.when(exchangeProperty(Util.PROPERTY_RECEIVING_APP).isEqualTo(Util.RECEIVING_APP_PNP))
-                	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
-                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-                	.wireTap("direct:audit").end()
-            		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
-            		.setBody(body().regexReplaceAll("\r\n","\r"))
-                    .setBody().method(new Base64Encoder())
-		            .setBody().method(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
-		            .log("Sending to Pharamanet")
-		            .removeHeader(Exchange.HTTP_URI) //clean this header as it has been set in the "from" section
-		            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-		            .setHeader(CAMEL_HTTP_METHOD, POST)
-		            .setHeader(AUTHORIZATION, simple(basicToken))
-		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-		            .to(pharmaNetUrl).id("ToPharmaNet")
-		            .log("Received response from Pharmanet")
-		            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-		            .process(new PharmaNetPayloadExtractor())
-		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-		            .wireTap("direct:audit").end()
+            		.to("direct:pharmanet")
 		            
-		 	       //Sending message to RTrans     
+		 	    // Sending message to RTrans     
 				.when(isRTrans)
-				     .log("Message identified as RTrans message. Preparing message for RTrans.")
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
-		             .setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
-				     .log("Sending to RTrans")
-				     .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-	                 .wireTap("direct:audit").end()
-				     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")		            
-				     .to("{{rtrans.uri}}:{{rtrans.port}}").id("ToRTrans")
-				     .setBody().method(new FormatRTransResponse()).id("FormatRTransResponse")
-				     .log("Received response from RTrans: ${body}")
-				     .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-			         .wireTap("direct:audit").end()				     
+					.to("direct:rtrans")
 
 		        // sending message to HIBC for ELIG
 				.when(isMessageForHIBC)
-	                .log("Processing HIBC messages. Request Queue : ${sysenv.HIBC_REQUEST_QUEUE}, ReplyQ:${sysenv.HIBC_REPLY_QUEUE}")
-	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-                    .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
-            		.log("HIBC request message ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
-                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-                	.wireTap("direct:audit").end()
-	        		.to(hibcUrl).id("ToHIBCUrl")
-		            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-		            .wireTap("direct:audit").end()
-                    .log("Received response message from HIBC queue ::: ${body}")
+					.to("direct:hibc")
                  
     	        // sending to JMB
-                .when(exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualTo(R32))                
-                	.log("Processing MQ Series. RequestQ : ${sysenv.JMB_REQUEST_QUEUE}, ReplyQ:${sysenv.JMB_REPLY_QUEUE}")
-                    .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-                    .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
-            		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("JMB_REQUEST_QUEUE"))))  
-                	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-                	.wireTap("direct:audit")
-            		.to(jmbUrl).id("ToJmbUrl")
-    	            .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-    	            .wireTap("direct:audit")
-    	            	.endChoice()
-                    .log("Received response message for R32 ::: ${body}")
+                .when(exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualTo(R32))
+                	.to("direct:jmb")
+
                 // handle unexpected message types     
 	            .otherwise()
-	            	.log("Found unexpected message of type: ${in.header.messageType}")      
+	            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")      
                    
             .end(); 
 		      
@@ -258,40 +158,8 @@ public class Route extends RouteBuilder {
 			.choice()
 				.when(exchangeProperty(Util.PROPERTY_IS_AUDITS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE.toString()))
 					.process(new AuditProcessor()).log("wireTap audit done")				
-			.end();
-		
+			.end();		
     }
-
-
-	private String buildBasicToken(String username, String password) {
-		String usernamePassword = username + ":" + password;
-		Charset charSet = Charset.forName("UTF-8");
-		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(charSet)));
-		String basicToken = BASIC + token;
-		return basicToken;
-	}
-
-	private void setupSSLContextPharmanetRegistry(CamelContext camelContext) {
-		KeyStoreParameters ksp = new KeyStoreParameters();
-        ksp.setResource(pharmanetCert);
-        ksp.setPassword(pharmanetCertPassword);
-        ksp.setType(KEY_STORE_TYPE_PKCS12);
-
-        KeyManagersParameters kmp = new KeyManagersParameters();
-        kmp.setKeyStore(ksp);
-        kmp.setKeyPassword(pharmanetCertPassword);
-
-        SSLContextParameters sslContextParameters = new SSLContextParameters();
-        sslContextParameters.setKeyManagers(kmp);
-
-        HttpComponent httpComponent = camelContext.getComponent("https", HttpComponent.class);
-        //This is important to make your cert skip CN/Hostname checks
-        httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
-
-        Registry registry = camelContext.getRegistry();
-        registry.bind(SSL_CONTEXT_PHARMANET, sslContextParameters);
-        registry.bind("ssl2", new SSLContextParameters()); //TODO (dbarrett) If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this for now. Can be removed when another endpoint is configured with it's context. 
-	}
 	
     /**
      * This method performs the steps required before configuring the route
