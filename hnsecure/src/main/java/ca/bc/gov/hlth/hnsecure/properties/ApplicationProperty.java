@@ -20,7 +20,8 @@ public enum ApplicationProperty {
 	PHARMANET_ENDPOINT("pharmanet-endpoint"),
 	IS_FILEDDROPS_ENABLED("is-filedrops-enabled"),
 	FILE_DROPS_LOCATION("file-drops-location"),
-	IS_AUDITS_ENABLED("audits.enabled");
+	IS_AUDITS_ENABLED("audits.enabled"),
+	DATABASE_NAME("audits.db.name");
 	
 	// Key should be same as the key in application.properties
 	private String key;

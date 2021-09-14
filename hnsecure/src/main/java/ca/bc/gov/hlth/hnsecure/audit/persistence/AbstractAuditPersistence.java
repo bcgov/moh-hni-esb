@@ -48,7 +48,7 @@ public abstract class AbstractAuditPersistence {
        
     private static final String DATABASE_PORT = System.getenv("DATABASE_PORT");
        
-    private static final String DATABASE_NAME = System.getenv("DATABASE_NAME");
+    private static final String DATABASE_NAME = ApplicationProperties.getInstance().getValue(ApplicationProperty.DATABASE_NAME);
 
    	private static final String DATABASE_USERNAME = System.getenv("DATABASE_USERNAME");
 
