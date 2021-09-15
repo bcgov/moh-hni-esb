@@ -183,6 +183,26 @@ objects:
                 secretKeyRef:
                     name: hnsesb-secret
                     key: PHARMANET_USER                    
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: hni-postgresql
+                  key: database-user
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hni-postgresql
+                  key: database-password
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: hni-postgresql
+                  key: database-host
+            - name: DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: hni-postgresql
+                  key: database-port
           ports:
           - containerPort: 14885
             protocol: TCP
