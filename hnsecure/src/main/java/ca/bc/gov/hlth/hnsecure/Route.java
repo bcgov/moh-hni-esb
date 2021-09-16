@@ -1,12 +1,13 @@
 package ca.bc.gov.hlth.hnsecure;
 
+
+
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.net.MalformedURLException;
@@ -57,6 +58,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.validation.PayLoadValidator;
 import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
 import ca.bc.gov.hlth.hnsecure.validation.Validator;
@@ -82,20 +84,6 @@ public class Route extends RouteBuilder {
 
 	private static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1&&mdWriteEnabled=true";
 	
-    // PharmaNet Endpoint values
-	@PropertyInject(value = "pharmanet.uri")
-    private String pharmanetUri;
-		
-	// PharmaNet Endpoint values
-	@PropertyInject(value = "pharmanet.cert")
-	private String pharmanetCert;
-
-	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
-    
-    private static final String pharmanetUser = System.getenv("PHARMANET_USER");
-
-    private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
-    
 	private static ApplicationProperties properties;
     
     private Validator validator;
@@ -107,13 +95,14 @@ public class Route extends RouteBuilder {
     	init();
 		setupSSLContextPharmanetRegistry(getContext());
 
-		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
+		String pharmaNetUrl = String.format(properties.getValue(PHARMANET_URI)+ "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, 
+				properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));
 		
-		String hibcUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
+		String hibcUrl = String.format(MQ_URL_FORMAT, properties.getValue(HIBC_REQUEST_QUEUE), properties.getValue(HIBC_REPLY_QUEUE));
 		
-		String jmbUrl = String.format(MQ_URL_FORMAT, System.getenv("JMB_REQUEST_QUEUE"), System.getenv("JMB_REPLY_QUEUE"));
+		String jmbUrl = String.format(MQ_URL_FORMAT, properties.getValue(JMB_REQUEST_QUEUE), properties.getValue(HIBC_REPLY_QUEUE));
 						
-		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
+		String basicToken = buildBasicToken(properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));
 		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
@@ -220,7 +209,7 @@ public class Route extends RouteBuilder {
 	                .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
             		.log("HIBC request message ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, properties.getValue(HIBC_REQUEST_QUEUE))))	           		        	
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit").end()
 	        		.to(hibcUrl).id("ToHIBCUrl")
@@ -234,7 +223,7 @@ public class Route extends RouteBuilder {
                     .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
                     .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeader")
             		.log("jmb request message for R32 ::: ${body}")
-            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("JMB_REQUEST_QUEUE"))))  
+            		.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, properties.getValue(JMB_REQUEST_QUEUE))))  
                 	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
                 	.wireTap("direct:audit")
             		.to(jmbUrl).id("ToJmbUrl")
@@ -273,13 +262,13 @@ public class Route extends RouteBuilder {
 
 	private void setupSSLContextPharmanetRegistry(CamelContext camelContext) {
 		KeyStoreParameters ksp = new KeyStoreParameters();
-        ksp.setResource(pharmanetCert);
-        ksp.setPassword(pharmanetCertPassword);
+        ksp.setResource(properties.getValue(PHARMANET_CERT));
+        ksp.setPassword(properties.getValue(PHARMANET_CERT_PASSWORD));
         ksp.setType(KEY_STORE_TYPE_PKCS12);
 
         KeyManagersParameters kmp = new KeyManagersParameters();
         kmp.setKeyStore(ksp);
-        kmp.setKeyPassword(pharmanetCertPassword);
+        kmp.setKeyPassword(properties.getValue(PHARMANET_CERT_PASSWORD));
 
         SSLContextParameters sslContextParameters = new SSLContextParameters();
         sslContextParameters.setKeyManagers(kmp);
@@ -384,12 +373,12 @@ public class Route extends RouteBuilder {
 		final String methodName = LoggingUtil.getMethodName();
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
       
-        mqQueueConnectionFactory.setHostName(System.getenv("MQ_HOST"));
+        mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
         try {
         	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);         
-        	mqQueueConnectionFactory.setChannel(System.getenv("MQ_CHANNEL"));
-        	mqQueueConnectionFactory.setPort(Integer.valueOf(System.getenv("MQ_PORT")));
-        	mqQueueConnectionFactory.setQueueManager(System.getenv("MQ_QUEUEMANAGER"));
+        	mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
+        	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
+        	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
     		logger.debug("{} - MQ connection factory has been created.", methodName);			
         } catch (JMSException jmse) {
         	 logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, jmse.getMessage());       	
