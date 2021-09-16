@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
-import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 /**
  * Purpose of this bean is to remove byte count prefix before rtrans response

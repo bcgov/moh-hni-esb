@@ -48,6 +48,7 @@ import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 public class Route extends RouteBuilder {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Route.class);
+
 	// HTTP Status codes for which the onCompletion logic will be invoked
 	private static final String HTTP_STATUS_CODES_COMPLETION_REGEX = "^[245][0-9][0-9]$";
 
@@ -82,7 +83,8 @@ public class Route extends RouteBuilder {
 			// This route is only invoked when the original route is complete as a kind
 			// of completion callback.The onCompletion method is called once per route execution.
 			// Making it global will generate two response file drops.
-			.onCompletion().modeBeforeConsumer().onWhen(header(Exchange.HTTP_RESPONSE_CODE).regex(HTTP_STATUS_CODES_COMPLETION_REGEX)).id("Completion")
+        	.onCompletion().modeBeforeConsumer().onWhen(isRouteComplete()).id("Completion")
+        
 				// create filedrops if enabled
 		    	.choice().when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
 		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
@@ -144,9 +146,10 @@ public class Route extends RouteBuilder {
 
                 // handle unexpected message types     
 	            .otherwise()
-	            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")      
-                   
-            .end(); 
+	            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")                     
+            .end()
+            // Explicitly mark this Route as complete so we know to invoke the onCompletion() handler
+            .setProperty(Util.PROPERTY_ROUTE_COMPLETE).simple(Boolean.TRUE.toString());
 		      
         from("direct:start").log("wireTap route")
         	.choice()
@@ -199,6 +202,16 @@ public class Route extends RouteBuilder {
 		Predicate isR50 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R50);	
 		Predicate pBuilder = PredicateBuilder.or(isR15, isE45, isR50);
 		return pBuilder;
+	}
+	
+	/**
+	 * Checks that the main Route is complete and that the status code is acceptable.
+	 * @return
+	 */
+	private Predicate isRouteComplete() {
+		Predicate isCompletionStatusCode = header(Exchange.HTTP_RESPONSE_CODE).regex(HTTP_STATUS_CODES_COMPLETION_REGEX);
+		Predicate isMainRouteExecuted = exchangeProperty(Util.PROPERTY_ROUTE_COMPLETE).isEqualToIgnoreCase(Boolean.TRUE);
+		return PredicateBuilder.and(isMainRouteExecuted, isCompletionStatusCode);
 	}
 
     

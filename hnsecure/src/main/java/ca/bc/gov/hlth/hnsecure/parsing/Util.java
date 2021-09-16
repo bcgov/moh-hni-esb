@@ -43,11 +43,13 @@ public final class Util {
 
 	public static final String PROPERTY_IS_AUDITS_ENABLED = "isAuditsEnabled";
 	public static final String PROPERTY_IS_FILE_DROPS_ENABLED = "isFileDropsEnabled";
+	public static final String PROPERTY_MESSAGE_PROTOCOL = "messageProtocol";
 	public static final String PROPERTY_MESSAGE_TYPE = "messageType";
 	public static final String PROPERTY_RECEIVING_APP = "receivingApp";
 	public static final String PROPERTY_SENDING_FACILITY = "sendingFacility";	
 	public static final String PROPERTY_TRANSACTION_EVENT_TYPE = "eventType";
 	public static final String PROPERTY_TRANSACTION_EVENT_TIME = "eventTime";
+	public static final String PROPERTY_ROUTE_COMPLETE = "HNSECURE_ROUTE_COMPLETE";
 
 	public static final String HEADER_CONTENT_TYPE = "Content-Type";
 	public static final String HEADER_PHARMACY_ID = "pharmacyId";
@@ -61,6 +63,9 @@ public final class Util {
     public static final String R03 = "R03";
 	public static final String R07 = "R07";
 	public static final String R09 = "R09";
+	
+	public static final String PROTOCOL_HTTP = "HTTP";
+	public static final String PROTOCOL_MQ = "MQ";	
 
 	/**
 	 * return a Base64 encoding string

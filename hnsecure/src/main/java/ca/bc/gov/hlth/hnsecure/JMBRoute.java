@@ -20,10 +20,10 @@ public class JMBRoute extends RouteBuilder implements MQRoute {
 			.log("jmb request message for R32 ::: ${body}")
 			.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("JMB_REQUEST_QUEUE"))))  
 	    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-	    	.wireTap("direct:audit")
+	    	.wireTap("direct:audit").end()
 			.to(jmbUrl).id("ToJmbUrl")
 	        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-	        .wireTap("direct:audit")
+	        .wireTap("direct:audit").end()
 	        .log("Received response message for R32 ::: ${body}");
 	}
 	

@@ -76,6 +76,12 @@ public class RouteTest extends CamelTestSupport {
 		AdviceWithRouteBuilder.adviceWith(context, "rtrans-route", a -> {
 			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
 		});
+		AdviceWithRouteBuilder.adviceWith(context, "hibc-http-route", a -> {
+			a.weaveById("ToHibcHttpUrl").replace().to("mock:hibcHttp");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "hibc-mq-route", a -> {
+			a.weaveById("ToHibcMqUrl").replace().to("mock:hibcMq");
+		});
 		AdviceWithRouteBuilder.adviceWith(context, "jmb-route", a -> {
 			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 		});
@@ -202,6 +208,25 @@ public class RouteTest extends CamelTestSupport {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.pnpJsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullHIBCMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:hibcMq").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.hibcJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
