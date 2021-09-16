@@ -1,5 +1,11 @@
 // This pipeline is created to build the application using build config and then deploy using deployment config
 pipeline {
+	parameters {
+		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
+		string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the branch')
+		
+	}
+	
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
@@ -44,10 +50,18 @@ pipeline {
 								echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
 								def buildRun = bcSelector.startBuild("--from-dir",".")
 								buildRun.logs('-f')
-								def bStatus = buildRun.object().status.phase
+								
+								def builds = bcSelector.related('builds')
+								
+								timeout (time: 2, unit: 'MINUTES') {
+									builds.untilEach(1){
+										return it.object().status.phase == "Complete"
+									}
+								}
 								// If build is complete add tagging
-								if("Complete"==bStatus){
-									echo "Build status is ${bStatus}.  Image created is ${IMAGE_STREAM}"
+								def buildStatus = buildRun.object().status.phase
+								if("Complete"==buildStatus){
+									echo "Build status is ${buildStatus}.  Image created is ${IMAGE_STREAM}"
 									echo "Tagging the build with build tag: ${BUILD_TAG}"
 									openshift.tag( "${IMAGE_STREAM}", "${BUILD_NAME}:${BUILD_TAG}")
 								}
@@ -56,6 +70,21 @@ pipeline {
 									echo "Build status is ${bStatus}."
 									sh 'false'
 								}
+								
+								// Check deployment status
+								def dcSelector = openshift.selector( "dc", "${BUILD_NAME}")
+								dcSelector.logs('-f')
+								def dStatus = dcSelector.object().status.phase
+								def latestDeploymentVersion = openshift.selector('dc',"${BUILD_NAME}").object().status.latestVersion
+								def rc = openshift.selector('rc', "${BUILD_NAME}-${latestDeploymentVersion}")
+								timeout (time: 2, unit: 'MINUTES') {
+									rc.untilEach(1){
+										def rcMap = it.object()
+										return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
+									}
+								}
+								echo "Deployment status ${dStatus}"
+								
 							}
 						}
 					}
@@ -75,5 +104,5 @@ def project() {
 }
 def appName() {
 	def ns = "${NAMESPACE}"
-	return "hnsesb-" + ns.toLowerCase() 
+	return "hnsesb-" + ns.toLowerCase()
 }
