@@ -69,7 +69,7 @@ public class PharmanetRoute extends RouteBuilder{
 	        .setHeader(AUTHORIZATION, simple(basicToken))
 	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	        .to(pharmaNetUrl).id("ToPharmaNet")
-	        .log("Received response from Pharmanet")
+	        .log("Received response from Pharmanet:${headers}")
 	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	        .process(new PharmaNetPayloadExtractor())
 	        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
