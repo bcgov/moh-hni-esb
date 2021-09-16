@@ -43,9 +43,7 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		// Phamanet message only cares the receiving application value. If it is PNP,
 		// the message should be delivery to phamanet endpoint.
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "ZPN");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "PNP");
-		mock.expectedHeaderReceived(Util.HEADER_PHARMACY_ID, "BCXX000024");
-		mock.expectedHeaderReceived(Util.HEADER_TRACING_ID, "18");
+		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "PNP");	
 		template.sendBody("direct:sampleHNSecure", MSG_PHARMANET);
 		assertMockEndpointsSatisfied();
 	}
