@@ -12,9 +12,9 @@ pipeline {
 
 		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
-		string(name: 'DATABASE_NAME', defaultValue: 'hnsesb-sample', description: 'Define database name for auditing database')
+		string(name: 'DATABASE_NAME', defaultValue: 'hni', description: 'Define database name for auditing database')
 		
-		string(name: 'DATABASE_USER', defaultValue: 'sample-user', description: 'Define database user for auditing database')
+		string(name: 'DATABASE_USER', defaultValue: 'hni-user', description: 'Define database user for auditing database')
 		
 		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
 		
@@ -73,13 +73,13 @@ pipeline {
                             		sh 'false'
                             	}
                             	sh ('echo Cleaning objects for application: ${APP_NAME} starts:')
-								//openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning network policy for application :  ${APP_NAME} ')
-								//openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning secret for application :  ${APP_NAME} ')
-								//openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("secret", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning config map for application :  ${APP_NAME} ')
-								//openshift.selector("configmap", [ app : "${APP_NAME}" ]).delete()
+								openshift.selector("configmap", [ app : "${APP_NAME}" ]).delete()
 								sh ('echo Cleaning objects for application: ${APP_NAME} complete.')  
 							}
 						}
