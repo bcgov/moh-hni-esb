@@ -16,7 +16,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 public class HIBCRoute extends BaseRoute {
 
-	@PropertyInject(value = "hibc.uri")
+	@PropertyInject(value = "hibc.http.uri")
     private String hibcUri;
 
 	@Override
