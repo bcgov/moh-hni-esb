@@ -2,6 +2,13 @@ package ca.bc.gov.hlth.hnsecure;
 
 import org.apache.camel.main.Main;
 
+import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
+import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
+import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
+import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
+import ca.bc.gov.hlth.hnsecure.routes.Route;
+
 /**
  * Main class that boots the Camel application.
  */
@@ -17,6 +24,7 @@ public final class HnsEsbMainMethod {
         main.configure().addRoutesBuilder(RTransRoute.class);
         main.configure().addRoutesBuilder(HIBCRoute.class);
         main.configure().addRoutesBuilder(JMBRoute.class);
+        main.configure().addRoutesBuilder(HandleResponseRoute.class);
         main.run(args);
     }
     

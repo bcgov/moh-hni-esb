@@ -13,13 +13,14 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
 
-import ca.bc.gov.hlth.hnsecure.HIBCRoute;
-import ca.bc.gov.hlth.hnsecure.JMBRoute;
-import ca.bc.gov.hlth.hnsecure.PharmanetRoute;
-import ca.bc.gov.hlth.hnsecure.RTransRoute;
-import ca.bc.gov.hlth.hnsecure.Route;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
+import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
+import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
+import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
+import ca.bc.gov.hlth.hnsecure.routes.Route;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 public class RouteTest extends CamelTestSupport {
@@ -58,17 +59,21 @@ public class RouteTest extends CamelTestSupport {
 		ApplicationProperties properties = ApplicationProperties.getInstance() ;
 		properties.injectProperties(pc.loadProperties());
 		
+		// Manually add the Routes to the context for testing
 		context.addRoutes(new Route());
 		context.addRoutes(new PharmanetRoute());
 		context.addRoutes(new RTransRoute());
 		context.addRoutes(new HIBCRoute());
 		context.addRoutes(new JMBRoute());
+		context.addRoutes(new HandleResponseRoute());
+		
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:testRouteStart");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("completion").after().to("mock:testRouteEnd");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
+			//a.weaveById("HandleResponse").after().to("mock:testRouteEnd");
+			a.weaveById("Completion2").after().to("mock:testRouteEnd");
 		});
 		AdviceWithRouteBuilder.adviceWith(context, "pharmanet-route", a -> {
 			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
@@ -93,7 +98,7 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:rtransEndpoint").expectedMessageCount(1);
+		responseEndpoint.expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
 
 		// Send a message with header
@@ -113,8 +118,9 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:testRouteEnd").expectedMessageCount(1);
+		responseEndpoint.expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
+		
 		// Not an ideal way to test if the code to set the exchangeId works, but the mock ResponseEndpoint doesn't
 		// return the updated ExchangeId even though it shows correctly in all logging.
 		// i.e. assertEquals("test-request-id", responseEndpoint.getReceivedExchanges().get(0).getExchangeId()) fails

@@ -1,17 +1,17 @@
-package ca.bc.gov.hlth.hnsecure;
-
-import org.apache.camel.builder.RouteBuilder;
+package ca.bc.gov.hlth.hnsecure.routes;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 
-public class JMBRoute extends RouteBuilder implements MQRoute {
+public class JMBRoute extends BaseRoute {
 
 	@Override
 	public void configure() throws Exception {
 		
 		String jmbUrl = String.format(MQ_URL_FORMAT, System.getenv("JMB_REQUEST_QUEUE"), System.getenv("JMB_REPLY_QUEUE"));
+		
+		handleExceptions();
 
 		from("direct:jmb").routeId("jmb-route")
 	    	.log("Processing MQ Series. RequestQ : ${sysenv.JMB_REQUEST_QUEUE}, ReplyQ:${sysenv.JMB_REPLY_QUEUE}")

@@ -1,10 +1,9 @@
-package ca.bc.gov.hlth.hnsecure;
+package ca.bc.gov.hlth.hnsecure.routes;
 
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.PropertyInject;
-import org.apache.camel.builder.RouteBuilder;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
@@ -15,7 +14,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
-public class HIBCRoute extends RouteBuilder implements MQRoute {
+public class HIBCRoute extends BaseRoute {
 
 	@PropertyInject(value = "hibc.uri")
     private String hibcUri;
@@ -26,6 +25,8 @@ public class HIBCRoute extends RouteBuilder implements MQRoute {
 		String hibcMqUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
 		
 		String hibcHttpUrl = String.format(hibcUri + "?bridgeEndpoint=true");
+		
+		handleExceptions();
 
 		from("direct:hibc").routeId("hibc-route")
 			.process(new ProtocolEvaluator()).id("ProtocolEvaluator")
@@ -45,8 +46,8 @@ public class HIBCRoute extends RouteBuilder implements MQRoute {
 	     	.log("Sending to HIBC")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	     	.wireTap("direct:audit").end()
-	     	.setBody().method(new Base64Encoder()).id("Base64Encoder")
-            .setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
+	     	.setBody().method(new Base64Encoder()).id("HIBCBase64Encoder")
+            .setBody().method(new ProcessV2ToJson()).id("HIBCProcessV2ToJson")
 	     	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 	        .setHeader("CamelHttpMethod", POST)
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")

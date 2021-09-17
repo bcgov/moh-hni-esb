@@ -1,4 +1,4 @@
-package ca.bc.gov.hlth.hnsecure;
+package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static org.apache.camel.component.http.HttpMethods.POST;
@@ -9,7 +9,6 @@ import java.util.Base64;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.PropertyInject;
-import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.KeyManagersParameters;
@@ -23,7 +22,7 @@ import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 
-public class PharmanetRoute extends RouteBuilder{
+public class PharmanetRoute extends BaseRoute {
 	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
 	
 	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
@@ -53,6 +52,8 @@ public class PharmanetRoute extends RouteBuilder{
 		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
 						
 		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
+
+		handleExceptions();
 		
 		from("direct:pharmanet").routeId("pharmanet-route")
 	    	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")

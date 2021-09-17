@@ -1,4 +1,4 @@
-package ca.bc.gov.hlth.hnsecure;
+package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
@@ -12,13 +12,9 @@ import java.util.Properties;
 
 import javax.jms.JMSException;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Predicate;
-import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.support.builder.PredicateBuilder;
-import org.apache.http.conn.HttpHostConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,16 +22,11 @@ import com.ibm.mq.jms.MQQueueConnectionFactory;
 import com.ibm.msg.client.wmq.WMQConstants;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+import ca.bc.gov.hlth.hnsecure.TransactionIdGenerator;
 import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
-import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
-import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
-import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
-import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
-import ca.bc.gov.hlth.hnsecure.messagevalidation.ExceptionHandler;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -45,12 +36,9 @@ import ca.bc.gov.hlth.hnsecure.validation.TokenValidator;
 import ca.bc.gov.hlth.hnsecure.validation.Validator;
 import ca.bc.gov.hlth.hnsecure.validation.ValidatorImpl;
 
-public class Route extends RouteBuilder {
+public class Route extends BaseRoute {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Route.class);
-
-	// HTTP Status codes for which the onCompletion logic will be invoked
-	private static final String HTTP_STATUS_CODES_COMPLETION_REGEX = "^[245][0-9][0-9]$";
 
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
 
@@ -58,7 +46,6 @@ public class Route extends RouteBuilder {
     
     private Validator validator;
     
-    @SuppressWarnings("unchecked")
 	@Override
     public void configure() {
     	  	
@@ -68,37 +55,10 @@ public class Route extends RouteBuilder {
 		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
 		Predicate isMessageForHIBC = isMessageForHIBC();
-		
-    	onException(CustomHNSException.class, HttpHostConnectException.class, JMSException.class,ExchangeTimedOutException.class)
-        	.process(new ExceptionHandler())
-        	.handled(true);
-        
-        onException(ValidationFailedException.class)
-                .log("Validation exception response: ${body}")
-                .handled(true)
-                .id("ValidationException");
+
+		handleExceptions();
 
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}?httpMethodRestrict=POST").routeId("hnsecure-route")
-
-			// This route is only invoked when the original route is complete as a kind
-			// of completion callback.The onCompletion method is called once per route execution.
-			// Making it global will generate two response file drops.
-        	.onCompletion().modeBeforeConsumer().onWhen(isRouteComplete()).id("Completion")
-        
-				// create filedrops if enabled
-		    	.choice().when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
-		    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
-				.end()
-	            // Audit "Transaction Complete"
-	    		.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_COMPLETE))
-	            .wireTap("direct:audit").end()
-	    		//encoding response before sending to consumer
-	    		.setBody().method(new Base64Encoder()).id("Base64Encoder")
-	    		.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
-	    		// Set any final headers
-	    		.removeHeader(Util.AUTHORIZATION)
-	    		.setHeader(Exchange.CONTENT_TYPE, constant(Util.MEDIA_TYPE_FHIR_JSON))
-	    	.end()
 
         	.log("HNSecure received a request")
 			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
@@ -148,8 +108,8 @@ public class Route extends RouteBuilder {
 	            .otherwise()
 	            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")                     
             .end()
-            // Explicitly mark this Route as complete so we know to invoke the onCompletion() handler
-            .setProperty(Util.PROPERTY_ROUTE_COMPLETE).simple(Boolean.TRUE.toString());
+            // Format the response and perform file drops and auditing
+            .to("direct:handleResponse").id("Completion2");
 		      
         from("direct:start").log("wireTap route")
         	.choice()
@@ -203,17 +163,6 @@ public class Route extends RouteBuilder {
 		Predicate pBuilder = PredicateBuilder.or(isR15, isE45, isR50);
 		return pBuilder;
 	}
-	
-	/**
-	 * Checks that the main Route is complete and that the status code is acceptable.
-	 * @return
-	 */
-	private Predicate isRouteComplete() {
-		Predicate isCompletionStatusCode = header(Exchange.HTTP_RESPONSE_CODE).regex(HTTP_STATUS_CODES_COMPLETION_REGEX);
-		Predicate isMainRouteExecuted = exchangeProperty(Util.PROPERTY_ROUTE_COMPLETE).isEqualToIgnoreCase(Boolean.TRUE);
-		return PredicateBuilder.and(isMainRouteExecuted, isCompletionStatusCode);
-	}
-
     
 	/**
      * This method injects application properties set in the context to ApplicationProperties class
@@ -224,7 +173,6 @@ public class Route extends RouteBuilder {
     	Properties properties  = getContext().getPropertiesComponent().loadProperties();
     	ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
     	applicationProperties.injectProperties(properties);
-
     }
     
 	/**
