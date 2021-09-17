@@ -2,6 +2,13 @@ package ca.bc.gov.hlth.hnsecure.audit.persistence;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.STATUS_CODE_ACTIVE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_HOST;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_NAME;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PORT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_USERNAME;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
+
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -30,7 +37,6 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
-import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 /**
  * Handles persistence for ESB database audits.
@@ -41,28 +47,17 @@ public abstract class AbstractAuditPersistence {
     private static Logger logger = LoggerFactory.getLogger(AbstractAuditPersistence.class);
 
     private static final String PERSISTENCE_UNIT_HNI_ESB_AUDITS = "HNI-ESB-AUDITS";
-
-    /** Audits properties **/
     
-    private static final String DATABASE_HOST = System.getenv("DATABASE_HOST");
-       
-    private static final String DATABASE_PORT = System.getenv("DATABASE_PORT");
-       
-    private static final String DATABASE_NAME = System.getenv("DATABASE_NAME");
+    private static final ApplicationProperties properties = ApplicationProperties.getInstance(); 
 
-   	private static final String DATABASE_USERNAME = System.getenv("DATABASE_USERNAME");
-
-   	private static final String DATABASE_PASSWORD = System.getenv("DATABASE_PASSWORD");    
        
-	private static final Boolean IS_AUDITS_ENABLED = Boolean.valueOf(ApplicationProperties.getInstance().getValue(ApplicationProperty.IS_AUDITS_ENABLED));
-
-   	private static Map<String, String> persistenceUnitProperties = new HashMap<String, String>();
+    private static Map<String, String> persistenceUnitProperties = new HashMap<String, String>();
     
    	static {   
-   		String url = String.format("jdbc:postgresql://%s:%s/%s", DATABASE_HOST, DATABASE_PORT, DATABASE_NAME);
+   		String url = String.format("jdbc:postgresql://%s:%s/%s", properties.getValue(DATABASE_HOST), properties.getValue(DATABASE_PORT),properties.getValue(DATABASE_NAME));
         persistenceUnitProperties.put("javax.persistence.jdbc.url", url);
-        persistenceUnitProperties.put("javax.persistence.jdbc.user", DATABASE_USERNAME);
-		persistenceUnitProperties.put("javax.persistence.jdbc.password", DATABASE_PASSWORD);
+        persistenceUnitProperties.put("javax.persistence.jdbc.user", properties.getValue(DATABASE_USERNAME));
+		persistenceUnitProperties.put("javax.persistence.jdbc.password", properties.getValue(DATABASE_PASSWORD));
     }
     
 	private EntityManagerFactory emf;
@@ -72,7 +67,7 @@ public abstract class AbstractAuditPersistence {
 	 * 
 	 */
    	public AbstractAuditPersistence() {
-   		if (Boolean.TRUE.equals(IS_AUDITS_ENABLED)) {
+   		if (Boolean.TRUE.equals(Boolean.valueOf(properties.getValue(IS_AUDITS_ENABLED)))) {
    			emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
    		}
    	}
