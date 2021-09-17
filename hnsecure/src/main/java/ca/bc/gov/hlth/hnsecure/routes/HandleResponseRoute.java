@@ -5,7 +5,6 @@ import org.apache.camel.builder.RouteBuilder;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
-import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -16,9 +15,7 @@ public class HandleResponseRoute extends RouteBuilder {
 	public void configure() throws Exception {
 		from("direct:handleResponse").routeId("handle-response-route")
 			// create filedrops if enabled
-	    	.choice().when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
-	    		.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
-			.end()
+			.wireTap("direct:requestFileDrop").end()
 	        // Audit "Transaction Complete"
 			.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_COMPLETE))
 	        .wireTap("direct:audit").end()

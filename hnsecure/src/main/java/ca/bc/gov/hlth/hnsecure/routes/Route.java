@@ -27,6 +27,7 @@ import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
+import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -58,6 +59,7 @@ public class Route extends BaseRoute {
 
 		handleExceptions();
 
+		// Main (Jetty HTTP server) route
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}?httpMethodRestrict=POST").routeId("hnsecure-route")
 
         	.log("HNSecure received a request")
@@ -75,7 +77,7 @@ public class Route extends BaseRoute {
         	// Added wireTap for asynchronous call to filedrop request
         	.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_START))
 			.wireTap("direct:audit").end()
-			.wireTap("direct:start").end()
+			.wireTap("direct:requestFileDrop").end()
         	// Validate the message
         	.process(validator).id("Validator")
             // Set the receiving app, message type into headers and properties
@@ -111,13 +113,23 @@ public class Route extends BaseRoute {
             // Format the response and perform file drops and auditing
             .to("direct:handleResponse").id("HandleResponse");
 		      
-        from("direct:start").log("wireTap route")
+        // Request File Drop route
+        from("direct:requestFileDrop").log("wireTap direct:requestFileDrop")
         	.choice()
 				.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
-					.bean(RequestFileDropGenerater.class).id("V2FileDropsRequest").log("wire tap done")
+					.bean(RequestFileDropGenerater.class).id("RequestFileDropGenerater")
+					.log("wireTap direct:requestFileDrop done")
+			.end();
+        // Response File Drop route
+        from("direct:responseFileDrop").log("wireTap direct:responseFileDrop")
+	        .choice()
+	        	.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
+					.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
+					.log("wireTap direct:responseFileDrop done")
 			.end();
         
-		from("direct:audit").log("wireTap audit")
+        // Audit route
+		from("direct:audit").log("wireTap direct:audit")
 			.choice()
 				.when(exchangeProperty(Util.PROPERTY_IS_AUDITS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE.toString()))
 					.process(new AuditProcessor()).log("wireTap audit done")				
