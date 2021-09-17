@@ -109,7 +109,7 @@ public class Route extends BaseRoute {
 	            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")                     
             .end()
             // Format the response and perform file drops and auditing
-            .to("direct:handleResponse").id("Completion2");
+            .to("direct:handleResponse").id("HandleResponse");
 		      
         from("direct:start").log("wireTap route")
         	.choice()

@@ -25,16 +25,12 @@ import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 public class RouteTest extends CamelTestSupport {
 
-	private static final String WRAPPED_R03_RESPONSE = "{\n" +
-			"\"resourceType\": \"DocumentReference\",\n" +
-			"\"status\" : \"current\",\n" +
-			"\"content\": [{\n" +
-			"\"attachment\": {\n" +
-			"\"contentType\": \"x-application/hl7-v2+er7\",\n" +
-			"\"data\": \"TVNIfF5+XCZ8SE5XRUJ8bW9oX2huY2xpZW50X2RldnxSQUlHVC1QUlNOLURNR1J8QkMwMDAwMTAxM3wyMDE3MDEyNTEyMjEyNXx0cmFpbjk2fFIwM3wyMDE3MDEyNTEyMjEyNXxEfDIuNHx8ClpIRHwyMDE3MDEyNTEyMjEyNXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQKUElEfHwxMjM0NTY3ODkwXl5eQkNeUEgN\"\n" +
-			"}\n" +
-			"}]\n" +
-			"}";
+	private static final String WRAPPED_R03_RESPONSE = "{\"content\":[{" +
+			"\"attachment\":{" + 
+			"\"data\":\"TVNIfF5+XCZ8SE5XRUJ8bW9oX2huY2xpZW50X2RldnxSQUlHVC1QUlNOLURNR1J8QkMwMDAwMTAxM3wyMDE3MDEyNTEyMjEyNXx0cmFpbjk2fFIwM3wyMDE3MDEyNTEyMjEyNXxEfDIuNHx8ClpIRHwyMDE3MDEyNTEyMjEyNXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQKUElEfHwxMjM0NTY3ODkwXl5eQkNeUEgN\"," +
+			"\"contentType\":\"x-application\\/hl7-v2+er7\"}}]," +
+			"\"resourceType\":\"DocumentReference\"," + 
+			"\"status\":\"current\"}";
 		
 	@Override
 	public boolean isUseAdviceWith() {
@@ -72,8 +68,7 @@ public class RouteTest extends CamelTestSupport {
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
-			//a.weaveById("HandleResponse").after().to("mock:testRouteEnd");
-			a.weaveById("Completion2").after().to("mock:testRouteEnd");
+			a.weaveById("HandleResponse").after().to("mock:testRouteEnd");
 		});
 		AdviceWithRouteBuilder.adviceWith(context, "pharmanet-route", a -> {
 			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
