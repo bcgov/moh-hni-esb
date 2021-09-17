@@ -1,9 +1,10 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.PropertyInject;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
@@ -13,19 +14,19 @@ import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 public class HIBCRoute extends BaseRoute {
-
-	@PropertyInject(value = "hibc.http.uri")
-    private String hibcUri;
 
 	@Override
 	public void configure() throws Exception {
 
-		String hibcMqUrl = String.format(MQ_URL_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"), System.getenv("HIBC_REPLY_QUEUE"));
+		String hibcHttpUrl = String.format(properties.getValue(ApplicationProperty.HIBC_HTTP_UTI) + "?bridgeEndpoint=true");
 		
-		String hibcHttpUrl = String.format(hibcUri + "?bridgeEndpoint=true");
-		
+		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);
+		String hibcReplyQueue = properties.getValue(HIBC_REPLY_QUEUE);
+		String hibcMqUrl = String.format(MQ_URL_FORMAT, hibcRequestQueue, hibcReplyQueue);
+
 		handleExceptions();
 
 		from("direct:hibc").routeId("hibc-route")
@@ -59,11 +60,11 @@ public class HIBCRoute extends BaseRoute {
 	     	.wireTap("direct:audit").end();
 
 		from("direct:hibcMQ").routeId("hibc-mq-route")
-	        .log("Processing HIBC messages. Request Queue : ${sysenv.HIBC_REQUEST_QUEUE}, ReplyQ:${sysenv.HIBC_REPLY_QUEUE}")
+	        .log(String.format("Processing HIBC messages. Request Queue : %s, ReplyQ: %s", hibcRequestQueue, hibcReplyQueue))
 	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	        .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
 			.log("HIBC request message ::: ${body}")
-			.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, System.getenv("HIBC_REQUEST_QUEUE"))))	           		        	
+			.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, hibcRequestQueue)))	           		        	
 	    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	    	.wireTap("direct:audit").end()
 			.to(hibcMqUrl).id("ToHibcMqUrl")

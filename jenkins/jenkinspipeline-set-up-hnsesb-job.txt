@@ -10,19 +10,15 @@ pipeline {
 
         text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. This name will be used to define the URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ if value is hnsesb-sample. If application with same name already exist, this job will delete that application')
 
-		string(name: 'PHARMANET_CREDENTIALS', defaultValue: 'pharmanet-dev', description: 'ID for Pharmanet credentials in Jenkins')
-		
-		string(name: 'PHARMANET_CERT_CREDENTIALS', defaultValue: 'pharmanet-dev-cert', description: 'Pharmanet certificate credentials in Jenkins')
-		
 		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
-		string(name: 'DATABASE_NAME', defaultValue: 'hnsesb-sample', description: 'Define database name for auditing database')
+		string(name: 'DATABASE_NAME', defaultValue: 'hni', description: 'Define database name for auditing database. Make sure value is same as provided in application properties file.')
 		
-		string(name: 'DATABASE_USER', defaultValue: 'sample-user', description: 'Define database user for auditing database')
+		string(name: 'DATABASE_USER', defaultValue: 'hni-user', description: 'Define database user for auditing database. Make sure value is same as provided in application properties file.')
 		
-		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
+		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database. Make sure value is same as provided in application properties file.')
 		
-		base64File(name: 'propertiesFile',  description: 'Application properties file.')
+		base64File(name: 'propertiesFile',  description: 'HNS-ESB application will use the values provided in this property file over default values.')
  		// Add the custom properties 
 		
     }
@@ -36,11 +32,6 @@ pipeline {
     	PROP_FILE_NAME = "application-external.properties"
     	TAG = "${APP_NAME}"
 		PROJECT = project()
-		PHARMANET_CREDENTIALS = credentials("${PHARMANET_CREDENTIALS}")
-		PHARMANET_USER = '$PHARMANET_CREDENTIALS_USR'
-		PHARMANET_PASSWORD ='$PHARMANET_CREDENTIALS_PSW'
-		PHARMANET_CERT = credentials("${PHARMANET_CERT_CREDENTIALS}")
-		PHARMANET_CERT_PASSWORD = '$PHARMANET_CERT_PSW'
 		PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
 		
 
@@ -117,9 +108,6 @@ pipeline {
 	                          	     "-l", "app=${APP_NAME}",
 	                          	     "-p", "APP_NAME=${APP_NAME}" ,
 	                          	      "-p", "LABEL=${APP_NAME}" ,
-	                          	      "-p", "PHARMANET_CERT_PASSWORD=${PHARMANET_CERT_PASSWORD}" ,
-	                          	      "-p", "PHARMANET_USER=${PHARMANET_USER}" ,
-	                          	      "-p", "PHARMANET_PASSWORD=${PHARMANET_PASSWORD}" ,
 	                          	      "-p", "PHARMANET_CERT_BASE64=${PHARMANET_CERT_SECRET}" ,
 	                          	      "-p", "DATABASE_NAME=${DATABASE_NAME}" ,
 	                          	      "-p", "DATABASE_USER=${DATABASE_USER}" ,

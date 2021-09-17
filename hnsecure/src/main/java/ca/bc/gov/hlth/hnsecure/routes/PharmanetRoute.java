@@ -1,6 +1,11 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_CERT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_CERT_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_URI;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_USER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.nio.charset.Charset;
@@ -8,7 +13,6 @@ import java.util.Base64;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.PropertyInject;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.KeyManagersParameters;
@@ -30,28 +34,16 @@ public class PharmanetRoute extends BaseRoute {
     private static final String SSL_CONTEXT_PHARMANET = "ssl_context_pharmanet";
    
     private static final String BASIC = "Basic ";
-	
-	private static final String pharmanetCertPassword = System.getenv("PHARMANET_CERT_PASSWORD");
-    
-    private static final String pharmanetUser = System.getenv("PHARMANET_USER");
-
-    private static final String pharmanetPassword = System.getenv("PHARMANET_PASSWORD");
-
-    // PharmaNet Endpoint values
-	@PropertyInject(value = "pharmanet.uri")
-    private String pharmanetUri;
-		
-	// PharmaNet Endpoint values
-	@PropertyInject(value = "pharmanet.cert")
-	private String pharmanetCert;
 
 	@Override
 	public void configure() throws Exception {
 		setupSSLContextPharmanetRegistry(getContext());
 
-		String pharmaNetUrl = String.format(pharmanetUri + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s", SSL_CONTEXT_PHARMANET, pharmanetUser, pharmanetPassword);
+		String pharmaNetUrl = String.format(
+				properties.getValue(PHARMANET_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
+				SSL_CONTEXT_PHARMANET, properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));
 						
-		String basicToken = buildBasicToken(pharmanetUser, pharmanetPassword);
+		String basicToken = buildBasicToken(properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));
 
 		handleExceptions();
 		
@@ -79,13 +71,13 @@ public class PharmanetRoute extends BaseRoute {
 
 	private void setupSSLContextPharmanetRegistry(CamelContext camelContext) {
 		KeyStoreParameters ksp = new KeyStoreParameters();
-        ksp.setResource(pharmanetCert);
-        ksp.setPassword(pharmanetCertPassword);
+        ksp.setResource(properties.getValue(PHARMANET_CERT));
+        ksp.setPassword(properties.getValue(PHARMANET_CERT_PASSWORD));
         ksp.setType(KEY_STORE_TYPE_PKCS12);
 
         KeyManagersParameters kmp = new KeyManagersParameters();
         kmp.setKeyStore(ksp);
-        kmp.setKeyPassword(pharmanetCertPassword);
+        kmp.setKeyPassword(properties.getValue(PHARMANET_CERT_PASSWORD));
 
         SSLContextParameters sslContextParameters = new SSLContextParameters();
         sslContextParameters.setKeyManagers(kmp);
