@@ -12,13 +12,13 @@ pipeline {
 
 		string(name: 'PHARMANET_CERT_ID', defaultValue: 'pharmanet-dev-secret', description: 'ID for Pharmanet cert in Jenkins')
 		
-		string(name: 'DATABASE_NAME', defaultValue: 'hni', description: 'Define database name for auditing database')
+		string(name: 'DATABASE_NAME', defaultValue: 'hni', description: 'Define database name for auditing database. Make sure value is same as provided in application properties file.')
 		
-		string(name: 'DATABASE_USER', defaultValue: 'hni-user', description: 'Define database user for auditing database')
+		string(name: 'DATABASE_USER', defaultValue: 'hni-user', description: 'Define database user for auditing database. Make sure value is same as provided in application properties file.')
 		
-		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database')
+		password(name: 'DATABASE_PASSWORD', defaultValue: '', description: 'Set password for database. Make sure value is same as provided in application properties file.')
 		
-		base64File(name: 'propertiesFile',  description: 'Application properties file.')
+		base64File(name: 'propertiesFile',  description: 'HNS-ESB application will use the values provided in this property file over default values.')
  		// Add the custom properties 
 		
     }
