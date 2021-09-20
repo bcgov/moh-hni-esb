@@ -53,7 +53,7 @@ pipeline {
 								
 								def builds = bcSelector.related('builds')
 								
-								timeout (time: 2, unit: 'MINUTES') {
+								timeout (time: 5, unit: 'MINUTES') {
 									builds.untilEach(1){
 										return it.object().status.phase == "Complete"
 									}
@@ -77,7 +77,7 @@ pipeline {
 								def dStatus = dcSelector.object().status.phase
 								def latestDeploymentVersion = openshift.selector('dc',"${BUILD_NAME}").object().status.latestVersion
 								def rc = openshift.selector('rc', "${BUILD_NAME}-${latestDeploymentVersion}")
-								timeout (time: 2, unit: 'MINUTES') {
+								timeout (time: 5, unit: 'MINUTES') {
 									rc.untilEach(1){
 										def rcMap = it.object()
 										return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
