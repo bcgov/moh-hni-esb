@@ -42,6 +42,7 @@ public enum ApplicationProperty {
 	//Hibc properties
 	HIBC_REQUEST_QUEUE("hibc.request.queue"),
 	HIBC_REPLY_QUEUE("hibc.reply.queue"),
+	HIBC_HTTP_UTI("hibc.http.uri"),
 
 	//MQ Properties
 	MQ_HOST("mq.host"),
