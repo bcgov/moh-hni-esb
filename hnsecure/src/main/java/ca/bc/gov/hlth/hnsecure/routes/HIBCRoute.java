@@ -40,6 +40,7 @@ public class HIBCRoute extends BaseRoute {
 					.log("Protocol for HIBC message type ${exchangeProperty.messageType} not found or not valid. Defaulting to MQ")
 					.to("direct:hibcMQ")
 			.end();
+
 		// XXX This is currently just a simple HTTP route which will need additional configuration (auth, request/response conversion)
 		// once the endpoint is available
 		from("direct:hibcHTTP").routeId("hibc-http-route")

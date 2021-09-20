@@ -14,7 +14,7 @@ public class ProtocolEvaluator implements Processor {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProtocolEvaluator.class);
 	
-	private static final String PROTOCOL_PREFIX = ".protocol";
+	private static final String PROTOCOL_SUFFIX = ".protocol";
 	
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 	
@@ -25,7 +25,7 @@ public class ProtocolEvaluator implements Processor {
 		String messageType = (String)exchange.getProperty(Util.PROPERTY_MESSAGE_TYPE);
 		
 		// Dynamically look up the protocol from the properties
-		String protocol = properties.getValue(messageType + PROTOCOL_PREFIX);
+		String protocol = properties.getValue(messageType + PROTOCOL_SUFFIX);
 		
 		exchange.setProperty(Util.PROPERTY_MESSAGE_PROTOCOL, protocol);
 
