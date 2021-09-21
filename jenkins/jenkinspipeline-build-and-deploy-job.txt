@@ -51,11 +51,11 @@ pipeline {
 								def buildRun = bcSelector.startBuild("--from-dir",".")
 								buildRun.logs('-f')
 								
-								def builds = bcSelector.related('builds')
+								//def builds = bcSelector.related('builds')
 								
-								timeout (time: 5, unit: 'MINUTES') {
-									builds.untilEach(1){
-										return it.object().status.phase == "Complete"
+								timeout (time: 2, unit: 'MINUTES') {
+									if (buildRun.object().status.phase == "Complete"){
+										return true
 									}
 								}
 								// If build is complete add tagging
