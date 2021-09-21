@@ -13,23 +13,24 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
 
-import ca.bc.gov.hlth.hnsecure.Route;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
+import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
+import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
+import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
+import ca.bc.gov.hlth.hnsecure.routes.Route;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 public class RouteTest extends CamelTestSupport {
 
-	private static final String WRAPPED_R03_RESPONSE = "{\n" +
-			"\"resourceType\": \"DocumentReference\",\n" +
-			"\"status\" : \"current\",\n" +
-			"\"content\": [{\n" +
-			"\"attachment\": {\n" +
-			"\"contentType\": \"x-application/hl7-v2+er7\",\n" +
-			"\"data\": \"TVNIfF5+XCZ8SE5XRUJ8bW9oX2huY2xpZW50X2RldnxSQUlHVC1QUlNOLURNR1J8QkMwMDAwMTAxM3wyMDE3MDEyNTEyMjEyNXx0cmFpbjk2fFIwM3wyMDE3MDEyNTEyMjEyNXxEfDIuNHx8ClpIRHwyMDE3MDEyNTEyMjEyNXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQKUElEfHwxMjM0NTY3ODkwXl5eQkNeUEgN\"\n" +
-			"}\n" +
-			"}]\n" +
-			"}";
+	private static final String WRAPPED_R03_RESPONSE = "{\"content\":[{" +
+			"\"attachment\":{" + 
+			"\"data\":\"TVNIfF5+XCZ8SE5XRUJ8bW9oX2huY2xpZW50X2RldnxSQUlHVC1QUlNOLURNR1J8QkMwMDAwMTAxM3wyMDE3MDEyNTEyMjEyNXx0cmFpbjk2fFIwM3wyMDE3MDEyNTEyMjEyNXxEfDIuNHx8ClpIRHwyMDE3MDEyNTEyMjEyNXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQKUElEfHwxMjM0NTY3ODkwXl5eQkNeUEgN\"," +
+			"\"contentType\":\"x-application\\/hl7-v2+er7\"}}]," +
+			"\"resourceType\":\"DocumentReference\"," + 
+			"\"status\":\"current\"}";
 		
 	@Override
 	public boolean isUseAdviceWith() {
@@ -54,16 +55,35 @@ public class RouteTest extends CamelTestSupport {
 		ApplicationProperties properties = ApplicationProperties.getInstance() ;
 		properties.injectProperties(pc.loadProperties());
 		
+		// Manually add the Routes to the context for testing
 		context.addRoutes(new Route());
+		context.addRoutes(new PharmanetRoute());
+		context.addRoutes(new RTransRoute());
+		context.addRoutes(new HIBCRoute());
+		context.addRoutes(new JMBRoute());
+		context.addRoutes(new HandleResponseRoute());
+		
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
 			a.replaceFromWith("direct:testRouteStart");
 			a.weaveById("Validator").replace().to("mock:ValidateAccessToken");		
 			a.weaveById("ValidationException").after().to("mock:validationExceptionResponse");
-			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
-			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
-			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
-			a.weaveById("completion").after().to("mock:testRouteEnd");
 			a.weaveById("SetExchangeIdFromHeader").replace().to("mock:SetExchangeIdFromHeader");
+			a.weaveById("HandleResponse").after().to("mock:testRouteEnd");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "pharmanet-route", a -> {
+			a.weaveById("ToPharmaNet").replace().to("mock:pharmanetEndpoint");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "rtrans-route", a -> {
+			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "hibc-http-route", a -> {
+			a.weaveById("ToHibcHttpUrl").replace().to("mock:hibcHttp");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "hibc-mq-route", a -> {
+			a.weaveById("ToHibcMqUrl").replace().to("mock:hibcMq");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "jmb-route", a -> {
+			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 		});
 	}
 
@@ -73,7 +93,7 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:rtransEndpoint").expectedMessageCount(1);
+		responseEndpoint.expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
 
 		// Send a message with header
@@ -93,8 +113,9 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:testRouteEnd").expectedMessageCount(1);
+		responseEndpoint.expectedMessageCount(1);
 		responseEndpoint.expectedBodiesReceived(WRAPPED_R03_RESPONSE);
+		
 		// Not an ideal way to test if the code to set the exchangeId works, but the mock ResponseEndpoint doesn't
 		// return the updated ExchangeId even though it shows correctly in all logging.
 		// i.e. assertEquals("test-request-id", responseEndpoint.getReceivedExchanges().get(0).getExchangeId()) fails
@@ -188,6 +209,25 @@ public class RouteTest extends CamelTestSupport {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.pnpJsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullHIBCMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:hibcMq").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.hibcJsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();

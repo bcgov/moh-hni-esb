@@ -32,6 +32,10 @@ public class ApplicationProperties {
 		return (String) properties.get(applicationProperty.getKey());
 	}
 	
+	public String getValue(String key) {
+		return (String) properties.get(key);
+	}
+	
 	
 
 }

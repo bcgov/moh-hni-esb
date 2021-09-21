@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 /**
  * Class to set the exchange body with JSON for PharmaNet
