@@ -167,22 +167,6 @@ objects:
         containers:
         - name: ${APP_NAME}
           image: ${IMAGE_STREAM_TAG}
-          env:
-            - name: PHARMANET_CERT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                    name: hnsesb-secret
-                    key: PHARMANET_CERT_PASSWORD
-            - name: PHARMANET_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                    name: hnsesb-secret
-                    key: PHARMANET_PASSWORD
-            - name: PHARMANET_USER
-              valueFrom:
-                secretKeyRef:
-                    name: hnsesb-secret
-                    key: PHARMANET_USER                    
           ports:
           - containerPort: 14885
             protocol: TCP
