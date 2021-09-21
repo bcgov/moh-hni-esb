@@ -6,6 +6,10 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 
 import java.net.MalformedURLException;
 import java.util.Properties;
@@ -225,12 +229,12 @@ public class Route extends BaseRoute {
 		final String methodName = LoggingUtil.getMethodName();
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
       
-        mqQueueConnectionFactory.setHostName(System.getenv("MQ_HOST"));
+        mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
         try {
         	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);         
-        	mqQueueConnectionFactory.setChannel(System.getenv("MQ_CHANNEL"));
-        	mqQueueConnectionFactory.setPort(Integer.valueOf(System.getenv("MQ_PORT")));
-        	mqQueueConnectionFactory.setQueueManager(System.getenv("MQ_QUEUEMANAGER"));
+        	mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
+        	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
+        	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
     		logger.debug("{} - MQ connection factory has been created.", methodName);			
         } catch (JMSException jmse) {
         	 logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, jmse.getMessage());       	
