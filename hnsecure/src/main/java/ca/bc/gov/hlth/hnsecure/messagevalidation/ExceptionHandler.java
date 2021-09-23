@@ -1,19 +1,15 @@
 package ca.bc.gov.hlth.hnsecure.messagevalidation;
 
-import java.net.UnknownHostException;
-
-import javax.jms.JMSException;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Processor;
 import org.apache.http.conn.HttpHostConnectException;
+import java.net.UnknownHostException;
+import javax.jms.JMSException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.UncategorizedJmsException;
-
-import com.ibm.msg.client.jms.JmsExceptionDetail;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.EventMessageProcessor;

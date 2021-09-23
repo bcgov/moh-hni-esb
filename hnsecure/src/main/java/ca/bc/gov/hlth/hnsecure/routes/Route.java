@@ -6,8 +6,8 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 
@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.ibm.mq.MQException;
 import com.ibm.mq.jmqi.JmqiException;
 import com.ibm.mq.jms.MQQueueConnectionFactory;
-import com.ibm.msg.client.jms.JmsExceptionDetail;
 import com.ibm.msg.client.wmq.WMQConstants;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
