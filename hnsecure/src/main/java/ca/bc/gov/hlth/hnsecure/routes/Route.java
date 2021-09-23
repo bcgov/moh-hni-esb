@@ -19,12 +19,14 @@ import javax.jms.JMSException;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.support.builder.PredicateBuilder;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.mq.MQException;
 import com.ibm.mq.jmqi.JmqiException;
 import com.ibm.mq.jms.MQQueueConnectionFactory;
+import com.ibm.msg.client.jms.DetailedJMSException;
 import com.ibm.msg.client.wmq.WMQConstants;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
@@ -238,14 +240,21 @@ public class Route extends BaseRoute {
         	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
         	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
     		logger.debug("{} - MQ connection factory has been created.", methodName);			
-        } catch (JMSException je) {
+        } catch (JMSException je) {       	  
+            logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, je.getMessage());
+            
         	// Check for linked exceptions in JMSException
-            Throwable t = je;
-            while (t != null) {          
+        	ExceptionUtils.getThrowableList(je).forEach(t -> {                    
                 // Add on specific information depending on the type of exception
                 if (t instanceof JMSException) {
                     JMSException je1 = (JMSException) t;
                     logger.error("{} - JMS Error code: {}", methodName, je1.getErrorCode());
+                    
+                    if (t instanceof DetailedJMSException){
+                    	DetailedJMSException jed = (DetailedJMSException)je1;
+                    	logger.error("{} - JMS Explanation: {}", methodName, jed.getExplanation());
+                    	logger.error("{} - JMS User Action: {}", methodName, jed.getUserAction());
+                    }                   
                 } else if (t instanceof MQException) {
                     MQException mqe = (MQException) t;
                     logger.error("{} - WMQ Completion code: {}" , methodName, mqe.getCompCode());
@@ -259,12 +268,9 @@ public class Route extends BaseRoute {
                                        + jmqie.getWmqMsgUserResponse());
                     logger.error("{} - WMQ Msg Severity: {}", methodName, jmqie.getWmqMsgSeverity());
                 }
-                
-                // Get the next cause
-                t = t.getCause();
-                logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, t.getMessage());
-            }         	 
+                                  	 
+        	});
         }
         return mqQueueConnectionFactory;
-      }
+    }  
 }
