@@ -248,8 +248,8 @@ public class Route extends BaseRoute {
                     logger.error("{} - JMS Error code: {}", methodName, je1.getErrorCode());
                 } else if (t instanceof MQException) {
                     MQException mqe = (MQException) t;
-                    logger.error("{} - WMQ Completion code: " , methodName, mqe.getCompCode());
-                    logger.error("{} - WMQ Reason code: " , methodName, mqe.getReason());
+                    logger.error("{} - WMQ Completion code: {}" , methodName, mqe.getCompCode());
+                    logger.error("{} - WMQ Reason code: {}" , methodName, mqe.getReason());
                 } else if (t instanceof JmqiException){
                     JmqiException jmqie = (JmqiException)t;
                     logger.error("{} - WMQ Log Message: {}", methodName, jmqie.getWmqLogMessage());
