@@ -66,7 +66,7 @@ public class Transaction {
 	 * time that the transaction was started/created
 	 */
 	@Basic
-	@Column(name="start_time", columnDefinition="startTimetz")
+	@Column(name="start_time", columnDefinition="TIMESTAMPTZ")
 	private Date startTime;
 
 	public UUID getTransactionId() {
