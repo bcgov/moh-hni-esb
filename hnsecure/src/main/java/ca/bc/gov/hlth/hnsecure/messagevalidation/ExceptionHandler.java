@@ -11,6 +11,9 @@ import org.apache.http.conn.HttpHostConnectException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jms.UncategorizedJmsException;
+
+import com.ibm.msg.client.jms.JmsExceptionDetail;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.EventMessageProcessor;
@@ -45,6 +48,7 @@ public class ExceptionHandler implements Processor {
 	public void process(Exchange exchange) {
 
 		Exception exception = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+		String methodName = LoggingUtil.getMethodName();
 		
 		if (exception instanceof CustomHNSException) {
 			ErrorMessage errorMessage = ((CustomHNSException)exception).getErrorMessage(); 
@@ -62,13 +66,18 @@ public class ExceptionHandler implements Processor {
 				break;
 			}
 		} else if (exception instanceof HttpHostConnectException || exception instanceof UnknownHostException) {
-			logger.info("{} - Failed to connect remote server. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			logger.info("{} -  Failed to connect remote server. {}", methodName, exception.getMessage());
 			handleException(exchange, ErrorMessage.CustomError_Msg_DownstreamConnectionFailed,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
 		} else if (exception instanceof JMSException) {
-			logger.info("{} - No response before timeout. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			JMSException jmse = (JMSException)exception;
+			logger.info("{} - JMS Error Code: {} JMS Explanation: {}", methodName, jmse.getErrorCode(), jmse.getLinkedException().getMessage());
 			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_NoResponseBeforeTimeout, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
+		} else if (exception instanceof UncategorizedJmsException) {
+			UncategorizedJmsException jmse = (UncategorizedJmsException)exception;			
+			logger.info("{} - JMS Error Code: {} JMS Explanation: {}", methodName, jmse.getErrorCode(), jmse.getMessage());
+			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_FailedToConnectQM, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);
 		} else if (exception instanceof ExchangeTimedOutException) {
-			logger.info("{} - MQSeries failure. {}", LoggingUtil.getMethodName(), exception.getMessage());
+			logger.info("{} - MQSeries failure. {}", methodName, exception.getMessage());
 			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_MQSeriesFailure,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
 		} 
 		
