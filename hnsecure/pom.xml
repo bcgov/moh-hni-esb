@@ -240,7 +240,7 @@
                   <manifestEntries>
 					<name>ca/bc/gov/hlth/hnsecure/</name>
 					<Implementation-Title>HNS ESB</Implementation-Title>
-                  	<Implementation-Version>${project.version}-${BRANCH}-${BUILD_NUMBER}</Implementation-Version>	
+                  	<Implementation-Version>${project.version}-${BRANCH_NAME}-${BUILD_NUMBER}</Implementation-Version>	
                   	<Implementation-Vendor>CGI</Implementation-Vendor>
                   </manifestEntries>
                 </transformer>
