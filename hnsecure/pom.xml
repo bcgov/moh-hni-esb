@@ -190,10 +190,30 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
+      <!-- 
+      <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-jar-plugin</artifactId>
+           <version>2.5</version>
+           <executions>
+               <execution>
+                   <id>generate-default-version</id>
+                   <phase>package</phase>
+                   <goals>
+                       <goal>jar</goal>
+                   </goals>
+                   <configuration>
+                       <classifier>45</classifier>
+                   </configuration>
+               </execution>
+           </executions>
+       </plugin>
+        -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>${maven-shade-plugin-version}</version>
+        
         <executions>
           <execution>
             <phase>package</phase>
@@ -201,7 +221,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-			  <filters>
+           	  <filters>
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
@@ -217,6 +237,12 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>ca.bc.gov.hlth.hnsecure.HnsEsbMainMethod</mainClass>
+                  <manifestEntries>
+					<name>ca/bc/gov/hlth/hnsecure/</name>
+					<Implementation-Title>HNS ESB</Implementation-Title>
+                  	<Implementation-Version>${project.version}-${BRANCH}-${BUILD_NUMBER}</Implementation-Version>	
+                  	<Implementation-Vendor>CGI</Implementation-Vendor>
+                  </manifestEntries>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/services/org/apache/camel/TypeConverterLoader</resource>
