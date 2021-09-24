@@ -6,8 +6,8 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 
@@ -19,10 +19,14 @@ import javax.jms.JMSException;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.support.builder.PredicateBuilder;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.mq.MQException;
+import com.ibm.mq.jmqi.JmqiException;
 import com.ibm.mq.jms.MQQueueConnectionFactory;
+import com.ibm.msg.client.jms.DetailedJMSException;
 import com.ibm.msg.client.wmq.WMQConstants;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
@@ -236,9 +240,37 @@ public class Route extends BaseRoute {
         	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
         	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
     		logger.debug("{} - MQ connection factory has been created.", methodName);			
-        } catch (JMSException jmse) {
-        	 logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, jmse.getMessage());       	
+        } catch (JMSException je) {       	  
+            logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, je.getMessage());
+            
+        	// Check for linked exceptions in JMSException
+        	ExceptionUtils.getThrowableList(je).forEach(t -> {                    
+                // Add on specific information depending on the type of exception
+                if (t instanceof JMSException) {
+                    JMSException je1 = (JMSException) t;
+                    logger.error("{} - JMS Error code: {}", methodName, je1.getErrorCode());
+                    
+                    if (t instanceof DetailedJMSException){
+                    	DetailedJMSException jed = (DetailedJMSException)je1;
+                    	logger.error("{} - JMS Explanation: {}", methodName, jed.getExplanation());
+                    	logger.error("{} - JMS User Action: {}", methodName, jed.getUserAction());
+                    }                   
+                } else if (t instanceof MQException) {
+                    MQException mqe = (MQException) t;
+                    logger.error("{} - WMQ Completion code: {}" , methodName, mqe.getCompCode());
+                    logger.error("{} - WMQ Reason code: {}" , methodName, mqe.getReason());
+                } else if (t instanceof JmqiException){
+                    JmqiException jmqie = (JmqiException)t;
+                    logger.error("{} - WMQ Log Message: {}", methodName, jmqie.getWmqLogMessage());
+                    logger.error("{} - WMQ Explanation: {}", methodName, jmqie.getWmqMsgExplanation());
+                    logger.error("{} - WMQ Msg Summary: {}", methodName, jmqie.getWmqMsgSummary());
+                    logger.error("{} - WMQ Msg User Response: "
+                                       + jmqie.getWmqMsgUserResponse());
+                    logger.error("{} - WMQ Msg Severity: {}", methodName, jmqie.getWmqMsgSeverity());
+                }
+                                  	 
+        	});
         }
         return mqQueueConnectionFactory;
-      }
+    }  
 }
