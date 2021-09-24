@@ -118,7 +118,7 @@ pipeline {
 	                          	    echo "Describing the created object: "
 	                          	    echo "Created ${created.count()} objects named: ${created.names()}"
 	
-	                          	    if("${created.count()}"!="9"){
+	                          	    if("${created.count()}"!="10"){
 	                          	    	echo "All the objects are not created. So cleaning up the residue and marking this process as fail"
 	                          	    	openshift.selector("all", [ app : "${APP_NAME}" ]).delete()
 	                          	    	openshift.selector("networkpolicy", [ app : "${APP_NAME}" ]).delete()
