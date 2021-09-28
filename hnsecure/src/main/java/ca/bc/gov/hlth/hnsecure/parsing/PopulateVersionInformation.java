@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import org.apache.camel.Exchange;
@@ -12,15 +9,22 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.HnsEsbMainMethod;
 import net.minidev.json.JSONObject;
 
-
+/**
+ * This class is created to get the manifest information and provide the same in version route as JSON object.
+ * Manifest information is set in pom.xml 
+ */
 public class PopulateVersionInformation implements Processor{
 	private static final Logger logger = LoggerFactory.getLogger(PopulateVersionInformation.class);
 	
 	private static final String versionInformation = getVersionInformation().toJSONString();
 
+	/**
+	 * Loading the version information using Package class.
+	 * Version information is set in jar's META-INF/Manifest.mf file
+	 * @return JSONObject
+	 */
 	protected static JSONObject getVersionInformation() {
 		Package pck  = HnsEsbMainMethod.class.getPackage();
-		
 		final String methodName = LoggingUtil.getMethodName();
 		// init a JSON object
 		JSONObject v2JsonObj = new JSONObject();
@@ -32,13 +36,9 @@ public class PopulateVersionInformation implements Processor{
 		return v2JsonObj;
 	}
 
-
 	@Override
 	public void process(Exchange exchange) throws Exception {
 		exchange.getIn().setBody(versionInformation);
-		
 	}
-	
-	
 	
 }

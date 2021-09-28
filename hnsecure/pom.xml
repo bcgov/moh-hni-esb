@@ -190,25 +190,7 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
-      <!-- 
-      <plugin>
-           <groupId>org.apache.maven.plugins</groupId>
-           <artifactId>maven-jar-plugin</artifactId>
-           <version>2.5</version>
-           <executions>
-               <execution>
-                   <id>generate-default-version</id>
-                   <phase>package</phase>
-                   <goals>
-                       <goal>jar</goal>
-                   </goals>
-                   <configuration>
-                       <classifier>45</classifier>
-                   </configuration>
-               </execution>
-           </executions>
-       </plugin>
-        -->
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>

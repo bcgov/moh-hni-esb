@@ -52,5 +52,5 @@ public class VersionRouteTest extends CamelTestSupport {
 
 		context.stop();
 	}
-
+	
 }
