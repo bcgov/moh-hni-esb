@@ -12,8 +12,6 @@
 			<property name="javax.persistence.create-database-schemas" value="true"/>
 			<!-- Value of 'update' will allow the schema objects to be created if it does not exist but avoids "table x already exists" error when it does. -->			
 			<property name="hibernate.hbm2ddl.auto" value="update"/>
-			<property name ="hibernate.show_sql" value="true" />
-			<property name ="hibernate.format_sql" value="true" />
 		</properties>
 	</persistence-unit>
 </persistence>
