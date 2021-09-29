@@ -23,7 +23,7 @@ public class PopulateVersionInformation implements Processor{
 	 * Version information is set in jar's META-INF/Manifest.mf file
 	 * @return JSONObject
 	 */
-	protected static JSONObject getVersionInformation() {
+	public static JSONObject getVersionInformation() {
 		Package pck  = HnsEsbMainMethod.class.getPackage();
 		final String methodName = LoggingUtil.getMethodName();
 		// init a JSON object

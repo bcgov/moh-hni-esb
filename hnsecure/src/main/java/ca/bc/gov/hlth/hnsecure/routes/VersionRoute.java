@@ -13,10 +13,10 @@ public class VersionRoute extends BaseRoute {
     	  	
         from("jetty:http://{{hostname}}:{{port}}/version").routeId("hnsecure-version")
         	.log("HNSecure received a request for version information")
-        	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true").id("hnsecure-version-id")
+        	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
         	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
         	.process(new PopulateVersionInformation())
-        	.log("HNSecure sent a response with version infomration")
+        	.log("HNSecure sent a response with version information")
         	;
     }
 	
