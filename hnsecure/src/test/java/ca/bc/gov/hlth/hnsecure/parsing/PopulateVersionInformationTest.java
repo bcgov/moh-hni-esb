@@ -12,7 +12,7 @@ public class PopulateVersionInformationTest {
 	@Test
 	public void testGetVersionInformation() {
 		String actualVersionInformation = PopulateVersionInformation.getVersionInformation().toJSONString();
-		String expectedVersionInformation = "{\"Implementation-Vendor\":null,\"Implementation-Title\":null,\"Implementation-Version\":null}";
+		String expectedVersionInformation = "{\"Implementation-Version\":null}";
 		Assert.assertEquals(expectedVersionInformation, actualVersionInformation);
 	}
 
