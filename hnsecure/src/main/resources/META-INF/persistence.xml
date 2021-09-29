@@ -6,6 +6,12 @@
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL95Dialect"/>
+			<!--  Causes the hibernate AvailableSettings field HBM2DLL_CREATE_SCHEMAS to be set. (See 
+			https://docs.jboss.org/hibernate/orm/5.1/javadocs/org/hibernate/cfg/AvailableSettings.html#HBM2DLL_CREATE_SCHEMAS). 
+			This is required because PostgresSql can have multiple databases and this indicates the database schema should be created. -->
+			<property name="javax.persistence.create-database-schemas" value="true"/>
+			<!-- Value of 'update' will allow the schema objects to be created if it does not exist but avoids "table x already exists" error when it does. -->			
+			<property name="hibernate.hbm2ddl.auto" value="update"/>
 		</properties>
 	</persistence-unit>
 </persistence>
