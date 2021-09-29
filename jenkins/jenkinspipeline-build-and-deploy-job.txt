@@ -10,9 +10,9 @@ pipeline {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
-		BUILD_NAME = appName()
-		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${BUILD_NAME}:latest"
-		
+		APP_NAME = appName()
+		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
+		TAG = "${BRANCH_NAME}-${BUILD_NUMBER}"
 	}
     agent any
     stages {
@@ -33,10 +33,13 @@ pipeline {
         }
         stage("Package hnsecure library") {
             steps {
-                dir("hnsecure") {
-                    echo "Running: mvn install"
-                    sh "mvn install"
-                }	
+                script{
+                    def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
+                    dir("hnsecure") {
+                        echo "Running: mvn install"
+                        sh "mvn install -Dgit-commit=${GIT_COMMIT}"
+                    }	
+                }
             }
         }        
         stage("Start Openshift build process") {
@@ -46,8 +49,8 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
 								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-								def bcSelector = openshift.selector( "buildconfig", "${BUILD_NAME}")
-								echo "Build name ${BUILD_NAME} exist in project ${PROJECT}." 
+								def bcSelector = openshift.selector( "buildconfig", "${APP_NAME}")
+								echo "Application name ${APP_NAME} exist in project ${PROJECT}." 
 								def buildRun = bcSelector.startBuild("--from-dir",".")
 								buildRun.logs('-f')
 								
@@ -62,8 +65,8 @@ pipeline {
 								def buildStatus = buildRun.object().status.phase
 								if("Complete"==buildStatus){
 									echo "Build status is ${buildStatus}.  Image created is ${IMAGE_STREAM}"
-									echo "Tagging the build with build tag: ${BUILD_TAG}"
-									openshift.tag( "${IMAGE_STREAM}", "${BUILD_NAME}:${BUILD_TAG}")
+									echo "Tagging the build with build tag: ${TAG}"
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG}")
 								}
 								// if build is a failure, process should failure
 								else{
@@ -72,11 +75,11 @@ pipeline {
 								}
 								
 								// Check deployment status
-								def dcSelector = openshift.selector( "dc", "${BUILD_NAME}")
+								def dcSelector = openshift.selector( "dc", "${APP_NAME}")
 								dcSelector.logs('-f')
 								def dStatus = dcSelector.object().status.phase
-								def latestDeploymentVersion = openshift.selector('dc',"${BUILD_NAME}").object().status.latestVersion
-								def rc = openshift.selector('rc', "${BUILD_NAME}-${latestDeploymentVersion}")
+								def latestDeploymentVersion = openshift.selector('dc',"${APP_NAME}").object().status.latestVersion
+								def rc = openshift.selector('rc', "${APP_NAME}-${latestDeploymentVersion}")
 								timeout (time: 5, unit: 'MINUTES') {
 									rc.untilEach(1){
 										def rcMap = it.object()

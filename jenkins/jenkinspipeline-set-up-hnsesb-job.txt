@@ -33,8 +33,6 @@ pipeline {
     	TAG = "${APP_NAME}"
 		PROJECT = project()
 		PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
-		
-
 	}
     agent any
     stages {
@@ -55,10 +53,13 @@ pipeline {
         }
         stage("Package hnsecure library") {
             steps {
-                dir("hnsecure") {
-                    sh ('echo Running: mvn install')
-                    sh 'mvn install'
-                }	
+                script{
+                    def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
+                    dir("hnsecure") {
+                        echo "Running: mvn install"
+                        sh "mvn install -Dgit-commit=${GIT_COMMIT}"
+                    }	
+                }
             }
         }        
         stage("Clean up existing application") {

@@ -8,6 +8,7 @@ import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
 import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
 import ca.bc.gov.hlth.hnsecure.routes.Route;
+import ca.bc.gov.hlth.hnsecure.routes.VersionRoute;
 
 /**
  * Main class that boots the Camel application.
@@ -27,6 +28,7 @@ public final class HnsEsbMainMethod {
         		+"classpath:application-external.properties;optional=true,"
         		+ "classpath:application.properties");
         main.configure().addRoutesBuilder(Route.class);
+        main.configure().addRoutesBuilder(VersionRoute.class);
         main.configure().addRoutesBuilder(PharmanetRoute.class);
         main.configure().addRoutesBuilder(RTransRoute.class);
         main.configure().addRoutesBuilder(HIBCRoute.class);
