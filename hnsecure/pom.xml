@@ -223,8 +223,7 @@
                   <manifestEntries>
 					<name>ca/bc/gov/hlth/hnsecure/</name>
 					<Implementation-Version>${project.version}-${BRANCH_NAME}-${BUILD_NUMBER}</Implementation-Version>	
-                  	<git-commit>${env.GIT_COMMIT}</git-commit>
-                  	<git-commit-prop>${git-commit}</git-commit-prop>
+                  	<git-commit>${git-commit}</git-commit>
                   </manifestEntries>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">

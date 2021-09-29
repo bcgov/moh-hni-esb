@@ -33,10 +33,13 @@ pipeline {
         }
         stage("Package hnsecure library") {
             steps {
-                dir("hnsecure") {
-                    echo "Running: mvn install"
-                    sh "mvn install"
-                }	
+                script{
+                    def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
+                    dir("hnsecure") {
+                        echo "Running: mvn install"
+                        sh "mvn install -Dgit-commit=${GIT_COMMIT}"
+                    }	
+                }
             }
         }        
         stage("Start Openshift build process") {
