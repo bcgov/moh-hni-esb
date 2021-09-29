@@ -13,9 +13,9 @@ import net.minidev.json.JSONObject;
  * This class is created to get the manifest information and provide the same in version route as JSON object.
  * Manifest information is set in pom.xml 
  */
-public class PopulateVersionInformation implements Processor{
+public class PopulateVersionInformation implements Processor {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateVersionInformation.class);
-	
+	private static final String IMPLEMENTATION_VERSION_KEY = "Implementation-Version";
 	private static final String versionInformation = getVersionInformation().toJSONString();
 
 	/**
@@ -28,7 +28,7 @@ public class PopulateVersionInformation implements Processor{
 		final String methodName = LoggingUtil.getMethodName();
 		// init a JSON object
 		JSONObject v2JsonObj = new JSONObject();
-		v2JsonObj.put("Implementation-Version", pck.getImplementationVersion());
+		v2JsonObj.put(IMPLEMENTATION_VERSION_KEY, pck.getImplementationVersion());
 		logger.debug("{} - The JSON Message is: {}", methodName, v2JsonObj.toJSONString());
 		//return the JSON object
 		return v2JsonObj;

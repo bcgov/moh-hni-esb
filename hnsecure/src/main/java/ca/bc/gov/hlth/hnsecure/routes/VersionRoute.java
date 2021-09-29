@@ -4,10 +4,13 @@ import org.apache.camel.Exchange;
 
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateVersionInformation;
 
+/**
+ * VersionRoute class is added to provide the version information of deployed artifacts
+ * This information can be retrieved from URL: http://<hostname>:<port>/version
+ * 
+ */
 public class VersionRoute extends BaseRoute {
 	
-
-    
 	@Override
     public void configure() {
     	  	
@@ -19,8 +22,4 @@ public class VersionRoute extends BaseRoute {
         	.log("HNSecure sent a response with version information")
         	;
     }
-	
-	
-	
- 
 }

@@ -23,7 +23,7 @@
 	<hibernate-entitymanager-version>5.4.32.Final</hibernate-entitymanager-version>	    
 	<mockito-core-version>3.11.2</mockito-core-version>
 	<ibm-mq-allclient-version>9.2.3.0</ibm-mq-allclient-version>
-	<git-commit>SNAPSHOT</git-commit>
+	<git-commit></git-commit>
   </properties>
   
   <repositories>
