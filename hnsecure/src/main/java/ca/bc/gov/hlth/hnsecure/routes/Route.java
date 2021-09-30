@@ -6,6 +6,7 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_MQ_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_CHANNEL;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
@@ -217,11 +218,17 @@ public class Route extends BaseRoute {
 	 */
 	private void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
-		JmsComponent jmsComponent = new JmsComponent();
-    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
-		jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
-        getContext().addComponent("jmsComponent", jmsComponent);
-		logger.info("{} - Added JMS Component to context with connection factory. {}", methodName);			
+
+		boolean isMQEnabled = Boolean.valueOf(properties.getValue(IS_MQ_ENABLED));		
+		if (isMQEnabled) {
+			JmsComponent jmsComponent = new JmsComponent();
+	    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
+			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
+	        getContext().addComponent("jmsComponent", jmsComponent);
+			logger.info("{} - Added JMS Component to context with connection factory. {}", methodName);
+		} else {
+    		logger.info("{} - JMS Component has not been added as MQs are disabled. {}", methodName);
+    	}
 	}
     
     /**

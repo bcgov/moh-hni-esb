@@ -1,13 +1,16 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_MQNotEnabled;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_MQ_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.Exchange;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
@@ -23,6 +26,7 @@ public class HIBCRoute extends BaseRoute {
 
 		String hibcHttpUrl = String.format(properties.getValue(ApplicationProperty.HIBC_HTTP_UTI) + "?bridgeEndpoint=true");
 		
+		boolean isMQEnabled = Boolean.valueOf(properties.getValue(IS_MQ_ENABLED));		
 		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);
 		String hibcReplyQueue = properties.getValue(HIBC_REPLY_QUEUE);
 		String hibcMqUrl = String.format(MQ_URL_FORMAT, hibcRequestQueue, hibcReplyQueue);
@@ -60,18 +64,24 @@ public class HIBCRoute extends BaseRoute {
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap("direct:audit").end();
 
-		from("direct:hibcMQ").routeId("hibc-mq-route")
-	        .log(String.format("Processing HIBC messages. Request Queue : %s, ReplyQ: %s", hibcRequestQueue, hibcReplyQueue))
-	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-	        .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
-			.log("HIBC request message ::: ${body}")
-			.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, hibcRequestQueue)))	           		        	
-	    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-	    	.wireTap("direct:audit").end()
-			.to(hibcMqUrl).id("ToHibcMqUrl")
-	        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-	        .wireTap("direct:audit").end()
-	        .log("Received response message from HIBC queue ::: ${body}");
+		if (isMQEnabled) {
+			from("direct:hibcMQ").routeId("hibc-mq-route")
+		        .log(String.format("Processing HIBC messages. Request Queue : %s, ReplyQ: %s", hibcRequestQueue, hibcReplyQueue))
+		        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+		        .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
+				.log("HIBC request message ::: ${body}")
+				.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, hibcRequestQueue)))	           		        	
+		    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+		    	.wireTap("direct:audit").end()
+				.to(hibcMqUrl).id("ToHibcMqUrl")
+		        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
+		        .wireTap("direct:audit").end()
+		        .log("Received response message from HIBC queue ::: ${body}");
+		} else {
+			from("direct:hibcMQ").routeId("hibc-mq-route")
+	    	.log("MQ routes are disabled.")
+	    	.throwException(new CustomHNSException(CustomError_Msg_MQNotEnabled));
+		}
 	}
 	
 }

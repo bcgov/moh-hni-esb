@@ -8,7 +8,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Processor;
 import org.apache.http.conn.HttpHostConnectException;
-
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +58,9 @@ public class ExceptionHandler implements Processor {
 			case CustomError_Msg_InvalidAuthKey:
 			case CustomError_Msg_MissingAuthKey:
 				handleException(exchange, errorMessage, HttpStatus.UNAUTHORIZED_401, TransactionEventType.UNAUTHENTICATED);
+				break;
+			case CustomError_Msg_MQNotEnabled:
+				handleException(exchange, errorMessage, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);
 				break;
 			default:
 				handleException(exchange, ErrorMessage.HL7Error_Msg_Unknown, HttpStatus.BAD_REQUEST_400, TransactionEventType.ERROR);
