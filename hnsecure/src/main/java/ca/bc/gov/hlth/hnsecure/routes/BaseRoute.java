@@ -16,7 +16,7 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 public abstract class BaseRoute extends RouteBuilder {
 	protected static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1&&mdWriteEnabled=true";
 	
-	protected static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Exclusive&allowAdditionalHeaders=JMS_IBM_MQMD_MsgId";
+	protected static final String MQ_URL_FORMAT = "jmsComponent:queue:%s?exchangePattern=InOut&replyTo=queue:///%s&replyToType=Shared&allowAdditionalHeaders=JMS_IBM_MQMD_MsgId";
 	
 	protected static final ApplicationProperties properties = ApplicationProperties.getInstance(); 
 
