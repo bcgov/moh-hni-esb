@@ -1,29 +1,36 @@
 // This pipeline will deploy the provided build number to selected environment
 pipeline {
+	parameters {
+		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
+		text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. If not known, get this value from URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ for app hnsesb-sample. If application does not exist, this job will fail')
+		string(name: 'DEPLOY_BUILD_NUMBER', defaultValue: '', description: 'Build number in text from hnsesb-buildAndDeploy job')
+	}
+
     environment {
     	// Input from user: NAMESPACE and DEPLOY_BUILD_NUMBER
     	CLUSTER = "openshift"
-    	DEPLOY_BUILD = "jenkins-hnsesb-buildAndDeploy-openshift-${DEPLOY_BUILD_NUMBER}"
+    	BUILD_DEPLOY_TAG = "BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
 		OC_JEKNINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
-		APP_NAME = appName()
+		APP_NAME = lower()
 
-		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${APP_NAME}"
-		IMAGE_STREAM_TAG = "imagestreamtag/${APP_NAME}:${DEPLOY_BUILD}"
+		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb"
+		IMAGE_STREAM_TAG = "imagestreamtag/hnsesb:${BUILD_DEPLOY_TAG}"
 		
-		APPLY_TAG="latest"
-		//eg : imagestreamtag/hnsesb-test:latest 
+		APPLY_TAG=lower()
+		//eg : imagestreamtag/hnsesb:BUILD-DEPLOY-12 
 	}
 	
     agent any
 
     stages {
-        stage('Verify if Build exists') {
+        stage('Verify if application and build exists') {
             steps {
             	script {
                     openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
+                            	// Checking if build exists
                                 echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
                                 def is = openshift.selector( "imagestreamtag")
                                 def valid = "False"
@@ -34,11 +41,23 @@ pipeline {
                                     }
                                 }
                                 if("${valid}"=="TRUE"){
-                                    echo "${DEPLOY_BUILD} exists in image stream: ${IMAGE_STREAM}"
+                                    echo "${BUILD_DEPLOY_TAG} exists in image stream: ${IMAGE_STREAM}"
                                 }
                                 else{
-                                    echo "${DEPLOY_BUILD} does not exist in image stream: ${IMAGE_STREAM}"
+                                    echo "${BUILD_DEPLOY_TAG} does not exist in image stream: ${IMAGE_STREAM}"
                                     sh 'False'
+                                }
+                                
+                                // Checking if application exists
+                                echo "Checking if application exists"
+								def podObj =  openshift.selector( 'pods', [ app: '${APP_NAME}' ] ).object()
+								def podStatus =  podObj.status.phase
+                                if ("${podStatus}"=='Running'){
+                                	echo 'Application exists'
+                                }
+                                else {
+                                	echo "${APP_NAME} Application does not exist. So exiting the job"
+                                	sh 'False'
                                 }
                             }
                         }
@@ -54,8 +73,8 @@ pipeline {
                     openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
-                                echo "Tag the build ${IMAGE_STREAM}:${DEPLOY_BUILD} with tag: ${APPLY_TAG} "
-                                openshift.tag( "${IMAGE_STREAM}:${DEPLOY_BUILD}", "${APP_NAME}:${APPLY_TAG}")
+                                echo "Tag the build ${IMAGE_STREAM}:${BUILD_DEPLOY_TAG} with tag: ${APPLY_TAG} "
+                                openshift.tag( "${IMAGE_STREAM}:${BUILD_DEPLOY_TAG}", "c5839f-tools/hnsesb:${APP_NAME}")
                             }
                         }
                     }
@@ -68,7 +87,7 @@ def project() {
 	def ns = "${NAMESPACE}"
 	return "c5839f-" + ns.toLowerCase()
 }
-def appName() {
-	def ns = "${NAMESPACE}"
-	return "hnsesb-" + ns.toLowerCase() 
+def lower() {
+	def app = "${Application}"
+	return app.toLowerCase()
 }

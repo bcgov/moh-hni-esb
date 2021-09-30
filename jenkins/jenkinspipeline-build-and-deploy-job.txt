@@ -13,6 +13,7 @@ pipeline {
 		APP_NAME = appName()
 		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
 		TAG = "${BRANCH_NAME}-${BUILD_NUMBER}"
+		TAG2 = "BUILD-DEPLOY-${BUILD_NUMBER}"
 	}
     agent any
     stages {
@@ -65,8 +66,9 @@ pipeline {
 								def buildStatus = buildRun.object().status.phase
 								if("Complete"==buildStatus){
 									echo "Build status is ${buildStatus}.  Image created is ${IMAGE_STREAM}"
-									echo "Tagging the build with build tag: ${TAG}"
+									echo "Tagging the build with build tag: ${TAG} and ${TAG2}"
 									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG}")
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG2}")
 								}
 								// if build is a failure, process should failure
 								else{
