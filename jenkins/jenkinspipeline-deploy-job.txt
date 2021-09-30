@@ -12,6 +12,7 @@ pipeline {
     	BUILD_DEPLOY_TAG = "BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
 		OC_JEKNINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
+		TOOLS_PROJECT = "c5839f-tools"
 		APP_NAME = lower()
 
 		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb"
