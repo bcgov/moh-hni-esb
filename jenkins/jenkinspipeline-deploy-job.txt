@@ -29,26 +29,18 @@ pipeline {
             	script {
                     openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
-                            openshift.withProject("${PROJECT}"){
+                            openshift.withProject("${TOOLS_PROJECT}"){
                             	// Checking if build exists
                                 echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-                                def is = openshift.selector( "imagestreamtag")
-                                def valid = "False"
-                                is.withEach{
-                                    echo "Value of Image stream select exists: ${it.name()} and input is ${IMAGE_STREAM_TAG}"
-                                    if("${IMAGE_STREAM_TAG}"=="${it.name()}"){
-                                        valid="TRUE"
-                                    }
-                                }
-                                if("${valid}"=="TRUE"){
-                                    echo "${BUILD_DEPLOY_TAG} exists in image stream: ${IMAGE_STREAM}"
-                                }
-                                else{
-                                    echo "${BUILD_DEPLOY_TAG} does not exist in image stream: ${IMAGE_STREAM}"
-                                    sh 'False'
-                                }
-                                
+                                def is = openshift.selector( "imagestreamtag/hnsesb:${BUILD_DEPLOY_TAG}").object()
+								// Job will fail if object does not exist
+								def name = is.metadata.name
+								echo "name is ${name}"
+								
+                            }
+							openshift.withProject("${PROJECT}"){
                                 // Checking if application exists
+                                echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
                                 echo "Checking if application exists"
 								def podObj =  openshift.selector( 'pods', [ app: '${APP_NAME}' ] ).object()
 								def podStatus =  podObj.status.phase
@@ -72,7 +64,7 @@ pipeline {
                 script {
                     openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
-                            openshift.withProject("${PROJECT}"){
+                            openshift.withProject("${TOOLS_PROJECT}"){
                                 echo "Tag the build ${IMAGE_STREAM}:${BUILD_DEPLOY_TAG} with tag: ${APPLY_TAG} "
                                 openshift.tag( "${IMAGE_STREAM}:${BUILD_DEPLOY_TAG}", "c5839f-tools/hnsesb:${APP_NAME}")
                             }
