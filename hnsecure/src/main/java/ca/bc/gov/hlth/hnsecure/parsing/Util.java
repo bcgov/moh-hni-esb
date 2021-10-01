@@ -43,6 +43,7 @@ public final class Util {
 
 	public static final String PROPERTY_IS_AUDITS_ENABLED = "isAuditsEnabled";
 	public static final String PROPERTY_IS_FILE_DROPS_ENABLED = "isFileDropsEnabled";
+	public static final String PROPERTY_IS_MQ_ENABLED = "isMQEnabled";
 	public static final String PROPERTY_MESSAGE_PROTOCOL = "messageProtocol";
 	public static final String PROPERTY_MESSAGE_TYPE = "messageType";
 	public static final String PROPERTY_RECEIVING_APP = "receivingApp";

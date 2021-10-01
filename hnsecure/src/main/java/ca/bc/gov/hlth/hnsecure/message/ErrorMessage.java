@@ -26,7 +26,8 @@ public enum ErrorMessage {
 	CustomError_Msg_MissingAuthKey("HNSE001E", "No authorization key passed in request header."),
 	CustomError_Msg_InvalidAuthKey("HNSE002E", "Invalid token passed in request header."),
 	CustomError_Msg_DownstreamConnectionFailed("HNSE003E", "Downstream connection failed."),
-	CustomError_Msg_InvalidRequest("HNSE004E", "Invalid request.");
+	CustomError_Msg_InvalidRequest("HNSE004E", "Invalid request."),
+	CustomError_Msg_MQNotEnabled("HNSE005E", "Messages Queues are not enabled");
 
 	private final String errorSequence;
 	private final String errorMessage;

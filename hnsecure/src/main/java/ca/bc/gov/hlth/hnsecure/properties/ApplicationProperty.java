@@ -20,7 +20,8 @@ public enum ApplicationProperty {
 	IS_FILEDDROPS_ENABLED("is.filedrops.enabled"),
 	FILE_DROPS_LOCATION("file.drops.location"),
 	IS_AUDITS_ENABLED("audits.enabled"),
-
+	IS_MQ_ENABLED("mq.enabled"),
+	
 	//Pharmanet properties
 	PHARMANET_URI("pharmanet.uri"),
 	PHARMANET_CERT_PASSWORD("pharmanet.cert.password"),
