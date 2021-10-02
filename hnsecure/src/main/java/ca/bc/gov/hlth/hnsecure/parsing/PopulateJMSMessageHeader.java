@@ -14,6 +14,8 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * Add hexadecimal message ControlId with a prefix ID: to add provider specific 
  * value to stop any encoding in MQRFH2.
  * Set custom JMS message Id by adding MQMD.
+ * Set CCSID to 819
+ * Set DeliveryMode to 'MQPER_NOT_PERSISTENT
  * As per JMS specification JMS_IBM_MQMD_MsgId must be unique or null.
  * header Refer : https://www.ibm.com/docs/en/ibm-mq/7.5?topic=messages-mapping-jms-header-fields-send-publish
  * @author anumeha.srivastava
@@ -21,6 +23,8 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  */
 public class PopulateJMSMessageHeader {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateJMSMessageHeader.class);
+	private static final String CHAR_SET_ID = "819";
+	private static final String DELIVERY_MODE = "1";
 
 	@Handler
 	public void populateJMSRequestHeader(Exchange exchange, String v2Message) throws CSIException {
@@ -37,6 +41,9 @@ public class PopulateJMSMessageHeader {
 		}
 		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexString);		
 		exchange.getIn().setHeader("JMS_IBM_MQMD_MsgId", customMessageId);
+		exchange.getIn().setHeader("JMSDeliveryMode", DELIVERY_MODE);
+		exchange.getIn().setHeader("JMS_IBM_Character_Set", CHAR_SET_ID);
+
 
 		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ",
 				methodName, exchange.getExchangeId(), hexString, hexString);
