@@ -6,6 +6,7 @@ import javax.jms.JMSException;
 
 import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.http.base.HttpOperationFailedException;
 import org.apache.http.conn.HttpHostConnectException;
 
 import com.ibm.mq.headers.MQRFH2;
@@ -33,7 +34,7 @@ public abstract class BaseRoute extends RouteBuilder {
 
 	@SuppressWarnings("unchecked")
 	protected void handleExceptions() {
-    	onException(CustomHNSException.class, HttpHostConnectException.class, UnknownHostException.class, JMSException.class, ExchangeTimedOutException.class)
+    	onException(CustomHNSException.class, HttpHostConnectException.class, HttpOperationFailedException.class, UnknownHostException.class, JMSException.class, ExchangeTimedOutException.class)
 	    	.process(new ExceptionHandler())
 	    	.handled(true)
 	    	.to("direct:handleResponse");

@@ -7,6 +7,7 @@ import javax.jms.JMSException;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangeTimedOutException;
 import org.apache.camel.Processor;
+import org.apache.camel.http.base.HttpOperationFailedException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class ExceptionHandler implements Processor {
 				handleException(exchange, ErrorMessage.HL7Error_Msg_Unknown, HttpStatus.BAD_REQUEST_400, TransactionEventType.ERROR);
 				break;
 			}
-		} else if (exception instanceof HttpHostConnectException || exception instanceof UnknownHostException) {
+		} else if (exception instanceof HttpHostConnectException || exception instanceof HttpOperationFailedException || exception instanceof UnknownHostException) {
 			logger.info("{} -  Failed to connect remote server. {}", methodName, exception.getMessage());
 			handleException(exchange, ErrorMessage.CustomError_Msg_DownstreamConnectionFailed,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
 		} else if (exception instanceof JMSException) {
