@@ -2,6 +2,7 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,9 +12,9 @@ import com.ibm.msg.client.commonservices.Utils;
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 
 /**
- * Add hexadecimal message ControlId with a prefix ID: to add provider specific 
+ * Set Correlation Id to hexadecimal Exchange ID with a prefix ID: to add provider specific 
  * value to stop any encoding in MQRFH2.
- * Set custom JMS message Id by adding MQMD.
+ * Set hexadecimal V2 messageControlId as JMS message Id for broker's MQMD field.
  * Set CCSID to 819
  * Set DeliveryMode to 1 'MQPER_NOT_PERSISTENT'
  * As per JMS specification JMS_IBM_MQMD_MsgId must be unique or null.
@@ -29,11 +30,15 @@ public class PopulateJMSMessageHeader {
 	@Handler
 	public void populateJMSRequestHeader(Exchange exchange, String v2Message) throws CSIException {
 		final String methodName = LoggingUtil.getMethodName();
+		
 		String msgControlId = V2MessageUtil.getMsgControlId(v2Message);
-		byte[] customMessageId = new byte[24];
-		String hexString = Util.convertStringToHex(msgControlId);
+		byte[] customMessageId = new byte[24];		
+		String hexStringForMsgId = Util.convertStringToHex(msgControlId);
+		
+		String exchangeId = exchange.getExchangeId().replaceAll("-", "");
+		String hexString = StringUtils.rightPad(exchangeId, 48, '0');
 		try {
-			customMessageId = Utils.hexToBytes(hexString);
+		customMessageId = Utils.hexToBytes(hexStringForMsgId);
 		} catch (CSIException e) {
 			logger.error("{} - TransactionId: {}, Exception while converting hexadecimal message Control Id to byte {}",
 				methodName, exchange.getExchangeId(), e.getMessage());
@@ -46,7 +51,7 @@ public class PopulateJMSMessageHeader {
 
 
 		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ",
-				methodName, exchange.getExchangeId(), hexString, hexString);
+				methodName, exchange.getExchangeId(), hexStringForMsgId, hexString);
 	}
 
 }
