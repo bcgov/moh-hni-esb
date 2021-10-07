@@ -34,9 +34,6 @@ public class PopulateJMSMessageHeader {
 		
 		String msgControlId = V2MessageUtil.getMsgControlId(v2Message);			
 		String hexStringForMsgId = Util.convertStringToHex(msgControlId);
-		
-		String exchangeId = exchange.getExchangeId().replaceAll("-", "");
-		String hexStringForCorId = StringUtils.rightPad(exchangeId, 48, '0');
 		try {
 			customMessageId = Utils.hexToBytes(hexStringForMsgId);
 		} catch (CSIException e) {
@@ -44,6 +41,10 @@ public class PopulateJMSMessageHeader {
 				methodName, exchange.getExchangeId(), e.getMessage());
         	throw e;
 		}
+		
+		String exchangeId = exchange.getExchangeId().replaceAll("-", "");
+		String hexStringForCorId = StringUtils.rightPad(exchangeId, 48, '0');
+	
 		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexStringForCorId);		
 		exchange.getIn().setHeader("JMS_IBM_MQMD_MsgId", customMessageId);
 		exchange.getIn().setHeader("JMSDeliveryMode", DELIVERY_MODE);
