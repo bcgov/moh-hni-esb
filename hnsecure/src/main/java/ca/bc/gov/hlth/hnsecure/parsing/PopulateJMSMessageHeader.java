@@ -30,28 +30,28 @@ public class PopulateJMSMessageHeader {
 	@Handler
 	public void populateJMSRequestHeader(Exchange exchange, String v2Message) throws CSIException {
 		final String methodName = LoggingUtil.getMethodName();
+		byte[] customMessageId = new byte[24];	
 		
-		String msgControlId = V2MessageUtil.getMsgControlId(v2Message);
-		byte[] customMessageId = new byte[24];		
+		String msgControlId = V2MessageUtil.getMsgControlId(v2Message);			
 		String hexStringForMsgId = Util.convertStringToHex(msgControlId);
 		
 		String exchangeId = exchange.getExchangeId().replaceAll("-", "");
-		String hexString = StringUtils.rightPad(exchangeId, 48, '0');
+		String hexStringForCorId = StringUtils.rightPad(exchangeId, 48, '0');
 		try {
-		customMessageId = Utils.hexToBytes(hexStringForMsgId);
+			customMessageId = Utils.hexToBytes(hexStringForMsgId);
 		} catch (CSIException e) {
 			logger.error("{} - TransactionId: {}, Exception while converting hexadecimal message Control Id to byte {}",
 				methodName, exchange.getExchangeId(), e.getMessage());
         	throw e;
 		}
-		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexString);		
+		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexStringForCorId);		
 		exchange.getIn().setHeader("JMS_IBM_MQMD_MsgId", customMessageId);
 		exchange.getIn().setHeader("JMSDeliveryMode", DELIVERY_MODE);
 		exchange.getIn().setHeader("JMS_IBM_Character_Set", CHAR_SET_ID);
 
 
 		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ",
-				methodName, exchange.getExchangeId(), hexStringForMsgId, hexString);
+				methodName, exchange.getExchangeId(), hexStringForMsgId, hexStringForCorId);
 	}
 
 }
