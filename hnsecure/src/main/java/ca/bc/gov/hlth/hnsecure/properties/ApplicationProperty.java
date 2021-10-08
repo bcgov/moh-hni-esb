@@ -39,12 +39,12 @@ public enum ApplicationProperty {
 	//JMB Properties
 	JMB_REQUEST_QUEUE("jmb.request.queue"),
 	JMB_REPLY_QUEUE("jmb.reply.queue"),
-	JMB_HTTP_UTI("jmb.http.uri"),
+	JMB_HTTP_URI("jmb.http.uri"),
 
 	//Hibc properties
 	HIBC_REQUEST_QUEUE("hibc.request.queue"),
 	HIBC_REPLY_QUEUE("hibc.reply.queue"),
-	HIBC_HTTP_UTI("hibc.http.uri"),
+	HIBC_HTTP_URI("hibc.http.uri"),
 
 	//MQ Properties
 	MQ_HOST("mq.host"),
