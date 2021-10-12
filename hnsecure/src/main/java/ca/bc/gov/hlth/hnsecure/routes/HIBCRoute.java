@@ -24,7 +24,7 @@ public class HIBCRoute extends BaseRoute {
 	@Override
 	public void configure() throws Exception {
 
-		String hibcHttpUrl = String.format(properties.getValue(ApplicationProperty.HIBC_HTTP_UTI) + "?bridgeEndpoint=true");
+		String hibcHttpUrl = String.format(properties.getValue(ApplicationProperty.HIBC_HTTP_URI) + "?bridgeEndpoint=true");
 		
 		boolean isMQEnabled = Boolean.valueOf(properties.getValue(IS_MQ_ENABLED));		
 		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);

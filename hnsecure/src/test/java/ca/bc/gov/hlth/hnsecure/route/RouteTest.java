@@ -82,7 +82,10 @@ public class RouteTest extends CamelTestSupport {
 		AdviceWithRouteBuilder.adviceWith(context, "hibc-mq-route", a -> {
 			a.weaveById("ToHibcMqUrl").replace().to("mock:hibcMq");
 		});
-		AdviceWithRouteBuilder.adviceWith(context, "jmb-route", a -> {
+		AdviceWithRouteBuilder.adviceWith(context, "jmb-http-route", a -> {
+			a.weaveById("ToJmbHttpUrl").replace().to("mock:jmbHttp");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "jmb-mq-route", a -> {
 			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
 		});
 	}
