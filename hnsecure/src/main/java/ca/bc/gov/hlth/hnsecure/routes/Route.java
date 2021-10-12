@@ -4,6 +4,7 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.E45;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R32;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.FILE_DROPS_LOCATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_FILEDDROPS_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_MQ_ENABLED;
@@ -12,6 +13,7 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.MQ_QUEUEMANAGER;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Properties;
 
@@ -158,6 +160,7 @@ public class Route extends BaseRoute {
     	injectProperties();
     	properties = ApplicationProperties.getInstance();
     	initMQ();
+    	initFileDrop();
     	loadValidator();
     }
     
@@ -225,9 +228,9 @@ public class Route extends BaseRoute {
 	    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
 			jmsComponent.setConnectionFactory(mqQueueConnectionFactory);
 	        getContext().addComponent("jmsComponent", jmsComponent);
-			logger.info("{} - Added JMS Component to context with connection factory. {}", methodName);
+			logger.info("{} - Added JMS Component to context with connection factory.", methodName);
 		} else {
-    		logger.info("{} - JMS Component has not been added as MQs are disabled. {}", methodName);
+    		logger.info("{} - JMS Component has not been added as MQs are disabled.", methodName);
     	}
 	}
     
@@ -280,4 +283,23 @@ public class Route extends BaseRoute {
         }
         return mqQueueConnectionFactory;
     }  
+
+	private void initFileDrop() {
+		final String methodName = LoggingUtil.getMethodName();		
+		boolean isFileDropsEnabled = Boolean.valueOf(properties.getValue(IS_FILEDDROPS_ENABLED));
+		
+		if (isFileDropsEnabled) {
+			logger.debug("{} - Initializing file drop.", methodName);			
+			String fileDropsLocation = properties.getValue(FILE_DROPS_LOCATION);
+			File fileDropsDirectory = new File(fileDropsLocation);
+			if (!fileDropsDirectory.exists()) {
+				logger.debug("{} - File drop location directory [{}] did not exist so it will be created.", methodName, fileDropsLocation);			
+				fileDropsDirectory.mkdir();
+			}
+			logger.debug("{} - File drop location is [{}].", methodName, fileDropsDirectory.getAbsolutePath());			
+		} else {
+			logger.debug("{} - File drops not enabled, no initializion required.", methodName);			
+		}
+	}
+
 }
