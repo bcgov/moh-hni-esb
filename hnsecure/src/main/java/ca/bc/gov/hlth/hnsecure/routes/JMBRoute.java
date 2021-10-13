@@ -72,10 +72,8 @@ public class JMBRoute extends BaseRoute {
 				.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, jmbRequestQueue)))  
 		    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 		    	.wireTap("direct:audit").end()
-				.to(jmbUrl).id("ToJmbUrl")
-				.log("JMS headers ::: ${headers}")
-				.removeHeaders("JMS*")
-				.log("Removed JMS headers ::: ${headers}")
+				.to(jmbUrl).id("ToJmbUrl")				
+				.removeHeaders("JMS*")				
 		        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		        .wireTap("direct:audit").end()
 		        .log("Received response message for ${exchangeProperty.messageType} ::: ${body}");
