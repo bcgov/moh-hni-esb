@@ -1,15 +1,22 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.INVALID_MSG_R32;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.junit.Test;
 
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 /**
@@ -125,6 +132,43 @@ public class V2MessageUtilTest {
 		assertEquals(expectedValue, actualValue);;
 	}
 	
+	@Test
+	public void testGetMessageSegmentsNewLineEOL() {
+		//Expected segments from messages using carriage return end of line character.
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_PHARMANET);
+		assertNotNull(segments);
+		assertEquals(5, segments.length);
+		assertEquals("00000352MSH|^~\\&|PLEXIAPNP|BC01000176|PNP|MD|2020/11/26 21:52:53|JHEWH$#!:192.168.22.66|ZPN|18|D|2.1||", segments[0]);
+		assertEquals("ZZZ|TID||18|91|XYACA||||", segments[1]);
+		assertEquals("ZCA||03|00|PE|02", segments[2]);
+		assertEquals("ZCB|BCXX000024|201126|18", segments[3]);
+		assertEquals("ZCC||||||||||0009735000001|", segments[4]);
+	}
+
+	@Test
+	public void testGetMessageSegmentsCarriageReturnNewLineEOL() {
+		//Expected segments from messages using carriage return end of line character.
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_R03);
+		assertNotNull(segments);
+		assertEquals(3, segments.length);
+		assertEquals("MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||", segments[0]);
+		assertEquals("ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4", segments[1]);
+		assertEquals("PID||0891250000^^^BC^PH", segments[2]);
+	}
+
+	@Test
+	public void testGetMessageSegmentsInvalidEOL() {
+		
+		String[] segments = V2MessageUtil.getMessageSegments(INVALID_MSG_R32);
+		assertNull(segments);
+		
+		String pidSegment = V2MessageUtil.getSegment(segments, SegmentType.PID);
+		assertNull(pidSegment);
+		
+		List<String> qpdSegments = V2MessageUtil.getSegments(segments, V2MessageUtil.SegmentType.QPD);
+		assertTrue(qpdSegments.isEmpty());
+	}
+
 	@Test
 	public void testGetIdentifierSectionsPID() {
 		//Expected 0891250000^^^BC^PH

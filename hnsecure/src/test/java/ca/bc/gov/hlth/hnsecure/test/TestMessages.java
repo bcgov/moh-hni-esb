@@ -39,8 +39,6 @@ public class TestMessages {
 			+ "ZHD|20191108082211|^^00000010|HNAIADMINISTRATION||||2.4\r\n" 
 			+ "QRD|||||||^RD||PSN\r\n"
 			+ "PID||^^^BC^PH|||||1989|M\r\n" + "ZIA|||||||||||||||branton\r\n";
-	
-
 
 	public static String R09_RESPONSE_MESSAGE = "MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
             + "MSA|AA|20191108082211|HJMB001ISUCCESSFULLY COMPLETED\r\n"
@@ -59,4 +57,7 @@ public class TestMessages {
 			+ "PID||0314500001^^^BC^PH\r\n"
 			+ "IN1||||||||||||20190228\r\n";
 
+	public static String INVALID_MSG_R32 = "00000352MSH|^~\\&|HNWeb|moh_hnclient_dev|RAIGT-CNT-PRDS|BC00001013|20210820126|train96|R32|%s|D|2.4||\r"
+			+ "ZHD|20210831112325|^^00000010|HNAIADMINISTRATION||||2.4\r" 
+			+ "PID||9306448169^^^BC^PH";
 }
