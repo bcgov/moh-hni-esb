@@ -74,6 +74,7 @@ public class HIBCRoute extends BaseRoute {
 		    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 		    	.wireTap("direct:audit").end()
 				.to(hibcMqUrl).id("ToHibcMqUrl")
+				.removeHeaders("JMS*")	
 		        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		        .wireTap("direct:audit").end()
 		        .log("Received response message from HIBC queue ::: ${body}");
