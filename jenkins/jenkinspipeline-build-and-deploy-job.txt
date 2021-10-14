@@ -52,7 +52,7 @@ pipeline {
 								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
 								def bcSelector = openshift.selector( "buildconfig", "${APP_NAME}")
 								echo "Application name ${APP_NAME} exist in project ${PROJECT}." 
-								def buildRun = bcSelector.startBuild("--from-dir",".\hnsecure")
+								def buildRun = bcSelector.startBuild("--from-dir","./hnsecure")
 								buildRun.logs('-f')
 								
 								//def builds = bcSelector.related('builds')
