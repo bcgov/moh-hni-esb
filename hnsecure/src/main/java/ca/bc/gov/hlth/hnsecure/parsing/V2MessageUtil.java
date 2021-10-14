@@ -268,8 +268,10 @@ public class V2MessageUtil {
 			segments = v2Message.split(Util.CARRIAGE_RETURN_LINE_BREAK);
 		} else if (v2Message.contains(Util.LINE_BREAK)) {
 			segments = v2Message.split(Util.LINE_BREAK);
-		} else {
-			logger.warn("Can't split v2 message due to unknown EOL");
+        } else if (v2Message.contains(Util.CARRIAGE_RETURN)) {
+            segments = v2Message.split(Util.CARRIAGE_RETURN);
+        } else {
+			logger.warn("Can't split v2 message due to unknown EOL characters");
 		}
 		return segments;
 	}
@@ -282,13 +284,8 @@ public class V2MessageUtil {
 	 * @return
 	 */
 	public static String getSegment(String[] segments, SegmentType segmentType) {
-		for (String segment : segments) {						
-			if (segment.startsWith(segmentType.name())) {
-				return segment;
-			}
-		}
-		logger.warn("Segment {} not found", segmentType);
-		return null;
+		List<String> selectedSegments = getSegments(segments, segmentType);
+		return selectedSegments.isEmpty() ? null :  selectedSegments.get(0);
 	}
 
 	/**
@@ -299,12 +296,19 @@ public class V2MessageUtil {
 	 */
 	public static List<String> getSegments(String[] segments, SegmentType segmentType) {
 		List<String> requiredSegments = new ArrayList<String>();
-		for (String segment : segments) {						
-			if (segment.startsWith(segmentType.name())) {
-				requiredSegments.add(segment);
+		
+		if (segments != null) {
+			for (String segment : segments) {						
+				if (segment.startsWith(segmentType.name())) {
+					requiredSegments.add(segment);
+				}
 			}
 		}
-		logger.warn("Segment {} not found", segmentType);
+		
+		if (requiredSegments.isEmpty()) {
+			logger.warn("No segments of type {} found.", segmentType);
+		}
+		
 		return requiredSegments;
 	}
 

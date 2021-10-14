@@ -33,6 +33,7 @@ public final class Util {
 	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
 	public final static String DATE_PATTERN = "yyyyMMddHHmmss";
 	public final static String GENERIC_PATTERN = "yyyyMMddHHmmssZ";
+	public final static String CARRIAGE_RETURN = "\r";
 	public final static String LINE_BREAK = "\n";
 	public final static String CARRIAGE_RETURN_LINE_BREAK = "\r\n";
 	
