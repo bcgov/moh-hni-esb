@@ -15,7 +15,7 @@ public class HandleResponseRoute extends RouteBuilder {
 	public void configure() throws Exception {
 		from("direct:handleResponse").routeId("handle-response-route")
 			// create filedrops if enabled
-			.wireTap("direct:requestFileDrop").end()
+			.wireTap("direct:responseFileDrop").end()
 	        // Audit "Transaction Complete"
 			.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_COMPLETE))
 	        .wireTap("direct:audit").end()
