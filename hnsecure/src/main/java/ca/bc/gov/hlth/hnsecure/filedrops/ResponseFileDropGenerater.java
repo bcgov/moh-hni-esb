@@ -32,11 +32,11 @@ public class ResponseFileDropGenerater extends FileDropGenerater {
 		Object body = exchange.getIn().getBody();
 		if (body != null && StringUtils.isNotBlank(body.toString())) {
 			String corId = exchange.getProperty(Exchange.CORRELATION_ID, String.class);
-			String fileName = buildFileNameParameters(exchange,corId);
+			String fileName = buildFileNameParameters(exchange, corId);
 			String responseFileName = fileName + RESPONSE_FILE;		
 			writeFiledrop(body.toString(), responseFileName);
 			logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",
-					LoggingUtil.getMethodName(), exchange.getExchangeId(), responseFileName);
+					LoggingUtil.getMethodName(), corId, responseFileName);
 		}
 
 		logger.debug("{} - Finished.", methodName);
