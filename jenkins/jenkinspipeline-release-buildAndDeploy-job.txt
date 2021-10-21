@@ -18,6 +18,7 @@ pipeline {
 		IMAGE_STREAM = 'image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}'
 		TAG_RELEASE = 'Release-1.0-main-${BUILD_NUMBER}'
 		TAG_DEV = 'hnsesb-dev'
+		GIT_COMMIT = ''
 	}
     agent any
     stages {
@@ -39,7 +40,7 @@ pipeline {
         stage("Package hnsecure library") {
             steps {
                 script{
-                    def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
+                    GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
                     dir("hnsecure") {
                         echo "Running: mvn install"
                         sh "mvn install -Dimpl-version=${TAG_RELEASE} -Dgit-commit=${GIT_COMMIT}"
@@ -98,15 +99,18 @@ pipeline {
 				} // End script
             } // End steps
         } // End stage
-        stage ('ssh agent stage'){
+        stage ('Tagging the code repository'){
             steps{
-                sshagent(credentials: ['github-deployer-key']) {
+            	echo("Tagging the git commit: ${GIT_COMMIT}")
+            	def TAG_MSG = 'Tagged by Jenkins Release process.'
+                //sshagent(credentials: ['github-deployer-key']) {
                 	// jenkins@jenkins.com	
-                  	sh ('git config --global user.email "jenkins@jenkins.com"')
-  					sh ('git config --global user.name "jenkins"')
-                    sh ('git tag -a $TAG_RELEASE -m "Tagged by Jenkins Release process." ')
+                  	//sh ('git config --global user.email "jenkins@jenkins.com"')
+  					//sh ('git config --global user.name "jenkins"')
+                    sh ('git tag -a -f -m $TAG_MSG $TAG_RELEASE $GIT_COMMIT ')
                     sh ('git push origin HEAD:$BRANCH_NAME --tags')
-                }
+				echo("Tagging complete")                    
+                //}
             }
         }
     }
