@@ -101,6 +101,9 @@ pipeline {
         stage ('ssh agent stage'){
             steps{
                 sshagent(credentials: ['github-deployer-key']) {
+                	// jenkins@jenkins.com	
+                  	sh ('git config --global user.email "jenkins@jenkins.com"')
+  					sh ('git config --global user.name "jenkins"')
                     sh ('git tag -a $TAG_RELEASE -m "Tagged by Jenkins Release process." ')
                     sh ('git push origin HEAD:$BRANCH_NAME --tags')
                 }
