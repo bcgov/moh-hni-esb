@@ -92,18 +92,17 @@ pipeline {
 								}
 								echo "Deployment status ${dStatus}"
 								
-							}
-						}
-					}
-				}
-            }
-            
-            stage ('ssh agent stage'){
-	            steps{
-	                sshagent(credentials: ['github-deployer-key']) {
-	                    sh ('git tag -a $TAG_RELEASE -m "Tagged by Jenkins Release process." ')
-	                    sh ('git push origin HEAD:$BRANCH_NAME --tags')
-                    }
+							} // End openshift projectt
+						} // End openshift credentials
+					} // End openshift cluster
+				} // End script
+            } // End steps
+        } // End stage
+        stage ('ssh agent stage'){
+            steps{
+                sshagent(credentials: ['github-deployer-key']) {
+                    sh ('git tag -a $TAG_RELEASE -m "Tagged by Jenkins Release process." ')
+                    sh ('git push origin HEAD:$BRANCH_NAME --tags')
                 }
             }
         }
