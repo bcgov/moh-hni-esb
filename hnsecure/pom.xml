@@ -24,6 +24,7 @@
 	<mockito-core-version>3.11.2</mockito-core-version>
 	<ibm-mq-allclient-version>9.2.3.0</ibm-mq-allclient-version>
 	<git-commit></git-commit>
+	<impl-version>${project.version}-${BRANCH_NAME}-${BUILD_NUMBER}</impl-version>
   </properties>
   
   <repositories>
@@ -222,7 +223,7 @@
                   <mainClass>ca.bc.gov.hlth.hnsecure.HnsEsbMainMethod</mainClass>
                   <manifestEntries>
 					<Name>ca/bc/gov/hlth/hnsecure/</Name>
-					<Implementation-Version>${project.version}-${BRANCH_NAME}-${BUILD_NUMBER}</Implementation-Version>	
+					<Implementation-Version>${impl-version}</Implementation-Version>	
                   	<Git-Commit>${git-commit}</Git-Commit>
                   </manifestEntries>
                 </transformer>

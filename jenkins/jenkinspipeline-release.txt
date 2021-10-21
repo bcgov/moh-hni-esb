@@ -1,0 +1,116 @@
+// This pipeline is created to create a release build of hnsesb
+// This job always creates a build from main branch and tag the code with release number
+// This job also tags the branch with version number and tags the final image with release tag number
+// This pipeline is created to build the application using build config and then deploy using deployment config
+// By default it deploys in Dev environment. To move the build, use hnsesb-deploy job
+pipeline {
+		
+	environment {
+		CLUSTER = 'openshift'
+		PROJECT = 'c5839f-dev'
+		APP_NAME = 'hnsesb-dev'
+    	OC_JENKINS_USER = 'deployer-c5839f-tools'
+    	//BRANCH_NAME='main'
+    	// For testing purposes, pointing to feature branch
+    	BRANCH_NAME='4525_release_branch_in_jenkins'
+		
+		
+		IMAGE_STREAM = 'image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}'
+		TAG_RELEASE = 'Release-1.0-main-${BUILD_NUMBER}'
+		TAG_DEV = 'hnsesb-dev'
+	}
+    agent any
+    stages {
+        stage("Checkout") {
+            steps {
+                // Get some code from a GitHub repository
+                echo "Getting code from main"
+                git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
+            }
+        }
+ 		stage("Package hn-common library") {
+            steps {
+                dir("hn-common") {
+                    echo "Running: mvn install"
+                    sh "mvn install"
+                }	
+            }
+        }
+        stage("Package hnsecure library") {
+            steps {
+                script{
+                    def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
+                    dir("hnsecure") {
+                        echo "Running: mvn install"
+                        sh "mvn install -Dgit-commit=${GIT_COMMIT} -Dimpl-version={TAG_RELEASE}"
+                    }	
+                }
+            }
+        }        
+        stage("Start Openshift build process") {
+            steps {
+				script{
+					openshift.withCluster( "${CLUSTER}" ) {
+                        openshift.withCredentials( "${OC_JENKINS_USER}" ) {
+                            openshift.withProject("${PROJECT}"){
+								echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
+								def bcSelector = openshift.selector( "buildconfig", "${APP_NAME}")
+								echo "Application name ${APP_NAME} exist in project ${PROJECT}." 
+								def buildRun = bcSelector.startBuild("--from-dir","./hnsecure")
+								buildRun.logs('-f')
+								
+								timeout (time: 15, unit: 'MINUTES') {
+									if (buildRun.object().status.phase == "Complete"){
+										return true
+									}
+								}
+								// If build is complete add tagging
+								def buildStatus = buildRun.object().status.phase
+								if("Complete"==buildStatus){
+									echo "Build status is ${buildStatus}.  Image created is ${IMAGE_STREAM}"
+									echo "Tagging the build with build tag: ${TAG_RELEASE} "
+									// This tags the image with release number for tracking 
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_RELEASE}")
+								}
+								// if build is a failure, process should failure
+								else{
+									echo "Build status is ${bStatus}."
+									sh 'false'
+								}
+								
+								// Check deployment status
+								def dcSelector = openshift.selector( "dc", "${APP_NAME}")
+								dcSelector.logs('-f')
+								def dStatus = dcSelector.object().status.phase
+								def latestDeploymentVersion = openshift.selector('dc',"${APP_NAME}").object().status.latestVersion
+								def rc = openshift.selector('rc', "${APP_NAME}-${latestDeploymentVersion}")
+								timeout (time: 15, unit: 'MINUTES') {
+									rc.untilEach(1){
+										def rcMap = it.object()
+										return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
+									}
+								}
+								echo "Deployment status ${dStatus}"
+								
+							}
+						}
+					}
+				}
+            }
+            
+            stage ('ssh agent stage'){
+	            steps{
+	                sshagent(credentials: ['github-deployer-key']) {
+	                    sh ('git tag -a $TAG_RELEASE -m "Tagged by Jenkins Release process." ')
+	                    sh ('git push origin HEAD:$BRANCH_NAME --tags')
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo "Complete"
+        }
+    }
+}
