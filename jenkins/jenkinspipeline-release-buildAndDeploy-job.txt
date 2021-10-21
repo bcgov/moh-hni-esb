@@ -101,15 +101,17 @@ pipeline {
         } // End stage
         stage ('Tagging the code repository'){
             steps{
-            	echo("Tagging the git commit: ${GIT_COMMIT}")
-            	def TAG_MSG = 'Tagged by Jenkins Release process.'
-                //sshagent(credentials: ['github-deployer-key']) {
-                	// jenkins@jenkins.com	
-                  	//sh ('git config --global user.email "jenkins@jenkins.com"')
-  					//sh ('git config --global user.name "jenkins"')
-                    sh ('git tag -a -f -m $TAG_MSG $TAG_RELEASE $GIT_COMMIT ')
-                    sh ('git push origin HEAD:$BRANCH_NAME --tags')
-				echo("Tagging complete")                    
+            	script{
+	            	echo("Tagging the git commit: ${GIT_COMMIT}")
+	            	def TAG_MSG = 'Tagged by Jenkins Release process.'
+	                //sshagent(credentials: ['github-deployer-key']) {
+	                	// jenkins@jenkins.com	
+	                  	//sh ('git config --global user.email "jenkins@jenkins.com"')
+	  					//sh ('git config --global user.name "jenkins"')
+	                    sh ('git tag -a -f -m $TAG_MSG $TAG_RELEASE $GIT_COMMIT ')
+	                    sh ('git push origin HEAD:$BRANCH_NAME --tags')
+					echo("Tagging complete")
+					}                    
                 //}
             }
         }
