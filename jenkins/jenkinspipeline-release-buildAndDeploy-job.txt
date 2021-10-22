@@ -16,7 +16,7 @@ pipeline {
 		
 		
 		IMAGE_STREAM = 'image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}'
-		TAG_RELEASE = 'Release-1.0-main-${BUILD_NUMBER}'
+		TAG_RELEASE = "Release-1.0-main-${BUILD_NUMBER}"
 		TAG_DEV = 'hnsesb-dev'
 		GIT_COMMIT = ''
 	}
@@ -103,8 +103,8 @@ pipeline {
             steps{
 	        	script{
 	            	echo("Tagging the git commit: ${GIT_COMMIT}")
-	            	checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
-	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_RELEASE}" "${GIT_COMMIT}" ')
+	            	checkout([$class: 'GitSCM', branches: [[name: '*/4525_release_branch_in_jenkins']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
+	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_RELEASE}" ')
 	                sh ('git push origin HEAD:$BRANCH_NAME --tags')
 					echo("Tagging complete")
 				}                    
