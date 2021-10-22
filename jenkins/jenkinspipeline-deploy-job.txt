@@ -3,13 +3,14 @@ pipeline {
 	parameters {
 		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
 		text(name: 'Application', defaultValue: 'hnsesb-sample', description: 'Enter the name of application. If not known, get this value from URL. For example URL be: http://hnsesb-sample.apps.silver.devops.gov.bc.ca/ for app hnsesb-sample. If application does not exist, this job will fail')
+		choice(name: 'DEPLOY_BUILD_TYPE', choices: ['Feature', 'Release'], description: 'Feature build is created from hnsesb-buildAndDeploy job. Release build is created from hnsesb-release-buildAndDeploy job.')
 		string(name: 'DEPLOY_BUILD_NUMBER', defaultValue: '', description: 'Build number in text from hnsesb-buildAndDeploy job')
 	}
 
     environment {
     	// Input from user: NAMESPACE and DEPLOY_BUILD_NUMBER
     	CLUSTER = "openshift"
-    	BUILD_DEPLOY_TAG = "BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
+    	BUILD_DEPLOY_TAG = deployTag()
 		OC_JEKNINS_USER = "deployer-c5839f-tools"
 		PROJECT = project()
 		TOOLS_PROJECT = "c5839f-tools"
@@ -83,4 +84,11 @@ def project() {
 def lower() {
 	def app = "${Application}"
 	return app.toLowerCase()
+}
+def deployTag(){
+	def tag = "BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
+	if ("${DEPLOY_BUILD_TYPE}"=='Release'){
+		tag = "RELEASE-BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
+	}
+	return tag
 }
