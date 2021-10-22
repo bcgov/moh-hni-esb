@@ -16,8 +16,8 @@ pipeline {
 		
 		
 		IMAGE_STREAM = 'image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}'
-		TAG_RELEASE = "Release-1.0-main-${BUILD_NUMBER}"
-		TAG_RELEASE-2 = "RELEASE-BUILD-DEPLOY-${BUILD_NUMBER}"
+		TAG_GIT = "Release-1.0-main-${BUILD_NUMBER}"
+		TAG_DEPLOY_JOB = "RELEASE-BUILD-DEPLOY-${BUILD_NUMBER}"
 		TAG_DEV = 'hnsesb-dev'
 		GIT_COMMIT = ''
 	}
@@ -44,7 +44,7 @@ pipeline {
                     GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
                     dir("hnsecure") {
                         echo "Running: mvn install"
-                        sh "mvn install -Dimpl-version=${TAG_RELEASE} -Dgit-commit=${GIT_COMMIT}"
+                        sh "mvn install -Dimpl-version=${TAG_GIT} -Dgit-commit=${GIT_COMMIT}"
                     }	
                 }
             }
@@ -70,11 +70,11 @@ pipeline {
 								def buildStatus = buildRun.object().status.phase
 								if("Complete"==buildStatus){
 									echo "Build status is ${buildStatus}.  Image created is ${IMAGE_STREAM}"
-									echo "Tagging the build with build tag: ${TAG_RELEASE} "
+									echo "Tagging the build with build tag: ${TAG_GIT} "
 									// This tags the image with release number for tracking 
-									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_RELEASE}")
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_GIT}")
 									// This tags the image with release number for deploy job 
-									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_RELEASE-2}")
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_DEPLOY_JOB}")
 								}
 								// if build is a failure, process should failure
 								else{
@@ -107,7 +107,7 @@ pipeline {
 	        	script{
 	            	echo("Tagging the git commit: ${GIT_COMMIT}")
 	            	checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
-	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_RELEASE}" ')
+	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_GIT}" ')
 	                sh ('git push origin HEAD:$BRANCH_NAME --tags')
 					echo("Tagging complete")
 				}                    
