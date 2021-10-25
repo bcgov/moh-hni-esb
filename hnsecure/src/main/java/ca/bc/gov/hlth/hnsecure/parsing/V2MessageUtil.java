@@ -135,11 +135,7 @@ public class V2MessageUtil {
 	
 		String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 		if (hl7MessageAtt.length > 8) {
-			msgType = hl7MessageAtt[8];
-			// When response is generated, acknowledgment identifier is added at MSH(8)
-			if (msgType.equals(Util.ACK) && hl7MessageAtt.length > 9) {
-				msgType = hl7MessageAtt[9];
-			}
+			msgType = hl7MessageAtt[8];			
 		}
 		// there is a special case for R50 message which the value of MSH.8 is
 		// "R50^Z05".

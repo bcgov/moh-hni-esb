@@ -52,7 +52,6 @@ public class PopulateReqHeader {
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
 		exchangeProperties.put(PROPERTY_RECEIVING_APP, recApp);
-		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
 		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
 		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 		

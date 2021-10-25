@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PROCESSING_DOMAIN;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VALID_RECIEVING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.VERSION;
@@ -166,6 +167,7 @@ public class PayLoadValidator extends AbstractValidator {
 
 	/**
 	 * This method checks the format of incoming message
+	 * Sets the messageType for filedrop
 	 * @param exchange
 	 * @param v2Message
 	 * @param messageObj
@@ -176,8 +178,16 @@ public class PayLoadValidator extends AbstractValidator {
 		if (!StringUtils.isEmpty(v2Message)) {
 			String[] v2DataLines = v2Message.split("\n");
 			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
+			
+			//messageType must be set regardless of any validation error
+			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 7) {				
+				String msgType = V2MessageUtil.getMsgType(v2Message);
+				exchange.getProperties().put(PROPERTY_MESSAGE_TYPE, msgType);
+			}
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
 				ErrorResponse.initSegment(v2Segments, messageObj);
+				String msgType = V2MessageUtil.getMsgType(v2Message);
+				exchange.getProperties().put(PROPERTY_MESSAGE_TYPE, msgType);
 			} else {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 			}
@@ -317,4 +327,5 @@ public class PayLoadValidator extends AbstractValidator {
 		Arrays.sort(second);
 		return Arrays.equals(first, second);
 	}
+	
 }

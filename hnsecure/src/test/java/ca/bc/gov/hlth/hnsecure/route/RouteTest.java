@@ -13,6 +13,7 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
@@ -228,10 +229,8 @@ public class RouteTest extends CamelTestSupport {
 		getMockEndpoint("mock:hibcMq").expectedMessageCount(1);
 		
 		// Send a message
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.hibcJsonMsg, headers);
-
+		mockRouteStart.sendBodyAndProperty("direct:testRouteStart", SamplesToSend.hibcJsonMsg, Util.PROPERTY_MESSAGE_TYPE, "E45");
+		
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
 
@@ -244,12 +243,8 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:jmb").expectedMessageCount(1);
-		
-		// Send a message
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.jmbJsonMsg, headers);
+		getMockEndpoint("mock:jmb").expectedMessageCount(1);		
+		mockRouteStart.sendBodyAndProperty("direct:testRouteStart", SamplesToSend.hibcJsonMsg, Util.PROPERTY_MESSAGE_TYPE, "R32");
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
