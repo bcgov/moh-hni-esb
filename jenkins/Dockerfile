@@ -14,9 +14,13 @@ RUN mkdir -p /.ssh
 RUN chown -R 1009040000 /.ssh
 # These keys are not checked in github
 # When we need to create a new image of jenkins, we can get this files from SVN
-# copy the ifles from svn and keep at same location as docker file 
+# copy the files from svn and keep at same location as this docker file 
 COPY id_rsa /.ssh
 COPY id_rsa.pub /.ssh
+
+# set the git config. This is required as we need to push the tags
+RUN git config --global user.email "jenkins@jenkins.com"
+RUN git config --global user.name "jenkins"
 
 # Oc file is copied for running oc cli commands in jenkins
 RUN mkdir -p /tmp/bin
@@ -27,4 +31,4 @@ ENV PATH=$PATH:/tmp/bin
 
 WORKDIR /
 # drop back to the regular jenkins user - good practice and for access to folder for jenkins user
-USER jenkins
+#USER jenkins

@@ -1,4 +1,4 @@
-// This pipeline is created to create a release build of hnsesb
+// This pipeline is created for release builds of hnsesb
 // This job always creates a build from main branch and tag the code with release number
 // This job also tags the branch with version number and tags the final image with release tag number
 // This pipeline is created to build the application using build config and then deploy using deployment config
@@ -10,10 +10,8 @@ pipeline {
 		PROJECT = 'c5839f-dev'
 		APP_NAME = 'hnsesb-dev'
     	OC_JENKINS_USER = 'deployer-c5839f-tools'
-    	//BRANCH_NAME='main'
-    	// For testing purposes, pointing to feature branch
-    	BRANCH_NAME='4525_release_branch_in_jenkins'
-		
+    	BRANCH_NAME='main'
+    	
 		
 		IMAGE_STREAM = 'image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}'
 		TAG_GIT = "Release-1.0-main-${BUILD_NUMBER}"
@@ -106,7 +104,7 @@ pipeline {
             steps{
 	        	script{
 	            	echo("Tagging the git commit: ${GIT_COMMIT}")
-	            	checkout([$class: 'GitSCM', branches: [[name: '*/4525_release_branch_in_jenkins']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
+	            	checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
 	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_GIT}" ')
 	                sh ('git push origin HEAD:$BRANCH_NAME --tags')
 					echo("Tagging complete")
