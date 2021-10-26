@@ -51,12 +51,13 @@ public class PopulateReqHeader {
 		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
+		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
 		exchangeProperties.put(PROPERTY_RECEIVING_APP, recApp);
 		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
 		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 		
 		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
-			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
+			String zcbSegment = V2MessageUtil.getDataSegment(v2Message,Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
 			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);		
 			logger.info("{} - Transaction Id : {}, Pharmacy Id : {}, TraceId : {}",

@@ -179,15 +179,15 @@ public class PayLoadValidator extends AbstractValidator {
 			String[] v2DataLines = v2Message.split("\n");
 			String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
 			
-			//messageType must be set regardless of any validation error
-			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 7) {				
+			//This is just a workaround. The MessageType must be set regardless of any validation error
+			//as its being used to build filedrop name.Ideally it should be set only in PopulateReqHeader but its not called 
+			// for validation failure case.
+			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length > 8) {				
 				String msgType = V2MessageUtil.getMsgType(v2Message);
 				exchange.getProperties().put(PROPERTY_MESSAGE_TYPE, msgType);
 			}
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
-				ErrorResponse.initSegment(v2Segments, messageObj);
-				String msgType = V2MessageUtil.getMsgType(v2Message);
-				exchange.getProperties().put(PROPERTY_MESSAGE_TYPE, msgType);
+				ErrorResponse.initSegment(v2Segments, messageObj);				
 			} else {
 				generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
 			}
@@ -218,7 +218,7 @@ public class PayLoadValidator extends AbstractValidator {
 		if ((!StringUtils.isEmpty(messageObj.getMessageType())
 				&& (messageObj.getMessageType()).equals(Util.MESSAGE_TYPE_PNP))) {
 			String methodName = LoggingUtil.getMethodName();		
-			String zcbSegment = V2MessageUtil.getZCBSegment(v2Message,Util.ZCB_SEGMENT);
+			String zcbSegment = V2MessageUtil.getDataSegment(v2Message,Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
 			String traceNumber = V2MessageUtil.getTraceNumber(zcbSegment);
 			logger.info("{} - TransactionId: {}, FacilityId: {}, PharmacyId: {}, TraceNumber: {}",

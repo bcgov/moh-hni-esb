@@ -132,16 +132,25 @@ public class V2MessageUtil {
 		if (StringUtils.isEmpty(v2Message)) {
 			return msgType;
 		}
+		
+		v2Message = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message : v2Message.substring(8);
+		String MSHSegment = getMSHSegment(v2Message);
 	
+		if(StringUtils.isNotBlank(MSHSegment)) {
 		String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 		if (hl7MessageAtt.length > 8) {
 			msgType = hl7MessageAtt[8];			
+		} 
+		// When response is generated, acknowledgment identifier is added at MSH(8)
+		if (msgType.equals(Util.ACK)) {
+			msgType = "";
 		}
 		// there is a special case for R50 message which the value of MSH.8 is
 		// "R50^Z05".
 		if (msgType != null && !msgType.isEmpty() && msgType.contains(Util.CARET)) {
 			int index = msgType.indexOf(Util.CARET);
 			msgType = msgType.substring(0, index);
+		}
 		}
 		return msgType;
 	}
@@ -217,7 +226,7 @@ public class V2MessageUtil {
 	 * @param segmentType
 	 * @return
 	 */
-	public static String getZCBSegment(String v2Message, String segmentType) {
+	public static String getDataSegment(String v2Message, String segmentType) {
 		String[] v2DataLinesPharmanet = v2Message.split(Util.LINE_BREAK);
 	
 		for (String segment : v2DataLinesPharmanet) {

@@ -26,6 +26,7 @@ public final class Util {
 	public final static String HL7_DELIMITER = "|";
 	public final static String CARET = "^";
 	public final static String TILDE = "~";
+	public final static String MSH_SEGMENT = "MSH";
 	public final static String ZCB_SEGMENT = "ZCB";
 	public final static String RECEIVING_APP_PNP = "PNP";
 	public final static String MESSAGE_TYPE_PNP = "ZPN";

@@ -110,7 +110,7 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetZCBSegment() {
 		String message = SamplesToSend.validPharmanetMessage;
-		String actualValue = V2MessageUtil.getZCBSegment(message, Util.ZCB_SEGMENT);			
+		String actualValue = V2MessageUtil.getDataSegment(message, Util.ZCB_SEGMENT);			
 		assertTrue(actualValue.startsWith(Util.ZCB_SEGMENT));
 	}
 	
