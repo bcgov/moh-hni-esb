@@ -31,4 +31,4 @@ ENV PATH=$PATH:/tmp/bin
 
 WORKDIR /
 # drop back to the regular jenkins user - good practice and for access to folder for jenkins user
-#USER jenkins
+USER jenkins
