@@ -7,7 +7,7 @@ ENV HNSESB_HOME=/tmp
 WORKDIR /tmp
 
 #Copy hns-esb jar from target folder
-COPY /hnsecure/target/hni-esb.jar /tmp
+COPY /target/hni-esb.jar /tmp
 
 #Make keystore dir in tmp
 RUN mkdir -p keystore

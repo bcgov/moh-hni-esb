@@ -1,19 +1,23 @@
+// This pipeline is created for release builds of hnsesb
+// This job always creates a build from main branch and tag the code with release number
+// This job also tags the branch with version number and tags the final image with release tag number
 // This pipeline is created to build the application using build config and then deploy using deployment config
+// By default it deploys in Dev environment. To move the build, use hnsesb-deploy job
 pipeline {
-	parameters {
-		choice(name: 'NAMESPACE', choices: ['Dev', 'Test'], description: 'Project namespace in openshift where you want to create this application')
-		string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Name of the branch')
 		
-	}
-	
 	environment {
-		CLUSTER = "openshift"
-    	OC_JENKINS_USER = "deployer-c5839f-tools"
-		PROJECT = project()
-		APP_NAME = appName()
-		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
-		TAG = "${BRANCH_NAME}-${BUILD_NUMBER}"
-		TAG2 = "BUILD-DEPLOY-${BUILD_NUMBER}"
+		CLUSTER = 'openshift'
+		PROJECT = 'c5839f-dev'
+		APP_NAME = 'hnsesb-dev'
+    	OC_JENKINS_USER = 'deployer-c5839f-tools'
+    	BRANCH_NAME='main'
+    	
+		
+		IMAGE_STREAM = 'image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}'
+		TAG_GIT = "Release-1.0-main-${BUILD_NUMBER}"
+		TAG_DEPLOY_JOB = "RELEASE-BUILD-DEPLOY-${BUILD_NUMBER}"
+		TAG_DEV = 'hnsesb-dev'
+		GIT_COMMIT = ''
 	}
     agent any
     stages {
@@ -35,10 +39,10 @@ pipeline {
         stage("Package hnsecure library") {
             steps {
                 script{
-                    def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
+                    GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse $BRANCH_NAME')
                     dir("hnsecure") {
                         echo "Running: mvn install"
-                        sh "mvn install -Dgit-commit=${GIT_COMMIT}"
+                        sh "mvn install -Dimpl-version=${TAG_GIT} -Dgit-commit=${GIT_COMMIT}"
                     }	
                 }
             }
@@ -55,8 +59,6 @@ pipeline {
 								def buildRun = bcSelector.startBuild("--from-dir","./hnsecure")
 								buildRun.logs('-f')
 								
-								//def builds = bcSelector.related('builds')
-								
 								timeout (time: 15, unit: 'MINUTES') {
 									if (buildRun.object().status.phase == "Complete"){
 										return true
@@ -66,9 +68,11 @@ pipeline {
 								def buildStatus = buildRun.object().status.phase
 								if("Complete"==buildStatus){
 									echo "Build status is ${buildStatus}.  Image created is ${IMAGE_STREAM}"
-									echo "Tagging the build with build tag: ${TAG} and ${TAG2}"
-									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG}")
-									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG2}")
+									echo "Tagging the build with build tag: ${TAG_GIT} "
+									// This tags the image with release number for tracking 
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_GIT}")
+									// This tags the image with release number for deploy job 
+									openshift.tag( "${IMAGE_STREAM}", "c5839f-tools/hnsesb:${TAG_DEPLOY_JOB}")
 								}
 								// if build is a failure, process should failure
 								else{
@@ -90,10 +94,21 @@ pipeline {
 								}
 								echo "Deployment status ${dStatus}"
 								
-							}
-						}
-					}
-				}
+							} // End openshift projectt
+						} // End openshift credentials
+					} // End openshift cluster
+				} // End script
+            } // End steps
+        } // End stage
+        stage ('Tagging the code repository'){
+            steps{
+	        	script{
+	            	echo("Tagging the git commit: ${GIT_COMMIT}")
+	            	checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
+	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_GIT}" ')
+	                sh ('git push origin HEAD:$BRANCH_NAME --tags')
+					echo("Tagging complete")
+				}                    
             }
         }
     }
@@ -102,12 +117,4 @@ pipeline {
             echo "Complete"
         }
     }
-}
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-def appName() {
-	def ns = "${NAMESPACE}"
-	return "hnsesb-" + ns.toLowerCase()
 }
