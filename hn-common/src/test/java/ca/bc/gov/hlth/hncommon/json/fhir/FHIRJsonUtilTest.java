@@ -15,9 +15,7 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
 /**
- * @author Tony.Ma * 
- * @date Jan. 19, 2021
- *
+ *	FHIR JSON related tests
  */
 public class FHIRJsonUtilTest {
 	

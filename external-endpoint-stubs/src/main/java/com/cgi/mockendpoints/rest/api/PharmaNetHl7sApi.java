@@ -16,8 +16,6 @@ import com.cgi.mockendpoints.rest.model.PharmaNetMessageModel;
 /**
  * Contains stubbed out endpoints for PharmaNet.
  * 
- * @author dave.p.barrett
- *
  */
 @RestController
 public class PharmaNetHl7sApi {

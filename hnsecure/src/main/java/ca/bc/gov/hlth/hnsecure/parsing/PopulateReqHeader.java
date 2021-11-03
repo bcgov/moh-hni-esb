@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
@@ -22,8 +19,7 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 
 
 /**
- * @author Tony.Ma
- * @date Feb.3, 2021
+ * Used to populate common request headers 
  *
  */
 public class PopulateReqHeader {

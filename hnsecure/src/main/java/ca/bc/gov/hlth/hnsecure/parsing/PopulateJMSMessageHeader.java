@@ -19,7 +19,6 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * Set DeliveryMode to 1 'MQPER_NOT_PERSISTENT'
  * As per JMS specification JMS_IBM_MQMD_MsgId must be unique or null.
  * header Refer : https://www.ibm.com/docs/en/ibm-mq/7.5?topic=messages-mapping-jms-header-fields-send-publish
- * @author anumeha.srivastava
  *
  */
 public class PopulateJMSMessageHeader {

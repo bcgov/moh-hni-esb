@@ -15,8 +15,7 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
 /**
- * @author Tony.Ma *
- * @date Feb.9, 2021
+ * Test class for PopulateReqHeader
  *
  */
 public class PopulateReqHeaderTest extends CamelTestSupport {

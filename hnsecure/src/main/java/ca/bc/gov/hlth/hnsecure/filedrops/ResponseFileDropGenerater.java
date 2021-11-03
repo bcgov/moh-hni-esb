@@ -16,8 +16,6 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * Camel spin-off a copy of the Exchange and routes it in a separate thread,
  * kinda like a Wire Tap.
  * 
- * @author anumeha.srivastava
- *
  */
 public class ResponseFileDropGenerater extends FileDropGenerater {
 

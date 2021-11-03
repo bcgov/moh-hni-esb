@@ -9,8 +9,6 @@ import net.minidev.json.JSONObject;
 
 /**
  * Utilities to convert to and from JSON Object
- * 
- * @author dave.p.barrett
  *
  */
 public class PharmaNetJsonUtil {

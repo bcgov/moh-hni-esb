@@ -1,6 +1,3 @@
-/**
- *
- */
 package ca.bc.gov.hlth.hnsecure.json;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
@@ -16,7 +13,7 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 /**
- * @author dbarrett
+ * Contains methods related to Base64 Encoding
  *
  */
 public class Base64Encoder {

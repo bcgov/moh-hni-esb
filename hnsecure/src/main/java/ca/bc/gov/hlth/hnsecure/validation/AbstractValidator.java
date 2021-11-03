@@ -9,7 +9,6 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 
 /**
  * abstract class to validate 
- * @author pankaj.kathuria
  *
  */
 public abstract class AbstractValidator implements Validator {

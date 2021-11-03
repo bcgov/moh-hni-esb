@@ -3,8 +3,6 @@ package com.cgi.mockendpoints.rest.model;
 /**
  * PharmaNet Message model
  * 
- * @author dave.p.barrett
- *
  */
 public class PharmaNetMessageModel {
 

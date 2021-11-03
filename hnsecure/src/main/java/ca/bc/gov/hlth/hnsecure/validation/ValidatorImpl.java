@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
  * 1. PayLoadValidator
  * 2. TokenValidator
  * 3. ValidatorImpl
- * @author pankaj.kathuria
  *
  */
 
