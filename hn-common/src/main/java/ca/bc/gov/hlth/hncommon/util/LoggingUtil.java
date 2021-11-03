@@ -5,8 +5,6 @@ import java.util.Optional;
 /**
  * Utility class that contains methods related to logging.
  * 
- * @author dave.p.barrett
- *
  */
 public class LoggingUtil {
 

@@ -1,9 +1,7 @@
 package ca.bc.gov.hlth.hncommon.json.fhir;
 
 /**
- * @author Tony.Ma
- * @date Jan. 15, 2021
- *
+ * Class for representing FHIR JSON Messages
  */
 public class FHIRJsonMessage {
 

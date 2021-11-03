@@ -37,7 +37,6 @@ import net.minidev.json.parser.JSONParser;
  * This validator validates the payload i.e. HL7 V2 message It performs different types of validations on the message. 
  * For instance vlaidation message format, valdating contents of the message etc If the validation fails, it generates ValidationFailedException
  * This class is using decorator pattern. So validate method also makes a call to validate method of wrapped class passed in constructor.    
- * @author pankaj.kathuria
  *
  */
 public class PayLoadValidator extends AbstractValidator {

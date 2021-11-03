@@ -23,7 +23,6 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
  * This implementation logs each HL7v2 request/response message in a file in its
  * raw/text form. file name
  * format:{messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
- * @author anumeha.srivastava
  *
  */
 public abstract class FileDropGenerater {

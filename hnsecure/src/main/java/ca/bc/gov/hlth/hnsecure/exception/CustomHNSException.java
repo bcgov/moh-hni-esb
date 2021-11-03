@@ -4,7 +4,6 @@ import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 
 /**
  * Custom exception created for HN Error handling 
- * @author pankaj.kathuria
  *
  */
 public class CustomHNSException extends Exception {

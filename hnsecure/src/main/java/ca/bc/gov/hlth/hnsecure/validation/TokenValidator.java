@@ -46,7 +46,6 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
  * This class validate the token passed in the request using JSON Web Token processor
  * JWT initialization is done in the constructor. 
  * Our custom JWT claims verifier is used to validate access token against the Keycloak endpoint (provided in application properties). 
- * @author pankaj.kathuria
  *
  */
 public class TokenValidator extends AbstractValidator {

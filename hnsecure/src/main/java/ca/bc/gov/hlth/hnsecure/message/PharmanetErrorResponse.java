@@ -5,7 +5,6 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 /**
  * This class builds error response for Pharmanet
  * Follows MSH+ZCA+ZCB+ZZZ format
- * @author anumeha.srivastava
  *
  */
 public class PharmanetErrorResponse extends ResponseSegment {

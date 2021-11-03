@@ -12,8 +12,6 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * Purpose of this bean is to remove byte count prefix before rtrans response
  * The RTrans endpoint returns message with 8 byte prefix before MSH
  * 
- * @author asrivastava
- *
  */
 public class FormatRTransResponse {
 

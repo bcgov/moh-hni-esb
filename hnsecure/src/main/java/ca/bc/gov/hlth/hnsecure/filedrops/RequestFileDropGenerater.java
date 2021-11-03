@@ -13,7 +13,6 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * raw/text form. file name
  * format:{messageid}-{messagetype}-{facilityid}-{messagedate}-request.txt
  * This bean will be called in direct route as wiretap
- * @author anumeha.srivastava
  *
  */
 public class RequestFileDropGenerater extends FileDropGenerater {

@@ -13,8 +13,6 @@ import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 /**
  * Class to set the exchange body with JSON for PharmaNet
- * 
- * @author dave.p.barrett
  *
  */
 public class ProcessV2ToPharmaNetJson {

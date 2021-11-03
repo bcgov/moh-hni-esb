@@ -14,8 +14,6 @@ import net.minidev.json.parser.JSONParser;
 /**
  * Camel Processor to process the extraction of the v2 message from the JSON returned by PharmaNet 
  * 
- * @author dave.p.barrett
- *
  */
 public class PharmaNetPayloadExtractor implements Processor {
 

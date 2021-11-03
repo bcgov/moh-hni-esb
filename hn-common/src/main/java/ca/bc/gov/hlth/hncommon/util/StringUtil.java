@@ -6,8 +6,6 @@ import java.util.Base64;
 /**
  * Class to contain utility methods related to manipulating Strings 
  * 
- * @author dave.p.barrett
- *
  */
 public class StringUtil {
 

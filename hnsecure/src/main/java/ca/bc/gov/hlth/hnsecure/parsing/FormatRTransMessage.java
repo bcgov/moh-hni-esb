@@ -16,7 +16,6 @@ import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 /**
  * Purpose of this bean is to append 8 zeros to match the RTrans endpoint message specification
  * The RTrans endpoint expects 8 byte at the start of the v2Message.
- * @author asrivastava
  *
  */
 public class FormatRTransMessage {

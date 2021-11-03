@@ -4,7 +4,6 @@ package ca.bc.gov.hlth.hnsecure.test;
  * We use sample messages in JUnit testing.
  * This class contains all the test messages.
  *  New messages can be added for more tests
- * @author pankaj.kathuria
  *
  */
 

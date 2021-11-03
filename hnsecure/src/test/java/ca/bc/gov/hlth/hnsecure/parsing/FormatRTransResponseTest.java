@@ -7,7 +7,7 @@ import org.junit.Test;
 import ca.bc.gov.hlth.hnsecure.test.TestMessages;
 
 /**
- * @author anumeha.srivastava
+ * Unit tests for FormatRTransResponse
  *
  */
 public class FormatRTransResponseTest{

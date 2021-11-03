@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static org.junit.Assert.assertEquals;
@@ -10,9 +7,8 @@ import org.junit.Test;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
 /**
- * @author Tony.Ma * 
- * @date Feb 3, 2021
- *
+ * Test class for Util
+ * 
  */
 public class UtilTest {
 

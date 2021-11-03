@@ -7,7 +7,6 @@ import org.apache.camel.Processor;
  * This interface uses decorator pattern for adding validation in HNSecure
  * Abstract implementation of Validator should extend this interface
  * Reference: AbstractValidator.java
- * @author pankaj.kathuria
  *
  */
 public interface Validator extends Processor {
