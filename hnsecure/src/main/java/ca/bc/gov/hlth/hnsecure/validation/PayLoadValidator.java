@@ -131,6 +131,7 @@ public class PayLoadValidator extends AbstractValidator {
 		}
 		// Check the validity
 		else if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
+			ErrorMessage.HL7Error_Msg_UnknownReceivingApplication.setFieldValue(messageObj.getReceivingApplication());
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 	}
@@ -153,6 +154,7 @@ public class PayLoadValidator extends AbstractValidator {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 		} 
 		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
+			ErrorMessage.HL7Error_Msg_FacilityIDMismatch.setFieldValue(messageObj.getSendingFacility());
 			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}else {

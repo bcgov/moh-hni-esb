@@ -12,7 +12,7 @@ public enum ErrorMessage {
 	HL7Error_Msg_EncryptionError("TXFR029E", "Encryption protocols failed with remote facility."),
 	
 	HL7Error_Msg_InvalidMSHSegment("HNPS002E", "Invalid MSH segment format"),
-	HL7Error_Msg_UnknownReceivingApplication("HNPS005E", "Unknown receiving application"),
+	HL7Error_Msg_UnknownReceivingApplication("HNPS005E", "Unknown receiving application:"),
 	
 	// Pharmanet error message
 	HL7Error_Msg_TransactionFormatError("PNPA004E", "Transaction format error detected"),
@@ -31,6 +31,7 @@ public enum ErrorMessage {
 
 	private final String errorSequence;
 	private final String errorMessage;
+	private String fieldValue;
 
 	ErrorMessage(String errorSequence, String errorMessage) {
 		this.errorSequence = errorSequence;
@@ -45,10 +46,19 @@ public enum ErrorMessage {
 		return errorMessage;
 	}
 	
+	public String getFieldValue() {
+		return fieldValue;
+	}
+
+	public void setFieldValue(String fieldValue) {
+		this.fieldValue = fieldValue;
+	}
+	
 	@Override
 	public String toString() {
 		return errorSequence + " " + errorMessage;
 	}
+
 
 }
 
