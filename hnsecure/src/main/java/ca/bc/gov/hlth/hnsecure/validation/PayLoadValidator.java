@@ -131,7 +131,6 @@ public class PayLoadValidator extends AbstractValidator {
 		}
 		// Check the validity
 		else if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
-			ErrorMessage.HL7Error_Msg_UnknownReceivingApplication.setFieldValue(messageObj.getReceivingApplication());
 			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
 		}
 	}
@@ -153,8 +152,7 @@ public class PayLoadValidator extends AbstractValidator {
 		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 		} 
-		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
-			ErrorMessage.HL7Error_Msg_FacilityIDMismatch.setFieldValue(messageObj.getSendingFacility());
+		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {			
 			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}else {
@@ -258,7 +256,6 @@ public class PayLoadValidator extends AbstractValidator {
 			throws ValidationFailedException {
 		int httpStatusCode = HttpStatus.SC_BAD_REQUEST;
 
-		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
@@ -281,7 +278,6 @@ public class PayLoadValidator extends AbstractValidator {
 			throws ValidationFailedException {
 		int httpStatusCode = HttpStatus.SC_BAD_REQUEST;
 		
-		messageObject.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);

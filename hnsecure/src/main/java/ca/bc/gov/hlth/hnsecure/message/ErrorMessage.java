@@ -4,7 +4,7 @@ public enum ErrorMessage {
 
 	HL7Error_Msg_NoInputHL7	("VLDT004E", "No HL7 Message was supplied as input"),
 	HL7Error_Msg_MSHSegmentMissing("VLDT007E", "The MSH Segment from the HL7 Message is missing."),
-	HL7Error_Msg_FacilityIDMismatch("VLDT008E", "The Client Facility and HL7 Sending Facility IDs do not match."),
+	HL7Error_Msg_FacilityIDMismatch("VLDT008E", "The Client Facility and HL7 Sending Facility IDs do not match: %s"),
 	HL7Error_Msg_MissingReceivingFacility("VLDT009E", "The Receiving Facility ID was not specified in the HL7 Message."),
 	HL7Error_Msg_InvalidHL7Format("VLDT014E", "The Supplied HL7 Message was improperly formatted"),
 	HL7Error_Msg_Unknown("VLDT999E", "An unknown error has occurred."),
@@ -12,7 +12,7 @@ public enum ErrorMessage {
 	HL7Error_Msg_EncryptionError("TXFR029E", "Encryption protocols failed with remote facility."),
 	
 	HL7Error_Msg_InvalidMSHSegment("HNPS002E", "Invalid MSH segment format"),
-	HL7Error_Msg_UnknownReceivingApplication("HNPS005E", "Unknown receiving application:"),
+	HL7Error_Msg_UnknownReceivingApplication("HNPS005E", "Unknown receiving application: %s"),
 	
 	// Pharmanet error message
 	HL7Error_Msg_TransactionFormatError("PNPA004E", "Transaction format error detected"),
@@ -31,7 +31,6 @@ public enum ErrorMessage {
 
 	private final String errorSequence;
 	private final String errorMessage;
-	private String fieldValue;
 
 	ErrorMessage(String errorSequence, String errorMessage) {
 		this.errorSequence = errorSequence;
@@ -46,13 +45,6 @@ public enum ErrorMessage {
 		return errorMessage;
 	}
 	
-	public String getFieldValue() {
-		return fieldValue;
-	}
-
-	public void setFieldValue(String fieldValue) {
-		this.fieldValue = fieldValue;
-	}
 	
 	@Override
 	public String toString() {

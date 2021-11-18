@@ -48,7 +48,7 @@ public abstract class ResponseSegment {
 		sb.append(Util.ENCODING_CHARACTERS);
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(Optional.ofNullable(messageObj.getReceivingApplication()).orElse(""));
+		sb.append(Util.RECEIVING_APP_HNSECURE);
 		sb.append(messageObj.getFieldSeparator());
 
 		sb.append(Optional.ofNullable(messageObj.getReceivingFacility()).orElse(""));
