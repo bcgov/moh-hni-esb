@@ -30,14 +30,14 @@ public class ErrorResponse extends ResponseSegment {
 	}
 	
 	private String generateErrorText(HL7Message messageObj, ErrorMessage errorMessage) {
-		String errorResponse = errorMessage.getErrorSequence() + " " + errorMessage.getErrorMessage();
+		String errorResponse = errorMessage.getErrorSequence() + "  " + errorMessage.getErrorMessage();
 	
 		switch(errorMessage) {
 			case HL7Error_Msg_UnknownReceivingApplication:
-				errorResponse = errorMessage.getErrorSequence() + " " + String.format(errorMessage.getErrorMessage(), messageObj.getReceivingApplication());
+				errorResponse = errorMessage.getErrorSequence() + "  " + String.format(errorMessage.getErrorMessage(), messageObj.getReceivingApplication());
 				break;
 			case HL7Error_Msg_FacilityIDMismatch:
-				errorResponse =  errorMessage.getErrorSequence() + " " + String.format(errorMessage.getErrorMessage(), messageObj.getSendingFacility());
+				errorResponse =  errorMessage.getErrorSequence() + "  " + String.format(errorMessage.getErrorMessage(), messageObj.getSendingFacility());
 				break;
 			default:
 				break;			
