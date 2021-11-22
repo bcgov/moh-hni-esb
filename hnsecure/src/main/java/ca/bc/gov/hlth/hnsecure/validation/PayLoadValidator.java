@@ -152,7 +152,8 @@ public class PayLoadValidator extends AbstractValidator {
 		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 		} 
-		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {			
+		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
+			messageObj.setSendingFacility(facilityNameFromAccessToken);
 			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}else {

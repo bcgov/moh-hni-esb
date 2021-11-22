@@ -25,6 +25,8 @@ public class ErrorResponse extends ResponseSegment {
 		sb.append(Util.HL7_DELIMITER);
 		sb.append(errorResponse);		
 		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
+		sb.append(Util.HL7_DELIMITER);
 
 		return sb.toString();
 	}
