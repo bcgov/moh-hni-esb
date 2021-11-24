@@ -29,9 +29,9 @@ def verifyPods(val){
 	// This will throw error, intended, if there are no pods with that application name
 	def podsObj = pods.objects()
 	echo "Printing object ${podsObj}"
-	assert podsObj.count() > 0
+	assert podsObj.size() > 0
 	/*
-	if(podsObj.count()==0){
+	if(podsObj.size()==0){
 		echo "No pods found with that name."
 		sh 'False'
 	}
