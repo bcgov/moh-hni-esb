@@ -29,6 +29,10 @@ def verifyPods(val){
 	// This will throw error, intended, if there are no pods with that application name
 	def podsObj = pods.objects()
 	echo "Printing object ${podsObj}"
+	if(podsObj.count()==0){
+		echo "No pods found with that name."
+		sh 'False'
+	}
 	// This loop will check if all pods are running status
 	timeout (time: 1, unit: 'MINUTES') {
 		pods.untilEach(1){
