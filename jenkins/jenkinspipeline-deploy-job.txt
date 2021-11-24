@@ -10,22 +10,27 @@ pipeline {
     environment {
     	// Input from user: NAMESPACE and DEPLOY_BUILD_NUMBER
     	CLUSTER = "openshift"
-    	BUILD_DEPLOY_TAG = deployTag()
-		OC_JEKNINS_USER = "deployer-c5839f-tools"
-		PROJECT = project()
+    	OC_JEKNINS_USER = "deployer-c5839f-tools"
 		TOOLS_PROJECT = "c5839f-tools"
-		APP_NAME = lower()
-
 		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb"
-		IMAGE_STREAM_TAG = "imagestreamtag/hnsesb:${BUILD_DEPLOY_TAG}"
-		
-		APPLY_TAG=lower()
-		//eg : imagestreamtag/hnsesb:BUILD-DEPLOY-12 
 	}
 	
     agent any
 
     stages {
+		stage ("Load groovy utility"){
+			steps {
+				script {
+					util=load "jenkins/jenkins.groovy"
+					PROJECT = util.project("${NAMESPACE}")
+					APP_NAME = util.lower("${Application}")
+					BUILD_DEPLOY_TAG = util.deployTag("${DEPLOY_BUILD_NUMBER}","${DEPLOY_BUILD_TYPE}")
+					IMAGE_STREAM_TAG = "imagestreamtag/hnsesb:${BUILD_DEPLOY_TAG}"		
+					//eg : imagestreamtag/hnsesb:BUILD-DEPLOY-12 
+				}
+			}
+		}
+
         stage('Verify if application and build exists') {
             steps {
             	script {
@@ -44,15 +49,7 @@ pipeline {
                                 // Checking if application exists
                                 echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
                                 echo "Checking if application exists"
-								def podObj =  openshift.selector( 'pods', [ app: '${APP_NAME}' ] ).object()
-								def podStatus =  podObj.status.phase
-                                if ("${podStatus}"=='Running'){
-                                	echo 'Application exists'
-                                }
-                                else {
-                                	echo "${APP_NAME} Application does not exist. So exiting the job"
-                                	sh 'False'
-                                }
+								util.verifyPods("${Application}")
                             }
                         }
                     }            		
@@ -67,7 +64,7 @@ pipeline {
                     openshift.withCluster( "${CLUSTER}" ) {
                         openshift.withCredentials( "${OC_JEKNINS_USER}" ) {
                             openshift.withProject("${TOOLS_PROJECT}"){
-                                echo "Tag the build ${IMAGE_STREAM}:${BUILD_DEPLOY_TAG} with tag: ${APPLY_TAG} "
+                                echo "Tag the build ${IMAGE_STREAM}:${BUILD_DEPLOY_TAG} with tag: ${APP_NAME} "
                                 openshift.tag( "${IMAGE_STREAM}:${BUILD_DEPLOY_TAG}", "c5839f-tools/hnsesb:${APP_NAME}")
                             }
                         }
@@ -76,19 +73,4 @@ pipeline {
             }
         }
     }
-}
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-def lower() {
-	def app = "${Application}"
-	return app.toLowerCase()
-}
-def deployTag(){
-	def tag = "BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
-	if ("${DEPLOY_BUILD_TYPE}"=='Release'){
-		tag = "RELEASE-BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
-	}
-	return tag
 }

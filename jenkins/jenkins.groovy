@@ -3,15 +3,15 @@
 // File: jenkins.groovy
 // Description: A util file for hnsesb jenkins jobs
 //-------------------------------------------------------------------
-
+//This method returns namespace name with license plate prefix
 def project(val) {
 	return "c5839f-" + val.toLowerCase()
 }
-
+// Convert value to lowercase
 def lower(val) {
 	return val.toLowerCase()
 }
-
+// Prefix hnsesb- with passed value. This method is used for defining application name
 def appName(val) {
 	return "hnsesb-" + val.toLowerCase()
 }
@@ -24,6 +24,7 @@ def deployTag(DEPLOY_BUILD_NUMBER, DEPLOY_BUILD_TYPE){
 	return tag
 }
 // Method to verfiy pods 
+// Pass application name as argument to check if any pods exist for the application
 def verifyPods(val){
 	def pods =  openshift.selector( 'pods', [ app: val ] )
 	// This will throw error, intended, if there are no pods with that application name
