@@ -153,7 +153,7 @@ pipeline {
                             openshift.withProject("${PROJECT}"){
                             	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
                           	    def bcSelector = openshift.selector( "buildconfig", "${APP_NAME}")
-								def buildRun = bcSelector.startBuild("--from-dir",".")
+								def buildRun = bcSelector.startBuild("--from-dir","./hnsecure")
 								buildRun.logs('-f')
 								def bStatus = buildRun.object().status.phase
 								echo "Status of build: ${bStatus}"
