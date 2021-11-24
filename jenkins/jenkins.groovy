@@ -28,8 +28,10 @@ def verifyPods(val){
 	def pods =  openshift.selector( 'pods', [ app: val ] )
 	// This will throw error, intended, if there are no pods with that application name
 	def podsObj = pods.objects()
+	echo "Printing object ${podsObj}"
 	// This loop will check if all pods are running status
-	pods.untilEach(1){
+	timeout (time: 1, unit: 'MINUTES') {
+		pods.untilEach(1){
 		echo "Checking pod status"
 		def podObj = it.object()
 		def podStatus = podObj.status.phase
@@ -39,6 +41,7 @@ def verifyPods(val){
 		}else{
 			sh 'False'
 		}
+	}
 	}
 }
 
