@@ -27,12 +27,9 @@ pipeline {
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
-    	APP_NAME = lower()
     	IMAGE = "hnsesb"
     	PROP_FILE_NAME = "application-external.properties"
-    	TAG = "${APP_NAME}"
-		PROJECT = project()
-		PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
+    	PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
 	}
     agent any
     stages {
@@ -61,7 +58,18 @@ pipeline {
                     }	
                 }
             }
-        }        
+        }   
+		stage ("Load groovy utility"){
+            steps {
+                script {
+					util=load "jenkins/jenkins.groovy"
+					PROJECT = util.project("${NAMESPACE}")
+					APP_NAME = util.lower("${Application}")
+					TAG = "${APP_NAME}"
+                }
+            }
+        }
+
         stage("Clean up existing application") {
             steps {
 				script{
@@ -191,13 +199,4 @@ pipeline {
             echo "Complete"
         }
     }
-}
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-
-def lower() {
-	def app = "${Application}"
-	return app.toLowerCase()
 }
