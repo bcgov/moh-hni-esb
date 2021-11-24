@@ -105,6 +105,8 @@ pipeline {
 	        	script{
 	            	echo("Tagging the git commit: ${GIT_COMMIT}")
 	            	checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[credentialsId: 'github-deploy-key', url: 'git@github.com:bcgov/moh-hni-esb.git']]])
+	            	sh('git config --local user.email "hnsesb-jenkins"')
+  					SH('git config --local user.name "hnsesb-jenkins"')
 	                sh ('git tag -a -f -m "Tagged by Jenkins Release process." "${TAG_GIT}" ')
 	                sh ('git push origin HEAD:$BRANCH_NAME --tags')
 					echo("Tagging complete")
