@@ -110,11 +110,3 @@ pipeline {
         }
     }
 }
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-def appName() {
-	def ns = "${NAMESPACE}"
-	return "hnsesb-" + ns.toLowerCase()
-}
