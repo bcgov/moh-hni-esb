@@ -66,6 +66,7 @@ pipeline {
 					PROJECT = util.project("${NAMESPACE}")
 					APP_NAME = util.lower("${Application}")
 					TAG = "${APP_NAME}"
+					DB_POD_NAME = ""
                 }
             }
         }
@@ -174,7 +175,7 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
                             	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-                          	    //util.verifyPods("${APP_NAME}")
+                          	    util.verifyPods("${APP_NAME}")
 								echo "Deployment status verified"
 							}
 						}
@@ -188,7 +189,7 @@ pipeline {
         always {
             echo "Initial Set up Complete"
 			echo "Manual steps required:"
-			echo "Step 1. Connect with database pod: <Specify pod name>"
+			echo "Step 1. Connect with database pod using command --> oc port-forward <pod name> 15432:5432"
 			echo "Step 2. Run the database set up script."
         }
     }
