@@ -30,12 +30,7 @@ def verifyPods(val){
 	def podsObj = pods.objects()
 	echo "Printing object ${podsObj}"
 	assert podsObj.size() > 0
-	/*
-	if(podsObj.size()==0){
-		echo "No pods found with that name."
-		sh 'False'
-	}
-	*/
+
 	// This loop will check if all pods are running status
 	timeout (time: 1, unit: 'MINUTES') {
 		pods.untilEach(1){

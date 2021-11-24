@@ -9,9 +9,6 @@ pipeline {
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
-		PROJECT = project()
-		APP_NAME = appName()
-		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
 		TAG = "${BRANCH_NAME}-${BUILD_NUMBER}"
 		TAG2 = "BUILD-DEPLOY-${BUILD_NUMBER}"
 	}
@@ -22,6 +19,11 @@ pipeline {
                 // Get some code from a GitHub repository
                 echo "Getting code from main"
                 git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
+                util=load "jenkins/jenkins.groovy"
+                PROJECT = util.project("${NAMESPACE}")
+          		APP_NAME = util.lower("${Application}")
+				IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
+		
             }
         }
  		stage("Package hn-common library") {
