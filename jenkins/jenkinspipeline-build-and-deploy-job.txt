@@ -19,11 +19,6 @@ pipeline {
                 // Get some code from a GitHub repository
                 echo "Getting code from main"
                 git branch: "${BRANCH_NAME}", url: "https://github.com/bcgov/moh-hni-esb"
-                util=load "jenkins/jenkins.groovy"
-                PROJECT = util.project("${NAMESPACE}")
-          		APP_NAME = util.lower("${Application}")
-				IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
-		
             }
         }
  		stage("Package hn-common library") {
@@ -45,6 +40,16 @@ pipeline {
                 }
             }
         }        
+		stage ("Load groovy util"){
+            steps {
+                script {
+					util=load "jenkins/jenkins.groovy"
+					PROJECT = util.project("${NAMESPACE}")
+					APP_NAME = util.lower("${Application}")
+					IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
+                }
+            }
+        }
         stage("Start Openshift build process") {
             steps {
 				script{
