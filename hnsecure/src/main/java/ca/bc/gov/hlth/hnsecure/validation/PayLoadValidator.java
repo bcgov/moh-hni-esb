@@ -264,7 +264,8 @@ public class PayLoadValidator extends AbstractValidator {
 		exchange.getIn().setBody(v2Response);
 		// Write to Audit tables in enabled
 		if (Boolean.TRUE.equals(isAuditsEnabled)) {
-			writeEventMessageAudit(exchange, errorMessage);
+			String errorText = generateErrorMessageForAudit(messageObject, errorMessage);
+			writeEventMessageAudit(exchange, errorMessage.getErrorSequence(), errorText);
 		}
 		throw new ValidationFailedException(errorMessage);
 	}
@@ -286,14 +287,31 @@ public class PayLoadValidator extends AbstractValidator {
 		exchange.getIn().setBody(v2Response);
 		// Write to Audit tables in enabled
 		if (Boolean.TRUE.equals(isAuditsEnabled)) {
-			writeEventMessageAudit(exchange, errorMessage);
+			String errorText = generateErrorMessageForAudit(messageObject, errorMessage);
+			writeEventMessageAudit(exchange, errorMessage.getErrorSequence(), errorText);
 		}
 		throw new ValidationFailedException(errorMessage);
 	}
 	
-	private static void writeEventMessageAudit(Exchange exchange, ErrorMessage errorMessage) {
+	private static void writeEventMessageAudit(Exchange exchange, String errorSequence, String errorMessage) {
 		EventMessageProcessor eventMessageProcessor = new EventMessageProcessor();
-		eventMessageProcessor.process(exchange, TransactionEventType.INVALID, EventMessageErrorLevel.REJECT, errorMessage.getErrorSequence(), errorMessage.getErrorMessage());	
+		eventMessageProcessor.process(exchange, TransactionEventType.INVALID, EventMessageErrorLevel.REJECT, errorSequence, errorMessage);	
+	}
+	
+	private static String generateErrorMessageForAudit(HL7Message messageObj, ErrorMessage errorMessage) {
+		String errorText = errorMessage.getErrorMessage();
+		
+		switch(errorMessage) {
+			case HL7Error_Msg_UnknownReceivingApplication:
+				errorText = String.format(errorMessage.getErrorMessage(), messageObj.getReceivingApplication());				
+				break;
+			case HL7Error_Msg_FacilityIDMismatch:
+				errorText = String.format(errorMessage.getErrorMessage(), messageObj.getSendingFacility());
+				break;
+			default:
+				break;			
+		}		
+		return errorText;
 	}
 
 	/*
