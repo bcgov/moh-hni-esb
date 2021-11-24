@@ -1,5 +1,4 @@
 
-#!groovy
 //-------------------------------------------------------------------
 // File: jenkins.groovy
 // Description: A util file for hnsesb jenkins jobs
