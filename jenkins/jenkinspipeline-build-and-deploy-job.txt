@@ -45,7 +45,7 @@ pipeline {
                 script {
 					util=load "jenkins/jenkins.groovy"
 					PROJECT = util.project("${NAMESPACE}")
-					APP_NAME = util.lower("${Application}")
+					APP_NAME = util.appName("${NAMESPACE}")
 					IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
                 }
             }
