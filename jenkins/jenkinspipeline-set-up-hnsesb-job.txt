@@ -27,12 +27,9 @@ pipeline {
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
-    	APP_NAME = lower()
     	IMAGE = "hnsesb"
     	PROP_FILE_NAME = "application-external.properties"
-    	TAG = "${APP_NAME}"
-		PROJECT = project()
-		PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
+    	PHARMANET_CERT_SECRET = credentials("${PHARMANET_CERT_ID}")
 	}
     agent any
     stages {
@@ -61,7 +58,18 @@ pipeline {
                     }	
                 }
             }
-        }        
+        }   
+		stage ("Load groovy utility"){
+            steps {
+                script {
+					util=load "jenkins/jenkins.groovy"
+					PROJECT = util.project("${NAMESPACE}")
+					APP_NAME = util.lower("${Application}")
+					TAG = "${APP_NAME}"
+                }
+            }
+        }
+
         stage("Clean up existing application") {
             steps {
 				script{
@@ -145,7 +153,7 @@ pipeline {
                             openshift.withProject("${PROJECT}"){
                             	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
                           	    def bcSelector = openshift.selector( "buildconfig", "${APP_NAME}")
-								def buildRun = bcSelector.startBuild("--from-dir",".")
+								def buildRun = bcSelector.startBuild("--from-dir","./hnsecure")
 								buildRun.logs('-f')
 								def bStatus = buildRun.object().status.phase
 								echo "Status of build: ${bStatus}"
@@ -166,18 +174,8 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
                             	echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
-                          	    def dcSelector = openshift.selector( "dc", "${APP_NAME}")
-								dcSelector.logs('-f')
-								def dStatus = dcSelector.object().status.phase
-								def latestDeploymentVersion = openshift.selector('dc',"${APP_NAME}").object().status.latestVersion
-								def rc = openshift.selector('rc', "${APP_NAME}-${latestDeploymentVersion}")
-								timeout (time: 10, unit: 'MINUTES') {
-									rc.untilEach(1){
-										def rcMap = it.object()
-										return (rcMap.status.replicas.equals(rcMap.status.readyReplicas))
-									}
-								}
-								echo "Deployment status ${dStatus}"
+                          	    util.verifyPods("${APP_NAME}")
+								echo "Deployment status verified"
 							}
 						}
 					}
@@ -188,16 +186,8 @@ pipeline {
     }
     post {
         always {
-            echo "Complete"
+            echo "Initial Set up Complete"
+			echo "Additional set up required if Volume claims are required for this environment."
         }
     }
-}
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-
-def lower() {
-	def app = "${Application}"
-	return app.toLowerCase()
 }

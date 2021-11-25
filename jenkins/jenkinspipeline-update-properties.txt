@@ -17,14 +17,22 @@ pipeline {
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
-		PROJECT = project()
-		APP_NAME = lower()
-		// hard code to hnsesb-dev and later change to same as app name. 
-		CONFIG_MAP = lower()
 		PROP_FILE_NAME = "application-external.properties"
 	}
     agent any
+	
     stages {
+		stage ("Load groovy utility"){
+            steps {
+                script {
+					util=load "jenkins/jenkins.groovy"
+					PROJECT = util.project("${NAMESPACE}")
+					APP_NAME = util.lower("${Application}")
+					CONFIG_MAP = "${APP_NAME}"
+					TAG = "${APP_NAME}"
+                }
+            }
+        }		
         stage('Verify if application exists') {
             steps {
             	script {
@@ -33,15 +41,7 @@ pipeline {
                             openshift.withProject("${PROJECT}"){
                                 echo "Using project: ${openshift.project()} in cluster ${openshift.cluster()} "
                                 echo "Checking if application exists"
-								def podObj =  openshift.selector( 'pods', [ app: '${APP_NAME}' ] ).object()
-								def podStatus =  podObj.status.phase
-                                if ("${podStatus}"=='Running'){
-                                	echo 'Application exists'
-                                }
-                                else {
-                                	echo "${APP_NAME} Application does not exist. So exiting the job"
-                                	sh 'False'
-                                }
+								util.verifyPods("${APP_NAME}")
                             }
                         }
                     }            		
@@ -55,7 +55,7 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
 								// Process will fail if it does not find object 	
-                            	openshift.selector('configMap/${CONFIG_MAP}').delete()
+                            	openshift.selector("configMap/${CONFIG_MAP}").delete()
 								echo "Config map ${CONFIG_MAP} deleted."
                             }
                         }
@@ -98,13 +98,4 @@ pipeline {
             echo "Complete"
         }
     }
-}
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-
-def lower() {
-	def app = "${Application}"
-	return app.toLowerCase()
 }

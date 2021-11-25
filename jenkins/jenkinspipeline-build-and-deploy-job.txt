@@ -9,9 +9,6 @@ pipeline {
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
-		PROJECT = project()
-		APP_NAME = appName()
-		IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
 		TAG = "${BRANCH_NAME}-${BUILD_NUMBER}"
 		TAG2 = "BUILD-DEPLOY-${BUILD_NUMBER}"
 	}
@@ -43,6 +40,16 @@ pipeline {
                 }
             }
         }        
+		stage ("Load groovy utility"){
+            steps {
+                script {
+					util=load "jenkins/jenkins.groovy"
+					PROJECT = util.project("${NAMESPACE}")
+					APP_NAME = util.appName("${NAMESPACE}")
+					IMAGE_STREAM = "image-registry.openshift-image-registry.svc:5000/c5839f-tools/hnsesb:${APP_NAME}"
+                }
+            }
+        }
         stage("Start Openshift build process") {
             steps {
 				script{
@@ -102,12 +109,4 @@ pipeline {
             echo "Complete"
         }
     }
-}
-def project() {
-	def ns = "${NAMESPACE}"
-	return "c5839f-" + ns.toLowerCase()
-}
-def appName() {
-	def ns = "${NAMESPACE}"
-	return "hnsesb-" + ns.toLowerCase()
 }
