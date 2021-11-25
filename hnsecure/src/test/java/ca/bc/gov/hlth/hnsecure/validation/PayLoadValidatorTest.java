@@ -110,14 +110,18 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
         String msgInput="MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||\n" +
                 "ZHD|20191108083244|^^00000010|HNAIADMINISTRATION||||2.4\n" +
-                "PID||0000053655^^^BC^PH\n";
+                "PID||0000053655^^^BC^PH\n";       
     	String expectedResponse = "MSA|AR|20191108083244|VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match: moh_hnclient_dev|||";
     	exchange.getIn().setBody(msgInput);
     	assertThrows(ValidationFailedException.class, () -> {
             v2PayloadValidator.validate(exchange);
         });
     	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
+    	String msh =  ((String) exchange.getIn().getBody()).split("\n")[0];
+    	String clientId  = msh.split("\\|")[5];
         String response = ((String) exchange.getIn().getBody()).split("\n")[1];
+        
+        assertEquals("BC01000030", clientId);
         assertEquals(expectedResponse, response);
     }
     
