@@ -39,7 +39,7 @@ public class ErrorResponse extends ResponseSegment {
 				errorResponse = errorMessage.getErrorSequence() + "  " + String.format(errorMessage.getErrorMessage(), messageObj.getReceivingApplication());
 				break;
 			case HL7Error_Msg_FacilityIDMismatch:
-				errorResponse =  errorMessage.getErrorSequence() + "  " + String.format(errorMessage.getErrorMessage(), messageObj.getSendingFacility());
+				errorResponse =  errorMessage.getErrorSequence() + "  " + String.format(errorMessage.getErrorMessage(), messageObj.getSendingFacilityConf());
 				break;
 			default:
 				break;			

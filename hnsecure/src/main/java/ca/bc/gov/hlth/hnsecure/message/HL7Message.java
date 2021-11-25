@@ -9,6 +9,8 @@ public class HL7Message {
 	private String sendingApplication;
 
 	private String sendingFacility;
+	
+	private String sendingFacilityConf;
 
 	private String receivingApplication;
 
@@ -62,6 +64,14 @@ public class HL7Message {
 
 	public void setSendingFacility(String sendingFacility) {
 		this.sendingFacility = sendingFacility;
+	}
+
+	public String getSendingFacilityConf() {
+		return sendingFacilityConf;
+	}
+
+	public void setSendingFacilityConf(String sendingFacilityConf) {
+		this.sendingFacilityConf = sendingFacilityConf;
 	}
 
 	public String getReceivingApplication() {
