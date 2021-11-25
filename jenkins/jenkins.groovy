@@ -1,4 +1,3 @@
-
 //-------------------------------------------------------------------
 // File: jenkins.groovy
 // Description: A util file for hnsesb jenkins jobs
@@ -16,6 +15,9 @@ def appName(val) {
 	return "hnsesb-" + val.toLowerCase()
 }
 
+// Method get build number and type to define tag
+// If build number is 121 and type is release then tag is RELEASE-BUILD-DEPLOY-121
+// For all other types, tag will be BUILD-DEPLOY-121
 def deployTag(DEPLOY_BUILD_NUMBER, DEPLOY_BUILD_TYPE){
 	def tag = "BUILD-DEPLOY-${DEPLOY_BUILD_NUMBER}"
 	if ("${DEPLOY_BUILD_TYPE}"=='Release'){
