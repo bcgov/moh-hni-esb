@@ -10,7 +10,7 @@ def project(val) {
 def lower(val) {
 	return val.toLowerCase()
 }
-// Prefix hnsesb- with passed value. This method is used for defining application name
+// Passed value is prefixed with hnesb-. This method is used for defining application name
 def appName(val) {
 	return "hnsesb-" + val.toLowerCase()
 }
