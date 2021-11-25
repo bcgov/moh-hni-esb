@@ -17,10 +17,6 @@ pipeline {
 	environment {
 		CLUSTER = "openshift"
     	OC_JENKINS_USER = "deployer-c5839f-tools"
-		PROJECT = project()
-		APP_NAME = lower()
-		// hard code to hnsesb-dev and later change to same as app name. 
-		CONFIG_MAP = lower()
 		PROP_FILE_NAME = "application-external.properties"
 	}
     agent any
@@ -32,6 +28,7 @@ pipeline {
 					util=load "jenkins/jenkins.groovy"
 					PROJECT = util.project("${NAMESPACE}")
 					APP_NAME = util.lower("${Application}")
+					CONFIG_MAP = "${APP_NAME}"
 					TAG = "${APP_NAME}"
                 }
             }
