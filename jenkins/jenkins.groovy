@@ -29,7 +29,6 @@ def verifyPods(val){
 	def pods =  openshift.selector( 'pods', [ app: val ] )
 	// This will throw error, intended, if there are no pods with that application name
 	def podsObj = pods.objects()
-	echo "Printing object ${podsObj}"
 	assert podsObj.size() > 0
 
 	// This loop will check if all pods are running status

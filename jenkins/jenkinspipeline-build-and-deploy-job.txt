@@ -40,7 +40,7 @@ pipeline {
                 }
             }
         }        
-		stage ("Load groovy util"){
+		stage ("Load groovy utility"){
             steps {
                 script {
 					util=load "jenkins/jenkins.groovy"
