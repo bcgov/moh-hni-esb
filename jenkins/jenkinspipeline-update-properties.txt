@@ -55,7 +55,7 @@ pipeline {
                         openshift.withCredentials( "${OC_JENKINS_USER}" ) {
                             openshift.withProject("${PROJECT}"){
 								// Process will fail if it does not find object 	
-                            	openshift.selector('configMap/${CONFIG_MAP}').delete()
+                            	openshift.selector("configMap/${CONFIG_MAP}").delete()
 								echo "Config map ${CONFIG_MAP} deleted."
                             }
                         }
