@@ -45,6 +45,22 @@ public enum ErrorMessage {
 		return errorMessage;
 	}
 	
+	/**
+	 * Formats the error message for v2 response
+	 * @param hl7Message
+	 * @return
+	 */
+	public String formatErrorMessage(HL7Message hl7Message) {
+		switch(this) {
+		case HL7Error_Msg_UnknownReceivingApplication:
+			return String.format(errorMessage, hl7Message.getReceivingApplication());
+		case HL7Error_Msg_FacilityIDMismatch:
+			return String.format(errorMessage, hl7Message.getSendingFacilityConf());
+		default:
+			return errorMessage;
+		}
+	}
+	
 	
 	@Override
 	public String toString() {

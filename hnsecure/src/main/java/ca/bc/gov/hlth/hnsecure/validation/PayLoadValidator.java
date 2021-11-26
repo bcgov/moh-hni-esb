@@ -256,7 +256,7 @@ public class PayLoadValidator extends AbstractValidator {
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
 		int httpStatusCode = HttpStatus.SC_BAD_REQUEST;
-		String errorText = generateErrorMessageForAudit(messageObject, errorMessage);
+		String errorText = errorMessage.formatErrorMessage(messageObject);
 		
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
@@ -279,7 +279,7 @@ public class PayLoadValidator extends AbstractValidator {
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
 		int httpStatusCode = HttpStatus.SC_BAD_REQUEST;
-		String errorText = generateErrorMessageForAudit(messageObject, errorMessage);
+		String errorText = errorMessage.formatErrorMessage(messageObject);
 		
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
@@ -298,21 +298,6 @@ public class PayLoadValidator extends AbstractValidator {
 		eventMessageProcessor.process(exchange, TransactionEventType.INVALID, EventMessageErrorLevel.REJECT, errorSequence, errorMessage);	
 	}
 	
-	private static String generateErrorMessageForAudit(HL7Message messageObj, ErrorMessage errorMessage) {
-		String errorText = errorMessage.getErrorMessage();
-		
-		switch(errorMessage) {
-			case HL7Error_Msg_UnknownReceivingApplication:
-				errorText = String.format(errorMessage.getErrorMessage(), messageObj.getReceivingApplication());				
-				break;
-			case HL7Error_Msg_FacilityIDMismatch:
-				errorText = String.format(errorMessage.getErrorMessage(), messageObj.getSendingFacilityConf());
-				break;
-			default:
-				break;			
-		}		
-		return errorText;
-	}
 
 	/*
 	 * The FacilityId is the legacy way to track connected clients and is now set as
