@@ -152,7 +152,8 @@ public class PayLoadValidator extends AbstractValidator {
 		if (StringUtils.isEmpty(messageObj.getSendingFacility())) {
 			messageObj.setSendingFacility(facilityNameFromAccessToken);
 		} 
-		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {			
+		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
+			messageObj.setClientFacilityId(facilityNameFromAccessToken);
 			if(isPharmanetMode) {
 				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
 			}else {
@@ -255,15 +256,16 @@ public class PayLoadValidator extends AbstractValidator {
 	private static void generateError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
 		int httpStatusCode = HttpStatus.SC_BAD_REQUEST;
-
+		String errorText = errorMessage.formatErrorMessage(messageObject);
+		
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {} {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage.getErrorSequence(), errorText);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
-		exchange.getIn().setBody(v2Response);
+		exchange.getIn().setBody(v2Response);				
 		// Write to Audit tables in enabled
-		if (Boolean.TRUE.equals(isAuditsEnabled)) {
-			writeEventMessageAudit(exchange, errorMessage);
+		if (Boolean.TRUE.equals(isAuditsEnabled)) {			
+			writeEventMessageAudit(exchange, errorMessage.getErrorSequence(), errorText);
 		}
 		throw new ValidationFailedException(errorMessage);
 	}
@@ -277,23 +279,25 @@ public class PayLoadValidator extends AbstractValidator {
 	private static void generatePharmanetError(HL7Message messageObject, ErrorMessage errorMessage, Exchange exchange)
 			throws ValidationFailedException {
 		int httpStatusCode = HttpStatus.SC_BAD_REQUEST;
+		String errorText = errorMessage.formatErrorMessage(messageObject);
 		
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage);
+		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {} {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage.getErrorSequence(), errorText);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
-		exchange.getIn().setBody(v2Response);
+		exchange.getIn().setBody(v2Response);				
 		// Write to Audit tables in enabled
-		if (Boolean.TRUE.equals(isAuditsEnabled)) {
-			writeEventMessageAudit(exchange, errorMessage);
+		if (Boolean.TRUE.equals(isAuditsEnabled)) {;
+			writeEventMessageAudit(exchange, errorMessage.getErrorSequence(), errorText);
 		}
 		throw new ValidationFailedException(errorMessage);
 	}
 	
-	private static void writeEventMessageAudit(Exchange exchange, ErrorMessage errorMessage) {
+	private static void writeEventMessageAudit(Exchange exchange, String errorSequence, String errorMessage) {
 		EventMessageProcessor eventMessageProcessor = new EventMessageProcessor();
-		eventMessageProcessor.process(exchange, TransactionEventType.INVALID, EventMessageErrorLevel.REJECT, errorMessage.getErrorSequence(), errorMessage.getErrorMessage());	
+		eventMessageProcessor.process(exchange, TransactionEventType.INVALID, EventMessageErrorLevel.REJECT, errorSequence, errorMessage);	
 	}
+	
 
 	/*
 	 * The FacilityId is the legacy way to track connected clients and is now set as

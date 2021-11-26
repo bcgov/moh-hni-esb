@@ -9,6 +9,9 @@ public class HL7Message {
 	private String sendingApplication;
 
 	private String sendingFacility;
+	
+	//This will hold the actual client facility id for error response
+	private String clientFacilityId;
 
 	private String receivingApplication;
 
@@ -62,6 +65,14 @@ public class HL7Message {
 
 	public void setSendingFacility(String sendingFacility) {
 		this.sendingFacility = sendingFacility;
+	}
+
+	public String getClientFacilityId() {
+		return clientFacilityId;
+	}
+
+	public void setClientFacilityId(String sendingFacilityConf) {
+		this.clientFacilityId = sendingFacilityConf;
 	}
 
 	public String getReceivingApplication() {
