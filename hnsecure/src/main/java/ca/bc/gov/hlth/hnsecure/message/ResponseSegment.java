@@ -12,8 +12,6 @@ public abstract class ResponseSegment {
 
 	private static final String UNKNOWN_CLIENT = "UNKNOWNCLIENT";
 	
-	private static final String PROCESSING_ID_UNKNOWN = "?";
-	
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 
 	abstract String constructResponse(HL7Message messageObj, ErrorMessage error);
@@ -79,7 +77,7 @@ public abstract class ResponseSegment {
 		sb.append(Optional.ofNullable(messageObj.getMessageControlId()).orElse(""));
 		sb.append(messageObj.getFieldSeparator());
 
-		sb.append(Optional.ofNullable(messageObj.getProcessingId()).orElse(PROCESSING_ID_UNKNOWN));
+		sb.append(Optional.ofNullable(messageObj.getProcessingId()).orElse(properties.getValue(ApplicationProperty.PROCESSING_DOMAIN)));
 		sb.append(messageObj.getFieldSeparator());
 
 		sb.append(Optional.ofNullable(messageObj.getVersionId()).orElse(properties.getValue(ApplicationProperty.VERSION)));

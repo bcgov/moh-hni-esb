@@ -23,7 +23,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	@Override
 	public String constructResponse(HL7Message messageObj, ErrorMessage error) {
 		
-		return constructMSH(messageObj)+buildZCA()+buildZCB()+buildZZZ(error);
+		return constructMSH(messageObj) + buildZCA() + buildZCB() + buildZZZ(error);
 	}
 	
 	/**

@@ -23,7 +23,7 @@ import ca.bc.gov.hlth.hnsecure.filedrops.FileDropGenerater;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
-import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
@@ -81,9 +81,7 @@ public class ExceptionHandler implements Processor {
 		} else if (exception instanceof ExchangeTimedOutException) {
 			logger.info("{} - MQSeries failure. {}", methodName, exception.getMessage());
 			handleException(exchange, ErrorMessage.HL7Error_Msg_MQ_MQSeriesFailure,HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);			
-		} 
-		
-		else {
+		} else {
 			// Should not reach here as the specific exception should be handled above, add default error in case the specific handling not added
 			handleException(exchange, ErrorMessage.HL7Error_Msg_Unknown, HttpStatus.INTERNAL_SERVER_ERROR_500, TransactionEventType.ERROR);
 		}
@@ -98,15 +96,23 @@ public class ExceptionHandler implements Processor {
 	}
 	
 	private void generateErrorResponse(Exchange exchange, ErrorMessage errorMessage, Integer httpStatusCode, TransactionEventType eventType) {
+		// Initialize the incoming hl7Message used to construct the response
 		HL7Message hl7Message = new HL7Message();
-		hl7Message.setReceivingApplication(Util.RECEIVING_APP_HNSECURE);
+		String v2 = (String)exchange.getIn().getBody();
+		String v2Segments[] = V2MessageUtil.getMshSegmentFields(v2);
+		// Since this can be be invoked under multiple scenarios it is possible
+		// for the segments to be null
+		if (v2Segments != null) {
+			ErrorResponse.initSegment(v2Segments, hl7Message);
+		}
+
 		ErrorResponse errorResponse = new ErrorResponse();
 		String v2Response = errorResponse.constructResponse(hl7Message, errorMessage);
 		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), hl7Message.getSendingFacility(), errorMessage);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);
 	}
-	
+
 	private static void writeEventMessageAudit(Exchange exchange, ErrorMessage errorMessage, Integer httpStatusCode, TransactionEventType eventType) {
 		EventMessageProcessor eventMessageProcessor = new EventMessageProcessor();
 		if (TransactionEventType.UNAUTHENTICATED == eventType) {
@@ -114,9 +120,6 @@ public class ExceptionHandler implements Processor {
 		} else {
 			eventMessageProcessor.process(exchange, eventType, EventMessageErrorLevel.ERROR, errorMessage.getErrorSequence(), errorMessage.getErrorMessage());	
 		}
-			
 	}
-	
-	
 
 }

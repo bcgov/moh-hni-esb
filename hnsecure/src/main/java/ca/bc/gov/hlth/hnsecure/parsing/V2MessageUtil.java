@@ -88,7 +88,7 @@ public class V2MessageUtil {
 		return mshSegment;
 	}
 
-	private static String[] getMshSegmentFields(String v2Message) {
+	public static String[] getMshSegmentFields(String v2Message) {
 		String [] segmentFields = null;
 		if (!StringUtils.isBlank(v2Message)) {
 			String mshSegment = getMSHSegment(v2Message);
