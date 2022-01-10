@@ -84,15 +84,6 @@ objects:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: status.podIP
-                #          - name: PATRONI_KUBERNETES_USE_ENDPOINTS
-                #            value: 'true'
-                #          - name: PATRONI_KUBERNETES_POD_IP
-                #            valueFrom:
-                #              fieldRef:
-                #                apiVersion: v1
-                #                fieldPath: status.podIP
-                #          - name: PATRONI_KUBERNETES_PORTS
-                #            value: '{[{"name": "postgresql", "port": 5432}]}'
                 - name: PATRONI_KUBERNETES_NAMESPACE
                   valueFrom:
                     fieldRef:
