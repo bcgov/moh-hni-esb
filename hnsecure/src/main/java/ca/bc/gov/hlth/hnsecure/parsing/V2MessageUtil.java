@@ -82,6 +82,7 @@ public class V2MessageUtil {
 	private static String getMSHSegment(String v2Message) {
 		String mshSegment = "";
 		if (!StringUtils.isBlank(v2Message)) {
+			v2Message = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message : v2Message.substring(8);
 			String[] segments = V2MessageUtil.getMessageSegments(v2Message);				
 			mshSegment = getSegment(segments, SegmentType.MSH);
 		}
