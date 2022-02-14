@@ -197,6 +197,13 @@ objects:
           ports:
           - containerPort: 14885
             protocol: TCP
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 50m
+            requests:
+              memory: 256Mi
+              cpu: 50m
           volumeMounts:
           - mountPath: /tmp/keystore
             name: pharmanet-cert
@@ -252,6 +259,10 @@ objects:
           - resources:
               limits:
                 memory: 512Mi
+                cpu: 800m
+              requests:
+                memory: 512Mi
+                cpu: 400m
             readinessProbe:
               exec:
                 command:
