@@ -32,7 +32,7 @@ public class HIBCHl7Api {
 	 * @return
 	 */
 	@PostMapping("/hibc")
-	public ResponseEntity<HIBCMessageModel> createRTransMessage(@Valid @RequestBody HIBCMessageModel hIBCMessageModel) {
+	public ResponseEntity<HIBCMessageModel> createHIBCMessage(@Valid @RequestBody HIBCMessageModel hIBCMessageModel) {
 
 		logger.info("Received Request Message: \n" + hIBCMessageModel.toString());
 		// Set the Hl7 response as JSON

@@ -32,7 +32,7 @@ public class JMBHl7Api {
 	 * @return
 	 */
 	@PostMapping("/jmb")
-	public ResponseEntity<JMBMessageModel> createRTransMessage(@Valid @RequestBody JMBMessageModel jMBMessageModel) {
+	public ResponseEntity<JMBMessageModel> createJMBMessage(@Valid @RequestBody JMBMessageModel jMBMessageModel) {
 
 		logger.info("Received Request Message: \n" + jMBMessageModel.toString());
 		// Set the Hl7 response as JSON
