@@ -27,20 +27,19 @@ public class JMBHl7Api {
 
 	/**
 	 * Mocked out endpoint for imitating a request sent to jmb
-	 * 
 	 * @param jMBMessageModel
 	 * @return
 	 */
 	@PostMapping("/jmb")
 	public ResponseEntity<JMBMessageModel> createJMBMessage(@Valid @RequestBody JMBMessageModel jMBMessageModel) {
 
-		logger.info("Received Request Message: \n" + jMBMessageModel.toString());
+		logger.info("Received Request Message: {}" , jMBMessageModel.toString());
 		// Set the Hl7 response as JSON
 		JSONArray contentArray = JsonUtil.createFHIRJsonArray(JMB_RESPONSE_ENCODED);
 		jMBMessageModel.setContent(contentArray);
 		jMBMessageModel.setResourceType("DocumentReference");
 		jMBMessageModel.setStatus("current");
-		logger.info("Returning HL7 Response: \n" + jMBMessageModel.toString());
+		logger.info("Returning HL7 Response: {}" , jMBMessageModel.toString());
 		return new ResponseEntity<JMBMessageModel>(jMBMessageModel, HttpStatus.OK);
 	}
 }

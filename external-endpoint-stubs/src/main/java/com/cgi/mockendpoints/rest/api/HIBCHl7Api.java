@@ -27,20 +27,19 @@ public class HIBCHl7Api {
 
 	/**
 	 * Mocked out endpoint for imitating a request sent to hibc
-	 * 
 	 * @param hIBCMessageModel
 	 * @return
 	 */
 	@PostMapping("/hibc")
 	public ResponseEntity<HIBCMessageModel> createHIBCMessage(@Valid @RequestBody HIBCMessageModel hIBCMessageModel) {
 
-		logger.info("Received Request Message: \n" + hIBCMessageModel.toString());
+		logger.info("Received Request Message: {}", hIBCMessageModel.toString());
 		// Set the Hl7 response as JSON
 		JSONArray contentArray = JsonUtil.createFHIRJsonArray(HIBC_RESPONSE_ENCODED);
 		hIBCMessageModel.setContent(contentArray);
 		hIBCMessageModel.setResourceType("DocumentReference");
 		hIBCMessageModel.setStatus("current");
-		logger.info("Returning HL7 Response: \n" + hIBCMessageModel.toString());
+		logger.info("Returning HL7 Response: {}", hIBCMessageModel.toString());
 		return new ResponseEntity<HIBCMessageModel>(hIBCMessageModel, HttpStatus.OK);
 	}
 

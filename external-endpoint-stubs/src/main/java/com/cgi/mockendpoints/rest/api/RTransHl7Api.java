@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Contains stubbed out endpoints for RTrans.
  * 
  */
-
 @RestController
 public class RTransHl7Api {
 
@@ -28,17 +27,16 @@ public class RTransHl7Api {
 
 	/**
 	 * Mocked out endpoint for imitating a request sent to RTrans
-	 * 
 	 * @param String v2Message
 	 * @return
 	 */
 	@PostMapping("/rtrans")
 	public ResponseEntity<String> createRTransMessage(@Valid @RequestBody String requestBody) {
-		logger.info("Received RTras HL7 Message: \n" + requestBody);
+		logger.info("Received RTras HL7 Message: {}", requestBody);
 		
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("content-type", "text/plain; charset=utf-8");
-		logger.info("Returning new HL7 Message: \n" + R09_RESPONSE_MESSAGE);
+		headers.add(HttpHeaders.CONTENT_TYPE, "text/plain; charset=utf-8");
+		logger.info("Returning new HL7 Message: {}", R09_RESPONSE_MESSAGE);
 		return new ResponseEntity<>(R09_RESPONSE_MESSAGE, headers, HttpStatus.OK);
 	}
 }

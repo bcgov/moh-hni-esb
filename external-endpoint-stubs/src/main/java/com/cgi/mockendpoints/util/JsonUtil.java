@@ -7,12 +7,13 @@ import net.minidev.json.JSONObject;
 
 public class JsonUtil {
 
-	public static String FHIR_JSONMESSAGE_TYPE = "contentType";
-	public static String FHIR_JSONMESSAGE_DATA = "data";
-	public static String FHIR_JSONMESSAGE_ATTACHMENT = "attachment";
-	public static String FHIR_JSONMESSAGE_RESOURCETYPE = "resourceType";
-	public static String FHIR_JSONMESSAGE_STATUS = "status";
-	public static String FHIR_JSONMESSAGE_CONTENT = "content";
+	private static final String FHIR_JSONMESSAGE_TYPE_VALUE = "x-application/hl7-v2+er7";
+	public static final String FHIR_JSONMESSAGE_TYPE = "contentType";
+	public static final String FHIR_JSONMESSAGE_DATA = "data";
+	public static final String FHIR_JSONMESSAGE_ATTACHMENT = "attachment";
+	public static final String FHIR_JSONMESSAGE_RESOURCETYPE = "resourceType";
+	public static final String FHIR_JSONMESSAGE_STATUS = "status";
+	public static final String FHIR_JSONMESSAGE_CONTENT = "content";
 	
 	/**
 	 * This method is used to create a Json Array for the Mock V2 HL7 message.
@@ -30,7 +31,7 @@ public class JsonUtil {
 		JSONObject contentObj = new JSONObject();
 		JSONObject attachmentObj = new JSONObject();
 
-		attachmentObj.put(FHIR_JSONMESSAGE_TYPE, "x-application/hl7-v2+er7");
+		attachmentObj.put(FHIR_JSONMESSAGE_TYPE, FHIR_JSONMESSAGE_TYPE_VALUE);
 		attachmentObj.put(FHIR_JSONMESSAGE_DATA, hl7message);
 		contentObj.put(FHIR_JSONMESSAGE_ATTACHMENT, attachmentObj);
 		contentArray.add(contentObj);
