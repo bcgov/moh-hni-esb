@@ -27,7 +27,7 @@ public class PharmaNetHl7sApi {
 	public ResponseEntity<PharmaNetMessageModel> getPharmanetMessage() {
 		
 		PharmaNetMessageModel pharmaNetMessageModel = new PharmaNetMessageModel();
-		logger.info("Returning new empty HL7 Message: \n" + pharmaNetMessageModel.toString());
+		logger.info("Returning new empty HL7 Message: {}" , pharmaNetMessageModel.toString());
 		return new ResponseEntity<PharmaNetMessageModel>(pharmaNetMessageModel, HttpStatus.OK);
 	}
 	
