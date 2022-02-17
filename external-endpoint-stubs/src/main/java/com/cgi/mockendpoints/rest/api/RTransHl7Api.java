@@ -18,11 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RTransHl7Api {
 
-	private static String R09_RESPONSE_MESSAGE = "MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
+	private static final String R09_RESPONSE_MESSAGE = "MSH|^~\\&|HNWeb|BC01000030|RAIPRSN-NM-SRCH|BC00002041|20191108082211|train96|R09|20191108082211|D|2.4||\r\n"
 			+ "MSA|AA|20191108082211|HJMB001ISUCCESSFULLY COMPLETED\r\n" + "ZTL|2^RD\r\n"
 			+ "PID|1|1314500002^^^BC^PH|||||1989|M\r\n" + "PID|2|2564500001^^^BC^PH|||||1973|M\r\n"
 			+ "ZIA|||||||||||||||Branton^James^^^^^|||||||1\r\n" + "ZIA|||||||||||||||Branton^Debbie^^^^^|||||||2\r\n";
-
+	
+	private static final String HTTP_CONTENT_TYPE = "text/plain; charset=utf-8";	
 	private static final Logger logger = LoggerFactory.getLogger(RTransHl7Api.class);
 
 	/**
@@ -35,7 +36,7 @@ public class RTransHl7Api {
 		logger.info("Received RTras HL7 Message: {}", requestBody);
 		
 		HttpHeaders headers = new HttpHeaders();
-		headers.add(HttpHeaders.CONTENT_TYPE, "text/plain; charset=utf-8");
+		headers.add(HttpHeaders.CONTENT_TYPE, HTTP_CONTENT_TYPE );
 		logger.info("Returning new HL7 Message: {}", R09_RESPONSE_MESSAGE);
 		return new ResponseEntity<>(R09_RESPONSE_MESSAGE, headers, HttpStatus.OK);
 	}
