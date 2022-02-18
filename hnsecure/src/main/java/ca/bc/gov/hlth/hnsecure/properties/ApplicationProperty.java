@@ -50,7 +50,10 @@ public enum ApplicationProperty {
 	MQ_HOST("mq.host"),
 	MQ_CHANNEL("mq.channel"),
 	MQ_PORT("mq.port"),
-	MQ_QUEUEMANAGER("mq.queuemanager"); 
+	MQ_QUEUEMANAGER("mq.queuemanager"),
+	
+	//RTrans URI
+	RTRANS_URI("rtrans.uri");
 	
 	// Key should be same as the key in application.properties
 	private String key;
