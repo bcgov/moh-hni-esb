@@ -10,6 +10,7 @@ public class RTransRoute extends BaseRoute {
 	
 	@Override
 	public void configure() throws Exception {
+		String rTransUrl = properties.getValue(ApplicationProperty.RTRANS_URI);
 		handleExceptions();
 		
 		from("direct:rtrans").routeId("rtrans-route")
@@ -20,8 +21,7 @@ public class RTransRoute extends BaseRoute {
      		.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
      		.wireTap("direct:audit").end()
      		.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-     		//Updated url for https://dev.azure.com/cyrovalente/HNI%20Modernization/_workitems/edit/5110
-     		.to("{{rtrans.uri}}:{{rtrans.port}}"+"/rtrans?bridgeEndpoint=true").id("ToRTrans")     		
+     		.to(rTransUrl).id("ToRTrans")     		
      		.setBody().method(new FormatRTransResponse()).id("FormatRTransResponse")
      		.log("Received response from RTrans: ${body}")
      		.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
