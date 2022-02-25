@@ -20,11 +20,13 @@
     <maven-shade-plugin-version>3.2.1</maven-shade-plugin-version>
     <camel-maven-plugin-version>3.4.0</camel-maven-plugin-version>
     <postgresql-version>42.2.22</postgresql-version>
-	<hibernate-entitymanager-version>5.4.32.Final</hibernate-entitymanager-version>	    
-	<mockito-core-version>3.11.2</mockito-core-version>
-	<ibm-mq-allclient-version>9.2.3.0</ibm-mq-allclient-version>
-	<git-commit></git-commit>
-	<impl-version>${project.version}-${BRANCH_NAME}-${BUILD_NUMBER}</impl-version>
+	  <hibernate-entitymanager-version>5.4.32.Final</hibernate-entitymanager-version>	    
+	  <mockito-core-version>3.11.2</mockito-core-version>
+	  <ibm-mq-allclient-version>9.2.3.0</ibm-mq-allclient-version>
+	  <git-commit></git-commit>
+	  <impl-version>${project.version}-${BRANCH_NAME}-${BUILD_NUMBER}</impl-version>
+    <sonar.organization>bcgov-sonarcloud</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
   
   <repositories>

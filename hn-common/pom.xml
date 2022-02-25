@@ -15,6 +15,8 @@
 	  <org-slf4j-version>1.7.30</org-slf4j-version>
       <commons-lang3-version>3.12.0</commons-lang3-version>
       <json-smart-version>2.4.2</json-smart-version>
+  	  <sonar.organization>bcgov-sonarcloud</sonar.organization>
+      <sonar.host.url>https://sonarcloud.io</sonar.host.url>	  
 	</properties>
 	 
 	<dependencies>
