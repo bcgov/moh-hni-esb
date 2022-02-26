@@ -45,5 +45,7 @@ jobs:
         run: |
           cd hn-common
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=bcgov_moh-hni-esb
+          mvn install
           cd ../hnsecure
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=bcgov_moh-hni-esb
+          
