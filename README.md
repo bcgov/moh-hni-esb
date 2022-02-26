@@ -1,4 +1,5 @@
 [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](<Redirect-URL>)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_moh-hni-esb&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_moh-hni-esb)
 
 # MOH HNI ESB (HNSecure)
 
