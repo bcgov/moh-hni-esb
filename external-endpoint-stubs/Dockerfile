@@ -7,6 +7,8 @@ RUN mvn -f /home/app/pom.xml clean install
 
 FROM adoptopenjdk:11-jre-hotspot
 
+WORKDIR /tmp
+
 COPY --from=build-stage /home/app/target/*.jar /tmp/mock-endpoint.jar
 ENTRYPOINT ["java","-jar","/tmp/mock-endpoint.jar"]
 
