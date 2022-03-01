@@ -19,7 +19,7 @@ on:
 
 
 jobs:
-    name: Build
+  Build:
     runs-on: ubuntu-latest
     steps:
       - name: Verify branch for scan
