@@ -1,26 +1,37 @@
 name: sonar-scan
+
+env:
+  BRANCH: main
+
 on:
-#  push:
-#    branches:
-#      - master
-#  pull_request:
-#    types: [opened, synchronize, reopened]
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Enter branch name:'
-        required: true
-        default: 5525-set-up-sonar-cloud  
- 
+ push:
+   branches:
+     - main
+ pull_request:
+   types: [opened, synchronize, reopened]
+ workflow_dispatch:
+   inputs:
+     branch:
+       description: 'Enter branch name:'
+       required: true
+       default: main  
+
+
+
 jobs:
-  build:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Verify branch for scan
+        id: verify-branch
+        if: ${{ github.event.inputs.branch }}
+        run: |
+        echo "BRANCH=${{ github.event.inputs.branch }}" | tee -a $GITHUB_ENV
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-          ref: ${{ github.event.inputs.branch }}  
+          ref: ${{ env.BRANCH }}  
 
       - name: Set up JDK 11
         uses: actions/setup-java@v1
