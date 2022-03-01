@@ -26,7 +26,7 @@ jobs:
         id: verify-branch
         if: ${{ github.event.inputs.branch }}
         run: |
-        echo "BRANCH=${{ github.event.inputs.branch }}" | tee -a $GITHUB_ENV
+          echo "BRANCH=${{ github.event.inputs.branch }}" | tee -a $GITHUB_ENV
 
       - uses: actions/checkout@v2
         with:
