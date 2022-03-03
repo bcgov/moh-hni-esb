@@ -15,10 +15,6 @@
   </modules>
 
   <properties>
-	  <java.version>13</java.version>
-    <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
-    <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
-    <camel-maven-plugin-version>3.4.0</camel-maven-plugin-version>
     <sonar.organization>bcgov-sonarcloud</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
@@ -44,38 +40,6 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
-<!--
-    <plugin>
-      <groupId>org.codehaus.mojo</groupId>
-      <artifactId>build-helper-maven-plugin</artifactId>
-      <version>3.0.0</version>
-      <executions>
-          <execution>
-              <phase>generate-sources</phase>
-              <goals>
-                  <goal>add-source</goal>
-              </goals>
-              <configuration>
-                  <sources>
-                      <source>hncommon/src/main/java</source>
-                    </sources>
-              </configuration>
-          </execution>
-      </executions>
-    </plugin>
--->
-      <!-- Allows the example to be run via 'mvn camel:run' -->
-      <!--
-      <plugin>
-        <groupId>org.apache.camel</groupId>
-        <artifactId>camel-maven-plugin</artifactId>
-        <version>${camel-maven-plugin-version}</version>
-        <configuration>
-          <logClasspath>true</logClasspath>
-          <mainClass>ca.bc.gov.hlth.hnsecure.HnsEsbMainMethod</mainClass>
-        </configuration>
-      </plugin>
--->
     </plugins>
   </build>
 
