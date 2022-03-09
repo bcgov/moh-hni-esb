@@ -31,7 +31,7 @@ public class PharmanetErrorResponseTest {
 	   @Test
 	    public void test_buildZZZ() {
 	    String expectedZZZ = "ZZZ||1|||||VLDT014E  The Supplied HL7 Message was improperly formatted||";
-	    String zzz = errorResponse.buildZZZ(ErrorMessage.HL7Error_Msg_InvalidHL7Format);
+	    String zzz = errorResponse.buildZZZ(ErrorMessage.HL7_ERROR_INVALID_FORMAT);
 	    assertEquals(zzz,expectedZZZ); 
  
 	    }

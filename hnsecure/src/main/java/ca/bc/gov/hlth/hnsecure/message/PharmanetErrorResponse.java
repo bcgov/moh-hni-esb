@@ -77,7 +77,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 		sb.append(Util.HL7_DELIMITER);
 		sb.append(Util.HL7_DELIMITER);
 		sb.append(Util.HL7_DELIMITER);
-		sb.append(errorMessage.getErrorSequence() + "  " + errorMessage.getErrorMessage());
+		sb.append(errorMessage.getErrorSequence() + "  " + errorMessage.getMessage());
 		sb.append(Util.HL7_DELIMITER);
 		sb.append(Util.HL7_DELIMITER);
 		return sb.toString();

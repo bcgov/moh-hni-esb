@@ -34,7 +34,7 @@ public class TokenValidatorTest extends TestPropertiesLoader {
             	Validator validator = new TokenValidator(new ValidatorImpl());
             	validator.validate(exchange);        		
         	});
-        assertEquals(ErrorMessage.CustomError_Msg_MissingAuthKey, exception.getErrorMessage());
+        assertEquals(ErrorMessage.CUSTOM_ERROR_MISSING_AUTH_KEY, exception.getErrorMessage());
     }
     
     /**
@@ -48,7 +48,7 @@ public class TokenValidatorTest extends TestPropertiesLoader {
             	Validator validator = new TokenValidator(new ValidatorImpl());
             	validator.validate(exchange);        		
         	});
-        assertEquals(ErrorMessage.CustomError_Msg_InvalidAuthKey, exception.getErrorMessage());
+        assertEquals(ErrorMessage.CUSTOM_ERROR_INVALID_AUTH_KEY, exception.getErrorMessage());
     }
 
 

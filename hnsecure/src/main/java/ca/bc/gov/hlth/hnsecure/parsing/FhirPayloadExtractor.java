@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_InvalidRequest;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_INVALID_REQUEST;
 
 import java.io.UnsupportedEncodingException;
 
@@ -22,7 +22,7 @@ public class FhirPayloadExtractor {
     private static final Logger logger = LoggerFactory.getLogger(FhirPayloadExtractor.class);
 
     @Handler
-    public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, UnsupportedEncodingException, CustomHNSException {
+    public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, CustomHNSException {
     	
     	String methodName = LoggingUtil.getMethodName();
     	JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
@@ -37,7 +37,7 @@ public class FhirPayloadExtractor {
         	extractedMessage = Util.decodeBase64(encodedExtractedMessage.getV2MessageData());
         } catch(IllegalArgumentException e) {
         	logger.error("{} - TransactionId: {}, Exception while decoding message {}", methodName, exchange.getExchangeId(), e.getMessage());
-        	throw new CustomHNSException(CustomError_Msg_InvalidRequest);
+        	throw new CustomHNSException(CUSTOM_ERROR_INVALID_REQUEST);
         }
         logger.debug("{} - TransactionId: {},{}", methodName, exchange.getExchangeId(), "Message extracted successfully");
 		logger.debug("{} - TransactionId: {}, The decoded HL7 message is: {}", methodName, exchange.getExchangeId(), extractedMessage);

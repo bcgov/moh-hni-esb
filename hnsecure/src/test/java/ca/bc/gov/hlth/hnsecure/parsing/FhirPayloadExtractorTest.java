@@ -39,7 +39,7 @@ public class FhirPayloadExtractorTest extends TestPropertiesLoader {
         	FhirPayloadExtractor.extractFhirPayload(exchange, SamplesToSend.invalidFhirJsonMsg);
         });
 
-        assertEquals(ErrorMessage.CustomError_Msg_InvalidRequest, exception.getErrorMessage());
+        assertEquals(ErrorMessage.CUSTOM_ERROR_INVALID_REQUEST, exception.getErrorMessage());
     }
     
 }

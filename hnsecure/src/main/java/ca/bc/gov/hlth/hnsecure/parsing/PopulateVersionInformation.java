@@ -16,7 +16,7 @@ import net.minidev.json.JSONObject;
 public class PopulateVersionInformation implements Processor {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateVersionInformation.class);
 	private static final String IMPLEMENTATION_VERSION_KEY = "Implementation-Version";
-	private static final String versionInformation = getVersionInformation().toJSONString();
+	private static final String VERSION_INFORMATION = getVersionInformation().toJSONString();
 
 	/**
 	 * Loading the version information using Package class.
@@ -36,7 +36,7 @@ public class PopulateVersionInformation implements Processor {
 
 	@Override
 	public void process(Exchange exchange) throws Exception {
-		exchange.getIn().setBody(versionInformation);
+		exchange.getIn().setBody(VERSION_INFORMATION);
 	}
 	
 }

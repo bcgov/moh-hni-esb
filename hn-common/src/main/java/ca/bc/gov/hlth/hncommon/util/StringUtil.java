@@ -4,10 +4,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * Class to contain utility methods related to manipulating Strings 
+ * Class to contain utility methods related to manipulating Strings
  * 
  */
-public class StringUtil {
+public final class StringUtil {
+
+	private StringUtil() {
+	}
 
 	/**
 	 * return a Base64 encoding string
@@ -35,9 +38,8 @@ public class StringUtil {
 		}
 		byte[] bytesToDecode = stringToDecode.getBytes(StandardCharsets.UTF_8);
 		byte[] decodedBytes = Base64.getDecoder().decode(bytesToDecode);
-		String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
 
-		return decodedString;
+		return new String(decodedBytes, StandardCharsets.UTF_8);
 	}
 
 }

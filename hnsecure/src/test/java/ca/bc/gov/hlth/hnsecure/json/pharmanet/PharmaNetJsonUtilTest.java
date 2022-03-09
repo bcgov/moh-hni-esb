@@ -2,6 +2,7 @@ package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Base64;
 import java.util.UUID;
@@ -31,7 +32,7 @@ public class PharmaNetJsonUtilTest {
 	@Test
 	public void testCreateJsonObjectPharmanetNullV2Message() {		
 		JSONObject jsonObj = PharmaNetJsonUtil.createJsonObjectPharmanet(null, null);
-		assertNull(jsonObj);
+		assertTrue(jsonObj.isEmpty());
 	}
 
 	@Test

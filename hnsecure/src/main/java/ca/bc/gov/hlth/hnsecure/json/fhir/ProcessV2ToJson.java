@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.json.fhir;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7_ERROR_NO_INPUT;
 
 import org.apache.camel.Handler;
 import org.eclipse.jetty.util.StringUtil;
@@ -21,7 +21,7 @@ public class ProcessV2ToJson {
 
 		// It should be impossible for the body to be empty here (the handshake server should catch that) but handle it just in case
 		if (StringUtil.isBlank(base64V2Message)) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
+			throw new CustomHNSException(HL7_ERROR_NO_INPUT);
 		}
 		return FHIRJsonUtil.createFHIRJsonObj(base64V2Message).toString();
 	}

@@ -17,14 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 
-
 /**
- * Used to populate common request headers 
+ * Used to populate common request headers
  *
  */
 public class PopulateReqHeader {
 	private static final Logger logger = LoggerFactory.getLogger(PopulateReqHeader.class);
-	
 
 	/**
 	 * This method is for parsing V2 message to set the HTTP headers.
@@ -35,13 +33,13 @@ public class PopulateReqHeader {
 	 * @throws Exception
 	 */
 	@Handler
-	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message)
-			throws Exception {
+	public void populateReqHeader(Exchange exchange, @Headers Map<String, Object> hm, String v2Message) {
 		final String methodName = LoggingUtil.getMethodName();
 		String transactionUUID = exchange.getExchangeId();
-		
+
 		// The following values are properties used to control workflow
-		// and do not actually belong in the message header (which is converted to http request headers)
+		// and do not actually belong in the message header (which is converted to http
+		// request headers)
 		Map<String, Object> exchangeProperties = exchange.getProperties();
 		String recApp = V2MessageUtil.getReceivingApp(v2Message);
 		String msgType = V2MessageUtil.getMsgType(v2Message);
@@ -51,18 +49,18 @@ public class PopulateReqHeader {
 		exchangeProperties.put(PROPERTY_RECEIVING_APP, recApp);
 		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
 		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
-		
+
 		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
-			String zcbSegment = V2MessageUtil.getDataSegment(v2Message,Util.ZCB_SEGMENT);
+			String zcbSegment = V2MessageUtil.getDataSegment(v2Message, Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
-			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);		
-			logger.info("{} - Transaction Id : {}, Pharmacy Id : {}, TraceId : {}",
-					methodName, transactionUUID, pharmacyID , traceID);
+			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
+			logger.info("{} - Transaction Id : {}, Pharmacy Id : {}, TraceId : {}", methodName, transactionUUID,
+					pharmacyID, traceID);
 		}
 
-		logger.info("{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
-				methodName, transactionUUID, recApp , msgType, sendingFacility);
+		logger.info(
+				"{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
+				methodName, transactionUUID, recApp, msgType, sendingFacility);
 	}
-	
-	
+
 }

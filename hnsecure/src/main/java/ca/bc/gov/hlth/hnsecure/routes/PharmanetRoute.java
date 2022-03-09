@@ -9,6 +9,7 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_U
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import org.apache.camel.CamelContext;
@@ -93,10 +94,9 @@ public class PharmanetRoute extends BaseRoute {
 
 	private String buildBasicToken(String username, String password) {
 		String usernamePassword = username + ":" + password;
-		Charset charSet = Charset.forName("UTF-8");
-		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(charSet)));
-		String basicToken = BASIC + token;
-		return basicToken;
+		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(StandardCharsets.UTF_8)));
+		
+		return BASIC + token;
 	}
 	
 }

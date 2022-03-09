@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class MessageUtil {
 	
-	public static final Map<String, String> mTypeCollection = new HashMap<String, String>();
+	public static final Map<String, String> mTypeCollection = new HashMap<>();
 	
 	static {
 		mTypeCollection.put("R15", "RAICHK-BNF-CVST");

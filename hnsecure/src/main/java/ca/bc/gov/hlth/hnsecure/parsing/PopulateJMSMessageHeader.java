@@ -10,6 +10,7 @@ import com.ibm.msg.client.commonservices.CSIException;
 import com.ibm.msg.client.commonservices.Utils;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 /**
  * Set Correlation Id to hexadecimal Exchange ID with a prefix ID: to add provider specific 
@@ -38,10 +39,10 @@ public class PopulateJMSMessageHeader {
 		} catch (CSIException e) {
 			logger.error("{} - TransactionId: {}, Exception while converting hexadecimal message Control Id to byte {}",
 				methodName, exchange.getExchangeId(), e.getMessage());
-        	throw e;
+        	throw new IllegalArgumentException("Exception while converting hexadecimal message Control Id to byte");
 		}
 		
-		String exchangeId = exchange.getExchangeId().replaceAll("-", "");
+		String exchangeId = exchange.getExchangeId().replace("-", "");
 		String hexStringForCorId = StringUtils.rightPad(exchangeId, 48, '0');
 	
 		exchange.getIn().setHeader("JMSCorrelationID", "ID:" + hexStringForCorId);		

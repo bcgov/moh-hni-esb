@@ -30,7 +30,7 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.jmqi.JmqiException;
 import com.ibm.mq.jms.MQQueueConnectionFactory;
 import com.ibm.msg.client.jms.DetailedJMSException;
-import com.ibm.msg.client.wmq.WMQConstants;
+import com.ibm.msg.client.wmq.common.CommonConstants;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.TransactionIdGenerator;
@@ -54,7 +54,7 @@ public class Route extends BaseRoute {
 
 	private static final String HTTP_REQUEST_ID_HEADER = "X-Request-Id";
 
-	private static ApplicationProperties properties;
+	private ApplicationProperties applicationProperties;
     
     private Validator validator;
     
@@ -63,8 +63,8 @@ public class Route extends BaseRoute {
     	  	
     	init();
    
-		String isFileDropsEnabled = properties.getValue(IS_FILEDDROPS_ENABLED);
-		String isAuditsEnabled = properties.getValue(IS_AUDITS_ENABLED);
+		String isFileDropsEnabled = applicationProperties.getValue(IS_FILEDDROPS_ENABLED);
+		String isAuditsEnabled = applicationProperties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
 		Predicate isMessageForHIBC = isMessageForHIBC();
 
@@ -77,9 +77,9 @@ public class Route extends BaseRoute {
 			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
 			.choice()
 				.when(header(HTTP_REQUEST_ID_HEADER))
-					.process(exchange -> {
-						exchange.setExchangeId(exchange.getIn().getHeader(HTTP_REQUEST_ID_HEADER, String.class));
-					}).id("SetExchangeIdFromHeader")
+					.process(exchange -> 
+						exchange.setExchangeId(exchange.getIn().getHeader(HTTP_REQUEST_ID_HEADER, String.class))
+					).id("SetExchangeIdFromHeader")
 			.end()
         	.setProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).simple(isFileDropsEnabled)
         	.setProperty(Util.PROPERTY_IS_AUDITS_ENABLED).simple(isAuditsEnabled)
@@ -158,7 +158,7 @@ public class Route extends BaseRoute {
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
-    	properties = ApplicationProperties.getInstance();
+    	applicationProperties = ApplicationProperties.getInstance();
     	initMQ();
     	initFileDrop();
     	loadValidator();
@@ -171,9 +171,9 @@ public class Route extends BaseRoute {
 	private Predicate isRTrans() {		
 		Predicate isR03 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R03);
 		Predicate isR07 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R07);	
-		Predicate isR09 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R09);	
-		Predicate pBuilder = PredicateBuilder.or(isR03, isR07, isR09);
-		return pBuilder;
+		Predicate isR09 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(Util.R09);
+		
+		return PredicateBuilder.or(isR03, isR07, isR09);
 	}
 	
 	/**
@@ -183,9 +183,9 @@ public class Route extends BaseRoute {
 	private Predicate isMessageForHIBC() {		
 		Predicate isE45 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(E45);	
 		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
-		Predicate isR50 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R50);	
-		Predicate pBuilder = PredicateBuilder.or(isR15, isE45, isR50);
-		return pBuilder;
+		Predicate isR50 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R50);
+		
+		return PredicateBuilder.or(isR15, isE45, isR50);
 	}
     
 	/**
@@ -222,7 +222,7 @@ public class Route extends BaseRoute {
 	private void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
 
-		boolean isMQEnabled = Boolean.valueOf(properties.getValue(IS_MQ_ENABLED));		
+		boolean isMQEnabled = Boolean.valueOf(applicationProperties.getValue(IS_MQ_ENABLED));		
 		if (isMQEnabled) {
 			JmsComponent jmsComponent = new JmsComponent();
 	    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
@@ -243,12 +243,12 @@ public class Route extends BaseRoute {
 		final String methodName = LoggingUtil.getMethodName();
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
       
-        mqQueueConnectionFactory.setHostName(properties.getValue(MQ_HOST));
+        mqQueueConnectionFactory.setHostName(applicationProperties.getValue(MQ_HOST));
         try {
-        	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);         
-        	mqQueueConnectionFactory.setChannel(properties.getValue(MQ_CHANNEL));
-        	mqQueueConnectionFactory.setPort(Integer.valueOf(properties.getValue(MQ_PORT)));
-        	mqQueueConnectionFactory.setQueueManager(properties.getValue(MQ_QUEUEMANAGER));
+        	mqQueueConnectionFactory.setTransportType(CommonConstants.WMQ_CM_CLIENT);         
+        	mqQueueConnectionFactory.setChannel(applicationProperties.getValue(MQ_CHANNEL));
+        	mqQueueConnectionFactory.setPort(Integer.valueOf(applicationProperties.getValue(MQ_PORT)));
+        	mqQueueConnectionFactory.setQueueManager(applicationProperties.getValue(MQ_QUEUEMANAGER));
     		logger.debug("{} - MQ connection factory has been created.", methodName);			
         } catch (JMSException je) {       	  
             logger.error("{} - MQ connection factory initialization failed with the error : {}", methodName, je.getMessage());
@@ -286,11 +286,11 @@ public class Route extends BaseRoute {
 
 	private void initFileDrop() {
 		final String methodName = LoggingUtil.getMethodName();		
-		boolean isFileDropsEnabled = Boolean.valueOf(properties.getValue(IS_FILEDDROPS_ENABLED));
+		boolean isFileDropsEnabled = Boolean.parseBoolean(applicationProperties.getValue(IS_FILEDDROPS_ENABLED));
 		
 		if (isFileDropsEnabled) {
 			logger.debug("{} - Initializing file drop.", methodName);			
-			String fileDropsLocation = properties.getValue(FILE_DROPS_LOCATION);
+			String fileDropsLocation = applicationProperties.getValue(FILE_DROPS_LOCATION);
 			File fileDropsDirectory = new File(fileDropsLocation);
 			if (!fileDropsDirectory.exists()) {
 				logger.debug("{} - File drop location directory [{}] did not exist so it will be created.", methodName, fileDropsLocation);			

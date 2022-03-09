@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.json;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7_ERROR_NO_INPUT;
 
 import java.util.Base64;
 
@@ -26,7 +26,7 @@ public class Base64Encoder {
 
 		// It should be impossible for the body to be empty here (the handshake server should catch that) but handle it just in case
 		if (StringUtil.isBlank(v2Message)) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
+			throw new CustomHNSException(HL7_ERROR_NO_INPUT);
         } else {
             return new String(Base64.getEncoder().encode(v2Message.getBytes()));
         }

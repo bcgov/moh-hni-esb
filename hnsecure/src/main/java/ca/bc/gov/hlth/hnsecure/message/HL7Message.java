@@ -29,7 +29,7 @@ public class HL7Message {
 
 	private String versionId;
 
-	private final String fieldSeparator = "|";
+	private static final String fieldSeparator = "|";
 
 	public String getSegmentIdentifier() {
 		return segmentIdentifier;

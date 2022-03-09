@@ -66,7 +66,7 @@ public abstract class AbstractAuditPersistence {
 	 * Constructor that sets up the Entity Manager Factory so that it is only created once.
 	 * 
 	 */
-   	public AbstractAuditPersistence() {
+   	protected AbstractAuditPersistence() {
    		if (Boolean.TRUE.equals(Boolean.valueOf(properties.getValue(IS_AUDITS_ENABLED)))) {
    			emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
    		}
@@ -76,18 +76,18 @@ public abstract class AbstractAuditPersistence {
    	 * Inserts a single record.
    	 * 
    	 * @param <T>
-   	 * @param record
+   	 * @param transaction
    	 * @return
    	 */
-	public <T> T insert(T record) {
+	public <T> T insert(T transaction) {
 		EntityManager em = emf.createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
-        em.persist(record);
+        em.persist(transaction);
         et.commit();
         em.close();
-        return record;
+        return transaction;
     }
 
 	/**
@@ -103,7 +103,7 @@ public abstract class AbstractAuditPersistence {
         
         et.begin();
 
-        records.forEach(r -> em.persist(r));
+        records.forEach(em :: persist);
         
         et.commit();
         em.close();
@@ -191,9 +191,9 @@ public abstract class AbstractAuditPersistence {
 						affectedParties.add(ap);
 					});
 					break;
-				case R03:;
+				case R03:
 				case R09: 
-				case R15:;
+				case R15:
 				case R50:
 					/* PID e.g. 
 					PID||0891250000^^^BC^PH 
@@ -208,6 +208,8 @@ public abstract class AbstractAuditPersistence {
 						populateAffectedParty(ap, transactionUuid, identifier);					
 						affectedParties.add(ap);
 					});
+					break;
+				default:
 					break;
 				}
 			}
