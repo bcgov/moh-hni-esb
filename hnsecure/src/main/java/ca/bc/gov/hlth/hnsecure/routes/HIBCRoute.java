@@ -21,6 +21,7 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
 public class HIBCRoute extends BaseRoute {
 
+	private static final String DIRECT_AUDIT = "direct:audit";
 	private static final String DIRECT_HIBC_MQ = "direct:hibcMQ";
 
 	@Override
@@ -53,7 +54,7 @@ public class HIBCRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 	     	.log("Sending to HIBC")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-	     	.wireTap("direct:audit").end()
+	     	.wireTap(DIRECT_AUDIT).end()
 	     	.setBody().method(new Base64Encoder()).id("HIBCBase64Encoder")
             .setBody().method(new ProcessV2ToJson()).id("HIBCProcessV2ToJson")
 	     	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
@@ -64,7 +65,7 @@ public class HIBCRoute extends BaseRoute {
 	     	.setBody().method(new FhirPayloadExtractor())
 	     	.log("Decoded V2: ${body}")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-	     	.wireTap("direct:audit").end();
+	     	.wireTap(DIRECT_AUDIT).end();
 
 		if (isMQEnabled) {
 			from(DIRECT_HIBC_MQ).routeId("hibc-mq-route")
@@ -74,11 +75,11 @@ public class HIBCRoute extends BaseRoute {
 				.log("HIBC request message ::: ${body}")
 				.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, hibcRequestQueue)))	           		        	
 		    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-		    	.wireTap("direct:audit").end()
+		    	.wireTap(DIRECT_AUDIT).end()
 				.to(hibcMqUrl).id("ToHibcMqUrl")
 				.removeHeaders("JMS*")	
 		        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
-		        .wireTap("direct:audit").end()
+		        .wireTap(DIRECT_AUDIT).end()
 		        .log("Received response message from HIBC queue ::: ${body}");
 		} else {
 			from(DIRECT_HIBC_MQ).routeId("hibc-mq-route")

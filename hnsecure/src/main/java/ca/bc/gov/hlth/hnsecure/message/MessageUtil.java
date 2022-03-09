@@ -7,6 +7,9 @@ public class MessageUtil {
 	
 	public static final Map<String, String> mTypeCollection = new HashMap<>();
 	
+	private MessageUtil() {
+	}
+	
 	static {
 		mTypeCollection.put("R15", "RAICHK-BNF-CVST");
 		mTypeCollection.put("R33", "RAICMPL-PR-INFO");

@@ -6,9 +6,9 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 
 public class ErrorResponse extends ResponseSegment {
 
-	private static final String segmentIdentifier = "MSA";
+	private static final String SEGMENT_IDENTIFIER = "MSA";
 
-	private static final String ackKnowledgementCode = "AR";
+	private static final String ACK_CODE = "AR";
 
 	@Override
 	public String constructResponse(HL7Message messageObj, ErrorMessage errorMessage) {
@@ -17,9 +17,9 @@ public class ErrorResponse extends ResponseSegment {
 	}
 
 	public String constructMSA(String messageControlID, String errorResponse) {
-		StringBuilder sb = new StringBuilder(segmentIdentifier);
+		StringBuilder sb = new StringBuilder(SEGMENT_IDENTIFIER);
 		sb.append(Util.HL7_DELIMITER);
-		sb.append(ackKnowledgementCode);
+		sb.append(ACK_CODE);
 		sb.append(Util.HL7_DELIMITER);
 		sb.append(Optional.ofNullable(messageControlID).orElse(""));
 		sb.append(Util.HL7_DELIMITER);

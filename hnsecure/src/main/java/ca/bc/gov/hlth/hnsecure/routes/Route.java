@@ -158,7 +158,6 @@ public class Route extends BaseRoute {
     	//The purpose is to set custom unique id for logging
     	getContext().setUuidGenerator(new TransactionIdGenerator());
     	injectProperties();
-    	applicationProperties = ApplicationProperties.getInstance();
     	initMQ();
     	initFileDrop();
     	loadValidator();
@@ -195,7 +194,7 @@ public class Route extends BaseRoute {
      */
     public void injectProperties() {
     	Properties properties  = getContext().getPropertiesComponent().loadProperties();
-    	ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
+    	applicationProperties = ApplicationProperties.getInstance();
     	applicationProperties.injectProperties(properties);
     }
     

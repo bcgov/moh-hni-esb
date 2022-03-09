@@ -2,8 +2,6 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_INVALID_REQUEST;
 
-import java.io.UnsupportedEncodingException;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.slf4j.Logger;

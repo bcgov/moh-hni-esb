@@ -51,7 +51,7 @@ public abstract class AbstractAuditPersistence {
     private static final ApplicationProperties properties = ApplicationProperties.getInstance(); 
 
        
-    private static Map<String, String> persistenceUnitProperties = new HashMap<String, String>();
+    private static Map<String, String> persistenceUnitProperties = new HashMap<>();
     
    	static {   
    		String url = String.format("jdbc:postgresql://%s:%s/%s", properties.getValue(DATABASE_HOST), properties.getValue(DATABASE_PORT),properties.getValue(DATABASE_NAME));
@@ -155,7 +155,7 @@ public abstract class AbstractAuditPersistence {
 	 * @return
 	 */
 	public List<AffectedParty> createAffectedParties(String v2Message, String transactionId) {
-		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
+		List<AffectedParty> affectedParties = new ArrayList<>();
 		AffectedParty affectedParty = null;
 		UUID transactionUuid = UUID.fromString(transactionId);						
 	

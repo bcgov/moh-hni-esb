@@ -45,7 +45,8 @@ public class PharmaNetJsonUtil {
 		
 		jsonObj.put(TRANSACTION_UUID, transactionUUID);
 		jsonObj.put(HL7_MESSAGE, hl7Message);
-		logger.debug("{} - The JSON Message is: {}", methodName, jsonObj.toJSONString());
+		String jsonString = jsonObj.toJSONString();
+		logger.debug("{} - The JSON Message is: {}", methodName, jsonString);
 
 		return jsonObj;		
 	}	

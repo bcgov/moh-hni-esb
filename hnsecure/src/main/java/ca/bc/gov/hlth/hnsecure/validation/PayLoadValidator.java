@@ -27,6 +27,7 @@ import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
+import ca.bc.gov.hlth.hnsecure.message.ResponseSegment;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
@@ -186,7 +187,7 @@ public class PayLoadValidator extends AbstractValidator {
 				exchange.getProperties().put(PROPERTY_MESSAGE_TYPE, msgType);
 			}
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
-				ErrorResponse.initSegment(v2Segments, messageObj);				
+				ResponseSegment.initSegment(v2Segments, messageObj);				
 			} else {
 				generateError(messageObj, ErrorMessage.HL7_ERROR_INVALID_FORMAT, exchange);
 			}

@@ -10,7 +10,6 @@ import com.ibm.msg.client.commonservices.CSIException;
 import com.ibm.msg.client.commonservices.Utils;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
-import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 
 /**
  * Set Correlation Id to hexadecimal Exchange ID with a prefix ID: to add provider specific 

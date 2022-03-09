@@ -6,6 +6,8 @@ public class SampleMessages {
      These aren't real response messages for these message types, they just serve to help test the message routing is working until we have
      actual message routing configured
      */
+	private SampleMessages() {
+	}
 
     public static final String E45_RESPONSE_MESSAGE = "MSH|^~\\&|RAIGT-PRSN-DMGR|BC00002041|HNWeb|BC01000030|20200206123841|train96|E45|1819924|D|2.4^M\n" +
             "MSA|AA|20200206123840|HJMB001ISUCCESSFULLY COMPLETED^M\n" +

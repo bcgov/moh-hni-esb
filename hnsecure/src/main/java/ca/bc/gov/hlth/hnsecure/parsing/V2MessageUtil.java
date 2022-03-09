@@ -54,7 +54,7 @@ public class V2MessageUtil {
 	 */
 	public static String getSendingFacility(String v2Message) {	
 		String sendingFacility = "";	
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
 			if (ArrayUtils.isNotEmpty(segmentFields) && segmentFields.length > 3) {
 				sendingFacility = segmentFields[3];
@@ -71,7 +71,7 @@ public class V2MessageUtil {
 	 */
 	public static String getSecurity(String v2Message) {	
 		String security = "";	
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
 			if (ArrayUtils.isNotEmpty(segmentFields) && segmentFields.length > 7) {
 				security = segmentFields[7];
@@ -82,7 +82,7 @@ public class V2MessageUtil {
 
 	private static String getMSHSegment(String v2Message) {
 		String mshSegment = "";
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String trimmedMessage = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message : v2Message.substring(8);
 			String[] segments = V2MessageUtil.getMessageSegments(trimmedMessage);				
 			mshSegment = getSegment(segments, SegmentType.MSH);
@@ -92,7 +92,7 @@ public class V2MessageUtil {
 
 	public static String[] getMshSegmentFields(String v2Message) {
 		String [] segmentFields = null;
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String mshSegment = getMSHSegment(v2Message);
 			segmentFields = getSegmentFields(mshSegment);			
 		}
@@ -138,7 +138,7 @@ public class V2MessageUtil {
 		v2Message = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message : v2Message.substring(8);
 		String mshSegment = getMSHSegment(v2Message);
 	
-		if(StringUtils.isNotBlank(mshSegment)) {
+		if (StringUtils.isNotBlank(mshSegment)) {
 		String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 		if (hl7MessageAtt.length > 8) {
 			msgType = hl7MessageAtt[8];			
@@ -321,7 +321,7 @@ public class V2MessageUtil {
 
 	public static String[] getSegmentFields(String segment) {
 		if (StringUtils.isEmpty(segment)) {
-			return null;
+			 return new String[0];
 		}
 		return segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 	}

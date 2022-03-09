@@ -8,7 +8,6 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_U
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_USER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
