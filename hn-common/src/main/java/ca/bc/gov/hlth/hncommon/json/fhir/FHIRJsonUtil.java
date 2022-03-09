@@ -95,7 +95,7 @@ public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 	 * @param fhirJsonMsg
 	 * @param value
 	 */
-	protected static void parseJsonArray(FHIRJsonMessage fhirJsonMsg, Object value) {
+	private static void parseJsonArray(FHIRJsonMessage fhirJsonMsg, Object value) {
 		JSONObject contentJson = (JSONObject) ((JSONArray) value).get(0);
 		JSONObject attachmentJson = (JSONObject) contentJson.get(FHIR_JSON_MESSAGE_ATTACHMENT);
 
@@ -108,7 +108,6 @@ public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 				fhirJsonMsg.setV2MessageData(attachValue.toString());
 			} else {
 				logger.error("This is not an valid FHIR message!");
-				//return null;
 			}
 		}
 	}
@@ -118,14 +117,13 @@ public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 	 * @param key
 	 * @param value
 	 */
-	protected static void parseJsonString(FHIRJsonMessage fhirJsonMsg, String key, Object value) {
+	private static void parseJsonString(FHIRJsonMessage fhirJsonMsg, String key, Object value) {
 		if (key.equals(FHIR_JSON_MESSAGE_RESOURCETYPE)) {
 			fhirJsonMsg.setResourceType(value.toString());
 		} else if (key.equals(FHIR_JSON_MESSAGE_STATUS)) {
 			fhirJsonMsg.setStatus(value.toString());
 		} else {
 			logger.error("This is not an valid FHIR message!");
-			//return null;
 		}
 	}
 }

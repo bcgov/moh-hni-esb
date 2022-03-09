@@ -29,7 +29,8 @@ public class PopulateVersionInformation implements Processor {
 		// init a JSON object
 		JSONObject v2JsonObj = new JSONObject();
 		v2JsonObj.put(IMPLEMENTATION_VERSION_KEY, pck.getImplementationVersion());
-		logger.debug("{} - The JSON Message is: {}", methodName, v2JsonObj.toJSONString());
+		String jsonString = v2JsonObj.toJSONString();
+		logger.debug("{} - The JSON Message is: {}", methodName, jsonString);
 		//return the JSON object
 		return v2JsonObj;
 	}

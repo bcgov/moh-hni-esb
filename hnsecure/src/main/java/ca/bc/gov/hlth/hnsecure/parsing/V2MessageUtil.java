@@ -1,7 +1,9 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +41,7 @@ public class V2MessageUtil {
 		String sendingApplication = "";	
 		if (!StringUtils.isBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
-			if (ArrayUtils.isNotEmpty(segmentFields) && segmentFields.length > 2) {
+			if (Arrays.stream(segmentFields).allMatch(Objects::nonNull) && segmentFields.length > 2) {
 				sendingApplication = segmentFields[2];
 			}
 		}
@@ -56,7 +58,7 @@ public class V2MessageUtil {
 		String sendingFacility = "";	
 		if (StringUtils.isNotBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
-			if (ArrayUtils.isNotEmpty(segmentFields) && segmentFields.length > 3) {
+			if (Arrays.stream(segmentFields).allMatch(Objects::nonNull) && segmentFields.length > 3) {
 				sendingFacility = segmentFields[3];
 			}
 		}
@@ -73,7 +75,7 @@ public class V2MessageUtil {
 		String security = "";	
 		if (StringUtils.isNotBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
-			if (ArrayUtils.isNotEmpty(segmentFields) && segmentFields.length > 7) {
+			if (Arrays.stream(segmentFields).allMatch(Objects::nonNull) && segmentFields.length > 7) {
 				security = segmentFields[7];
 			}
 		}

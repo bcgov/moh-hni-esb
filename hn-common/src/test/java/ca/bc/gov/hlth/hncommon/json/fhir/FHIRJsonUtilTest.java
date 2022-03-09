@@ -39,13 +39,13 @@ class FHIRJsonUtilTest {
 	@Test
 	void testCreateFHIRJsonNullObject() {
 		JSONObject jsonObj = FHIRJsonUtil.createFHIRJsonObj(null);
-		assertNull(jsonObj);
+		assertTrue(jsonObj.isEmpty());
 	}
 
 	@Test
 	void testCreateFHIRJsonEmptyObject() {
 		JSONObject jsonObj = FHIRJsonUtil.createFHIRJsonObj("");
-		assertNull(jsonObj);
+		assertTrue(jsonObj.isEmpty());
 	}
 
 	@Test

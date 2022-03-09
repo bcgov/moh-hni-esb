@@ -221,7 +221,7 @@ public class Route extends BaseRoute {
 	private void initMQ() {
 		final String methodName = LoggingUtil.getMethodName();
 
-		boolean isMQEnabled = Boolean.valueOf(applicationProperties.getValue(IS_MQ_ENABLED));		
+		boolean isMQEnabled = Boolean.parseBoolean(applicationProperties.getValue(IS_MQ_ENABLED));		
 		if (isMQEnabled) {
 			JmsComponent jmsComponent = new JmsComponent();
 	    	MQQueueConnectionFactory mqQueueConnectionFactory = mqQueueConnectionFactory();
