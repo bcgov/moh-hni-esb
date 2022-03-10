@@ -27,6 +27,8 @@ import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 
 public class PharmanetRoute extends BaseRoute {
+	private static final String SSL2 = "ssl2";
+
 	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
 	
 	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
@@ -88,7 +90,7 @@ public class PharmanetRoute extends BaseRoute {
 
         Registry registry = camelContext.getRegistry();
         registry.bind(SSL_CONTEXT_PHARMANET, sslContextParameters);
-        registry.bind("ssl2", new SSLContextParameters()); //TODO (dbarrett) If there is only one bound SSL context then Camel will default to always use it in every URL. This is a workaround to stop this for now. Can be removed when another endpoint is configured with it's context. 
+        registry.bind(SSL2, new SSLContextParameters()); // If there is only one bound SSL context then Camel will default to always use it in every URL. So as a workaround to stop this a default new empty context is added here. 
 	}
 
 	private String buildBasicToken(String username, String password) {

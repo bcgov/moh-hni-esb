@@ -9,7 +9,6 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PO
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_USERNAME;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -136,7 +135,6 @@ public abstract class AbstractAuditPersistence {
 	}
 
 	private String getServer() {
-		//TODO (dbarrett) check if we need this, it's the name of the server that processed the transaction. (this may not be relevant in openshift), and if so where it is taken from.		
 		String hostname = "";
 		try {
 			hostname = InetAddress.getLocalHost().getHostName();
