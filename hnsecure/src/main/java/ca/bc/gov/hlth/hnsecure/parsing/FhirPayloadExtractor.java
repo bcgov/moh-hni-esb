@@ -20,7 +20,6 @@ public class FhirPayloadExtractor {
     private static final Logger logger = LoggerFactory.getLogger(FhirPayloadExtractor.class);
     
     private FhirPayloadExtractor() {
-		// TODO Auto-generated constructor stub
 	}
 
     @Handler
@@ -31,7 +30,6 @@ public class FhirPayloadExtractor {
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
-        logger.info("testttttttttttttttttttttttttttttttttttttttt");
 
         // Only way to verify if message is base64 encoded is to decode and check for no exception
         // In case string is not Base 64, decoder throws IllegalArgumentException. Handled that exception.
