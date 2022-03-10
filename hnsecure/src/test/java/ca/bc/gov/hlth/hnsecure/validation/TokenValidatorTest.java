@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
 import java.net.MalformedURLException;
@@ -20,7 +21,8 @@ public class TokenValidatorTest extends TestPropertiesLoader {
 
     @Test
     public void testConstructor() throws MalformedURLException {
-		new TokenValidator(new ValidatorImpl());
+    	Validator validator = new TokenValidator(new ValidatorImpl());
+    	assertNotNull(validator);
     }
 
     /**

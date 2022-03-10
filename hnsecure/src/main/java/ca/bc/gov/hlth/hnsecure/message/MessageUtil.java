@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class MessageUtil {
 	
-	public static final Map<String, String> mTypeCollection = new HashMap<>();
+	public static final Map<String, String> mTypeCollection = new HashMap<>();//NOSONAR 
 	
 	private MessageUtil() {
 	}
