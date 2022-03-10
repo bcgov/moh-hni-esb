@@ -41,7 +41,7 @@ public class PharmanetRoute extends BaseRoute {
 
 		String pharmaNetUrl = String.format(
 				properties.getValue(PHARMANET_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
-				SSL_CONTEXT_PHARMANET, properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));
+				SSL_CONTEXT_PHARMANET, properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));//NOSONAR
 						
 		String basicToken = buildBasicToken(properties.getValue(PHARMANET_USER), properties.getValue(PHARMANET_PASSWORD));
 

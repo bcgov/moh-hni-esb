@@ -27,7 +27,7 @@ public class HIBCRoute extends BaseRoute {
 	@Override
 	public void configure() throws Exception {
 
-		String hibcHttpUrl = String.format(properties.getValue(ApplicationProperty.HIBC_HTTP_URI) + "?bridgeEndpoint=true");
+		String hibcHttpUrl = String.format(properties.getValue(ApplicationProperty.HIBC_HTTP_URI) + "?bridgeEndpoint=true");//NOSONAR
 		
 		boolean isMQEnabled = Boolean.parseBoolean(properties.getValue(IS_MQ_ENABLED));		
 		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);
@@ -62,7 +62,7 @@ public class HIBCRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(hibcHttpUrl).id("ToHibcHttpUrl")
 	     	.log("Received response from HIBC")
-	     	.setBody().method(new FhirPayloadExtractor())
+	     	.bean(FhirPayloadExtractor.class).log("Decoded V2: ${body}")
 	     	.log("Decoded V2: ${body}")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();

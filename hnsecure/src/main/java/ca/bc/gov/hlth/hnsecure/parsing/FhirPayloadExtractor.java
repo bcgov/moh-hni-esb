@@ -18,15 +18,20 @@ import net.minidev.json.parser.ParseException;
 public class FhirPayloadExtractor {
 
     private static final Logger logger = LoggerFactory.getLogger(FhirPayloadExtractor.class);
+    
+    private FhirPayloadExtractor() {
+		// TODO Auto-generated constructor stub
+	}
 
     @Handler
-    public static String extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, CustomHNSException {
+    public static void extractFhirPayload(Exchange exchange,String fhirMessage) throws ParseException, CustomHNSException {
     	
     	String methodName = LoggingUtil.getMethodName();
     	JSONParser jsonParser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
         JSONObject fhirMessageJSON = (JSONObject) jsonParser.parse(fhirMessage);
         
         FHIRJsonMessage encodedExtractedMessage = FHIRJsonUtil.parseJson2FHIRMsg(fhirMessageJSON); // get the data property
+        logger.info("testttttttttttttttttttttttttttttttttttttttt");
 
         // Only way to verify if message is base64 encoded is to decode and check for no exception
         // In case string is not Base 64, decoder throws IllegalArgumentException. Handled that exception.
@@ -40,6 +45,7 @@ public class FhirPayloadExtractor {
         logger.debug("{} - TransactionId: {},{}", methodName, exchange.getExchangeId(), "Message extracted successfully");
 		logger.debug("{} - TransactionId: {}, The decoded HL7 message is: {}", methodName, exchange.getExchangeId(), extractedMessage);
         
-        return extractedMessage;
+		exchange.getIn().setBody(extractedMessage);
+        //return extractedMessage;
     }    
 }

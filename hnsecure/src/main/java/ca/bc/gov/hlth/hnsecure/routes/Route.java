@@ -84,7 +84,7 @@ public class Route extends BaseRoute {
         	.setProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).simple(isFileDropsEnabled)
         	.setProperty(Util.PROPERTY_IS_AUDITS_ENABLED).simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
-        	.setBody().method(new FhirPayloadExtractor()).log("Decoded V2: ${body}")
+        	.bean(FhirPayloadExtractor.class).id("FhirPayloadExtractor").log("Decoded V2: ${body}")
         	// Added wireTap for asynchronous call to filedrop request
         	.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_START))
 			.wireTap("direct:audit").end()
@@ -273,8 +273,7 @@ public class Route extends BaseRoute {
                     logger.error("{} - WMQ Log Message: {}", methodName, jmqie.getWmqLogMessage());
                     logger.error("{} - WMQ Explanation: {}", methodName, jmqie.getWmqMsgExplanation());
                     logger.error("{} - WMQ Msg Summary: {}", methodName, jmqie.getWmqMsgSummary());
-                    logger.error("{} - WMQ Msg User Response: "
-                                       + jmqie.getWmqMsgUserResponse());
+                    logger.error("{} - WMQ Msg User Response: {}", jmqie.getWmqMsgUserResponse());
                     logger.error("{} - WMQ Msg Severity: {}", methodName, jmqie.getWmqMsgSeverity());
                 }
                                   	 
