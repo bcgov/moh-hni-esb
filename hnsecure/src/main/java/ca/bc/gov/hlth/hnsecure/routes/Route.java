@@ -273,7 +273,7 @@ public class Route extends BaseRoute {
                     logger.error("{} - WMQ Log Message: {}", methodName, jmqie.getWmqLogMessage());
                     logger.error("{} - WMQ Explanation: {}", methodName, jmqie.getWmqMsgExplanation());
                     logger.error("{} - WMQ Msg Summary: {}", methodName, jmqie.getWmqMsgSummary());
-                    logger.error("{} - WMQ Msg User Response: {}", jmqie.getWmqMsgUserResponse());
+                    logger.error("{} - WMQ Msg User Response: {}", methodName, jmqie.getWmqMsgUserResponse());
                     logger.error("{} - WMQ Msg Severity: {}", methodName, jmqie.getWmqMsgSeverity());
                 }
                                   	 

@@ -44,6 +44,5 @@ public class FhirPayloadExtractor {
 		logger.debug("{} - TransactionId: {}, The decoded HL7 message is: {}", methodName, exchange.getExchangeId(), extractedMessage);
         
 		exchange.getIn().setBody(extractedMessage);
-        //return extractedMessage;
     }    
 }
