@@ -27,6 +27,10 @@ public class V2MessageUtil {
 	public enum SegmentType {
 		MSH, PID, QPD, ZCC, ZPA
 	}
+	
+	public enum MessageFlow {
+		INBOUND, OUTBOUND
+	}
 
 	/**
 	 * This method is used to get the sending application from a HL7 v2 message.

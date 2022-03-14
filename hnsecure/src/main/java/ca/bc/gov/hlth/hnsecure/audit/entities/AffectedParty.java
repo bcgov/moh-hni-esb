@@ -47,6 +47,12 @@ public class AffectedParty {
 	 */
 	@Basic
 	private String status;
+	
+	/**
+	 * specifies direction of message(Inbound, Outbound)
+	 */
+	@Basic
+	private String direction;
 
 	@Column(name = "transaction_id", columnDefinition = "uuid")
 	private UUID transactionId;
@@ -98,6 +104,14 @@ public class AffectedParty {
 		this.status = status;
 	}
 
+	public String getDirection() {
+		return direction;
+	}
+
+	public void setDirection(String direction) {
+		this.direction = direction;
+	}
+
 	public UUID getTransactionId() {
 		return transactionId;
 	}
@@ -110,7 +124,7 @@ public class AffectedParty {
 	public String toString() {
 		return "AffectedParty [affectedPartyId=" + affectedPartyId + ", identifier=" + identifier
 				+ ", identifierSource=" + identifierSource + ", identifierType=" + identifierType + ", status=" + status
-				+ ", transactionId=" + transactionId + "]";
+				+ ", direction=" + direction + " transactionId=" + transactionId + "]";
 	}
 
 }

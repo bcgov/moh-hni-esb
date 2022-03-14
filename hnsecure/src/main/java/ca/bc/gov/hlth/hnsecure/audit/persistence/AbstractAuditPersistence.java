@@ -151,10 +151,11 @@ public abstract class AbstractAuditPersistence {
 	 * Create {@link AffectedParty} entity populated with values based on the persons in the v2 message being processed.
 	 * 
 	 * @param v2Message
+	 * @param direction
 	 * @param transactionId
 	 * @return
 	 */
-	public List<AffectedParty> createAffectedParties(String v2Message, String transactionId) {
+	public List<AffectedParty> createAffectedParties(String v2Message, String direction, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
 		AffectedParty affectedParty = null;
 		UUID transactionUuid = UUID.fromString(transactionId);						
@@ -175,7 +176,7 @@ public abstract class AbstractAuditPersistence {
 					String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
 					String patientIdentifier = V2MessageUtil.getIdentifierSectionZCC(segmentFields);	//ZCC Provincial Health Care ID field e.g. 0009735000001
 					affectedParty = new AffectedParty();		
-					populateAffectedParty(affectedParty, transactionUuid, patientIdentifier);					
+					populateAffectedParty(affectedParty, transactionUuid, patientIdentifier, direction);					
 					affectedParties.add(affectedParty);
 					break;
 				case E45:
@@ -187,7 +188,7 @@ public abstract class AbstractAuditPersistence {
 						String [] sections =  V2MessageUtil.getIdentifierSectionsQPD(fields);	//QPD Patient Identifier List e.g. 9020198746^^^CANBC^JHN^MOH
 						String identifier = sections[0];
 						AffectedParty ap = new AffectedParty();
-						populateAffectedParty(ap, transactionUuid, identifier);					
+						populateAffectedParty(ap, transactionUuid, identifier, direction);					
 						affectedParties.add(ap);
 					});
 					break;
@@ -205,7 +206,7 @@ public abstract class AbstractAuditPersistence {
 						//affectedParty from PID External Patient ID e.g. 0891250000^^^BC^PH
 						String identifier = sections[0];
 						AffectedParty ap = new AffectedParty();
-						populateAffectedParty(ap, transactionUuid, identifier);					
+						populateAffectedParty(ap, transactionUuid, identifier, direction);					
 						affectedParties.add(ap);
 					});
 					break;
@@ -221,13 +222,15 @@ public abstract class AbstractAuditPersistence {
 	 * @param affectedParty
 	 * @param transactionUuid
 	 * @param identifier
+	 * @param direction
 	 */
-	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier) {
+	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier, String direction) {
 	    affectedParty.setTransactionId(transactionUuid);						
 		affectedParty.setIdentifier(identifier);
 		affectedParty.setIdentifierSource(null); //not required for this application
 		affectedParty.setIdentifierType(BCPHN);
 		affectedParty.setStatus(STATUS_CODE_ACTIVE);
+		affectedParty.setDirection(direction);
 	}
 
 	/**

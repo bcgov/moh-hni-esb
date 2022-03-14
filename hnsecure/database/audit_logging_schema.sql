@@ -44,6 +44,7 @@ CREATE TABLE hnsecure.AFFECTED_PARTY(
 	IDENTIFIER_SOURCE VARCHAR(255),
 	IDENTIFIER_TYPE VARCHAR(255),
 	STATUS VARCHAR(255),
+	DIRECTION VARCHAR(50),
 	TRANSACTION_ID	UUID
 );
 
@@ -56,6 +57,7 @@ COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER IS 'identifier number, such
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER_SOURCE IS 'name of the source system that issued the identifier';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER_TYPE IS 'the type of identifier (PHN, MRN, drivers license no, etc)';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.STATUS IS 'Status of the identifier (Active, Merged, Deleted)';
+COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.DIRECTION IS 'Direction of the message identifier (Inbound, Outbound)';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.TRANSACTION_ID IS 'Foreign key to the transaction the party is the subject OF.';
 
 

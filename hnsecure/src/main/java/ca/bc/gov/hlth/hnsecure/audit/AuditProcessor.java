@@ -17,6 +17,7 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageFlow;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 
 /**
@@ -26,7 +27,8 @@ import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 public class AuditProcessor extends AbstractAuditPersistence implements Processor {
 
     private static Logger logger = LoggerFactory.getLogger(AuditProcessor.class);
-
+    private String messageFlow;
+    
     @Override
 	public void process(Exchange exchange) throws Exception {
 		String methodName = LoggingUtil.getMethodName();
@@ -47,6 +49,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		case TRANSACTION_START:
 			
 			createTransactionAudit(exchange, transactionId, eventTime, v2Message);
+			messageFlow = MessageFlow.OUTBOUND.name();
 	        
 	        //Affected Party - On transaction start log affected party info for R03, R09, R15, E45, R50        
 			if (!StringUtils.equals(msgType, MessageType.R09.name())) {
@@ -61,7 +64,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 			if (StringUtils.equals(msgType, MessageType.R09.name())) {
 				logAffectedParties = true;
 			}
-
+			messageFlow = MessageFlow.INBOUND.name();
 	        messageId = V2MessageUtil.getMsgId(v2Message);
 			break;
 		default:
@@ -72,7 +75,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		insert(transactionEvent);
 		
 		if (logAffectedParties) {
-			List<AffectedParty> affectedParties = createAffectedParties(v2Message, transactionId);
+			List<AffectedParty> affectedParties = createAffectedParties(v2Message, messageFlow, transactionId);
 			if (affectedParties.size() > 0) {
 				insertList(affectedParties);
 			}
