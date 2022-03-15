@@ -61,7 +61,7 @@ public class JMBRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(jmbHttpUrl).id("ToJmbHttpUrl")
 	     	.log("Received response from JMB for R32")
-	     	.bean(FhirPayloadExtractor.class).log("Decoded V2: ${body}")
+	     	.bean(FhirPayloadExtractor.class)
 	     	.log("Decoded V2: ${body}")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();

@@ -20,7 +20,7 @@ public final class FHIRJsonUtil {
 	public static final String FHIR_JSON_MESSAGE_RESOURCETYPE = "resourceType";
 	public static final String FHIR_JSON_MESSAGE_STATUS = "status";
 	public static final String FHIR_JSON_MESSAGE_CONTENT = "content";
-	
+
 	private FHIRJsonUtil() {
 	}
 
@@ -39,7 +39,7 @@ public final class FHIRJsonUtil {
 			return v2JsonObj;
 		}
 
-		// init a JSON object		
+		// init a JSON object
 		JSONArray contentArray = new JSONArray();
 		JSONObject contentObj = new JSONObject();
 		JSONObject attachmentObj = new JSONObject();
@@ -68,36 +68,42 @@ public final class FHIRJsonUtil {
 	 * @param jsonObj - the json message to parse
 	 * @return FHIRJsonMessage
 	 */
-public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
-		
+	public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 		FHIRJsonMessage fhirJsonMsg = new FHIRJsonMessage();
 		
 		if (jsonObj == null) {
-			return null;
+			return fhirJsonMsg;
 		}
-
+		
 		for (Entry<String, Object> hs : jsonObj.entrySet()) {
 			String key = hs.getKey();
 			Object value = hs.getValue();
 			if (value instanceof String) {
-				parseJsonString(fhirJsonMsg, key, value);
-			}
-			else if (key.equals(FHIR_JSON_MESSAGE_CONTENT) && value instanceof JSONArray) {
-				parseJsonArray(fhirJsonMsg, value);
+				boolean parseJsonString = parseJsonString(fhirJsonMsg, hs);				
+				if (!parseJsonString) {
+					return fhirJsonMsg;
+				}
+			} else if (key.equals(FHIR_JSON_MESSAGE_CONTENT) && value instanceof JSONArray) {
+				boolean parseJsonArray = parseJsonArray(fhirJsonMsg, value);				
+				if (!parseJsonArray) {
+					return fhirJsonMsg;
+				}
 
-			} else 
-				return null;
+			} else
+				return fhirJsonMsg;
 		}
-		return fhirJsonMsg;		
+
+		return fhirJsonMsg;
 	}
 
 	/**
 	 * @param fhirJsonMsg
 	 * @param value
 	 */
-	private static void parseJsonArray(FHIRJsonMessage fhirJsonMsg, Object value) {
+	private static boolean parseJsonArray(FHIRJsonMessage fhirJsonMsg, Object value) {
 		JSONObject contentJson = (JSONObject) ((JSONArray) value).get(0);
 		JSONObject attachmentJson = (JSONObject) contentJson.get(FHIR_JSON_MESSAGE_ATTACHMENT);
+		boolean isParsed = true;
 
 		for (Entry<String, Object> attach : attachmentJson.entrySet()) {
 			String attachKey = attach.getKey();
@@ -108,8 +114,10 @@ public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 				fhirJsonMsg.setV2MessageData(attachValue.toString());
 			} else {
 				logger.error("This is not an valid FHIR message!");
+				isParsed = false;
 			}
 		}
+		return isParsed;
 	}
 
 	/**
@@ -117,13 +125,18 @@ public static FHIRJsonMessage parseJson2FHIRMsg(final JSONObject jsonObj) {
 	 * @param key
 	 * @param value
 	 */
-	private static void parseJsonString(FHIRJsonMessage fhirJsonMsg, String key, Object value) {
+	private static boolean parseJsonString(FHIRJsonMessage fhirJsonMsg, Entry<String, Object> hs) {
+		String key = hs.getKey();
+		Object value = hs.getValue();
+		boolean isParsed = true;
 		if (key.equals(FHIR_JSON_MESSAGE_RESOURCETYPE)) {
 			fhirJsonMsg.setResourceType(value.toString());
 		} else if (key.equals(FHIR_JSON_MESSAGE_STATUS)) {
 			fhirJsonMsg.setStatus(value.toString());
 		} else {
 			logger.error("This is not an valid FHIR message!");
+			isParsed = false;
 		}
+		return isParsed;
 	}
 }

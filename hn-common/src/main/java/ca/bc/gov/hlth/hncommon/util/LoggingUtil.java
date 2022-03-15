@@ -8,8 +8,10 @@ import java.util.Optional;
  */
 public final class LoggingUtil {
 	
+	private static final String NO_UTIL_INSTANCE = "This is a utility class and cannot be instantiated";
+
 	private LoggingUtil() {
-		throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+		throw new UnsupportedOperationException(NO_UTIL_INSTANCE);
 	}
 
 	/**

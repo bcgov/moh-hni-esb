@@ -130,7 +130,7 @@ public class PayLoadValidator extends AbstractValidator {
 			generateError(messageObj, ErrorMessage.HL7_ERROR_INVALID_FORMAT, exchange);
 		}
 		// Check the validity
-		else if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
+		else if (!MessageUtil.getMtypecollection().containsValue(messageObj.getReceivingApplication())) {
 			generateError(messageObj, ErrorMessage.HL7_ERROR_UNKNOWN_RECEIVING_APPLICATION, exchange);
 		}
 	}

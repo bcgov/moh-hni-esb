@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class MessageUtil {
 	
-	public static final Map<String, String> mTypeCollection = new HashMap<>();//NOSONAR 
+	private static final Map<String, String> mTypeCollection = new HashMap<>();
 	
 	private MessageUtil() {
 	}
@@ -64,6 +64,11 @@ public class MessageUtil {
 		mTypeCollection.put("R55", "RAIEMP-LIST");
 		mTypeCollection.put("*", "PNP");		
 
+	}
+	
+
+	public static Map<String, String> getMtypecollection() {
+		return mTypeCollection;
 	}
 
 }

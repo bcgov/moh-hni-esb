@@ -62,7 +62,7 @@ public class HIBCRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(hibcHttpUrl).id("ToHibcHttpUrl")
 	     	.log("Received response from HIBC")
-	     	.bean(FhirPayloadExtractor.class).log("Decoded V2: ${body}")
+	     	.bean(FhirPayloadExtractor.class)
 	     	.log("Decoded V2: ${body}")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
