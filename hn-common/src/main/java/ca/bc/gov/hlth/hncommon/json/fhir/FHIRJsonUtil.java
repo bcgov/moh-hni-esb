@@ -103,8 +103,7 @@ public final class FHIRJsonUtil {
 	private static boolean parseJsonArray(FHIRJsonMessage fhirJsonMsg, Object value) {
 		JSONObject contentJson = (JSONObject) ((JSONArray) value).get(0);
 		JSONObject attachmentJson = (JSONObject) contentJson.get(FHIR_JSON_MESSAGE_ATTACHMENT);
-		boolean isParsed = true;
-
+		
 		for (Entry<String, Object> attach : attachmentJson.entrySet()) {
 			String attachKey = attach.getKey();
 			Object attachValue = attach.getValue();
@@ -114,10 +113,10 @@ public final class FHIRJsonUtil {
 				fhirJsonMsg.setV2MessageData(attachValue.toString());
 			} else {
 				logger.error("This is not an valid FHIR message!");
-				isParsed = false;
+				return false;
 			}
 		}
-		return isParsed;
+		return true;
 	}
 
 	/**
@@ -139,4 +138,53 @@ public final class FHIRJsonUtil {
 		}
 		return isParsed;
 	}
+	
+	/**
+	 * This method is for parse a JSON message into a FHIR Message object based on the specification
+	 * 
+	 * @param jsonObj - the json message to parse
+	 * @return	FHIRJsonMessage
+	 */
+	public static FHIRJsonMessage parseJson2FHIRMsg1(final JSONObject jsonObj) {
+		
+		FHIRJsonMessage fhirJsonMsg = new FHIRJsonMessage();
+		
+		if (jsonObj == null) {
+			return null;
+		}
+
+		for (Entry<String, Object> hs : jsonObj.entrySet()) {
+			String key = hs.getKey();
+			Object value = hs.getValue();
+			if (value instanceof String) {
+				if (key.equals(FHIR_JSON_MESSAGE_RESOURCETYPE)) {
+					fhirJsonMsg.setResourceType(value.toString());
+				} else if (key.equals(FHIR_JSON_MESSAGE_STATUS)) {
+					fhirJsonMsg.setStatus(value.toString());
+				} else {
+					logger.error("This is not an valid FHIR message!");
+					return null;
+				}
+			}
+			if (key.equals(FHIR_JSON_MESSAGE_CONTENT) && value instanceof JSONArray) {
+				JSONObject contentJson = (JSONObject) ((JSONArray) value).get(0);
+				JSONObject attachmentJson = (JSONObject) contentJson.get(FHIR_JSON_MESSAGE_ATTACHMENT);
+
+				for (Entry<String, Object> attach : attachmentJson.entrySet()) {
+					String attachKey = attach.getKey();
+					Object attachValue = attach.getValue();
+					if (attachKey.equals(FHIR_JSON_MESSAGE_TYPE)) {
+						fhirJsonMsg.setContentType(attachValue.toString());
+					} else if (attachKey.equals(FHIR_JSON_MESSAGE_DATA)) {
+						fhirJsonMsg.setV2MessageData(attachValue.toString());
+					} else {
+						logger.error("This is not an valid FHIR message!");
+						return null;
+					}
+				}
+
+			}
+		}
+		return fhirJsonMsg;		
+	}	
 }

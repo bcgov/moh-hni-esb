@@ -21,7 +21,6 @@ import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
 public final class Util {
-	private static final String UTIL_NO_INSTANCE_MESSAGE = "This is a utility class and cannot be instantiated";
 	private static final Logger logger = LoggerFactory.getLogger(Util.class);
 	public static final String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public static final String HL7_DELIMITER = "|";
@@ -72,7 +71,6 @@ public final class Util {
 	public static final String PROTOCOL_MQ = "MQ";	
 	
 	private Util() {
-		throw new UnsupportedOperationException(UTIL_NO_INSTANCE_MESSAGE);
 	}
 
 	/**

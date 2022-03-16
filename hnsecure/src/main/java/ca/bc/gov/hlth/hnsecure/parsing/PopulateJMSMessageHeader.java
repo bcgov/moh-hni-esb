@@ -10,6 +10,8 @@ import com.ibm.msg.client.commonservices.CSIException;
 import com.ibm.msg.client.commonservices.Utils;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 
 /**
  * Set Correlation Id to hexadecimal Exchange ID with a prefix ID: to add provider specific 
@@ -22,13 +24,12 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  *
  */
 public class PopulateJMSMessageHeader {
-	private static final String HEXA_TO_BYTE_ERROR = "Exception while converting hexadecimal message Control Id to byte";
 	private static final Logger logger = LoggerFactory.getLogger(PopulateJMSMessageHeader.class);
 	private static final String CHAR_SET_ID = "819";
 	private static final String DELIVERY_MODE = "1";
 
 	@Handler
-	public void populateJMSRequestHeader(Exchange exchange, String v2Message) throws CSIException {
+	public void populateJMSRequestHeader(Exchange exchange, String v2Message) throws CSIException, CustomHNSException {
 		final String methodName = LoggingUtil.getMethodName();
 		byte[] customMessageId = new byte[24];	
 		
@@ -39,7 +40,7 @@ public class PopulateJMSMessageHeader {
 		} catch (CSIException e) {
 			logger.error("{} - TransactionId: {}, Exception while converting hexadecimal message Control Id to byte {}",
 				methodName, exchange.getExchangeId(), e.getMessage());
-        	throw new IllegalArgumentException(HEXA_TO_BYTE_ERROR);
+        	throw new CustomHNSException(ErrorMessage.CUSTOM_ERROR_INVALID_REQUEST);
 		}
 		
 		String exchangeId = exchange.getExchangeId().replace("-", "");
