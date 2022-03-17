@@ -44,6 +44,7 @@ public class TestMessages {
 			+ "ZTL|2^RD\r\n"
 			+ "PID|1|1314500002^^^BC^PH|||||1989|M\r\n" 
 			+ "PID|2|2564500001^^^BC^PH|||||1973|M\r\n" 
+			+ "PID|3|2564500001^^^BC^PH|||||1973|M\r\n"
 			+ "ZIA|||||||||||||||Branton^James^^^^^|||||||1\r\n"
 			+ "ZIA|||||||||||||||Branton^Debbie^^^^^|||||||2\r\n";
 

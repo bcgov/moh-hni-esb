@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS hnsecure.AFFECTED_PARTY;
 DROP TABLE IF EXISTS hnsecure.TRANSACTION;
 DROP SCHEMA IF EXISTS hnsecure;
 
--- Beging Creating schema
+-- Begin Creating schema
 
 CREATE SCHEMA hnsecure;
 
@@ -41,11 +41,9 @@ COMMENT ON COLUMN hnsecure.TRANSACTION.START_TIME IS 'time that the transaction 
 CREATE TABLE hnsecure.AFFECTED_PARTY(
 	AFFECTED_PARTY_ID BIGSERIAL CONSTRAINT PK_AFFECTED_PARTY	primary KEY,
 	IDENTIFIER VARCHAR(255),
-	IDENTIFIER_SOURCE VARCHAR(255),
 	IDENTIFIER_TYPE VARCHAR(255),
-	STATUS VARCHAR(255),
-	DIRECTION VARCHAR(50),
-	TRANSACTION_ID	UUID
+	TRANSACTION_ID	UUID,
+	DIRECTION VARCHAR(50)	
 );
 
 DROP INDEX IF EXISTS IXFX_AFFECTED_PARTY_TRANSACTION;
@@ -54,11 +52,10 @@ CREATE INDEX IXFX_AFFECTED_PARTY_TRANSACTION ON hnsecure.AFFECTED_PARTY (TRANSAC
 COMMENT ON TABLE hnsecure.AFFECTED_PARTY IS 'Affected party stores data relevant to the parties that are the subject of the transaction. An example of an affected party would be a patient.';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.AFFECTED_PARTY_ID IS 'primary key';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER IS 'identifier number, such as a PHN or MRN';
-COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER_SOURCE IS 'name of the source system that issued the identifier';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.IDENTIFIER_TYPE IS 'the type of identifier (PHN, MRN, drivers license no, etc)';
-COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.STATUS IS 'Status of the identifier (Active, Merged, Deleted)';
-COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.DIRECTION IS 'Direction of the message identifier (Inbound, Outbound)';
 COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.TRANSACTION_ID IS 'Foreign key to the transaction the party is the subject OF.';
+COMMENT ON COLUMN hnsecure.AFFECTED_PARTY.DIRECTION IS 'Specifies the direction of the the identifier in the transaction. (Inbound, Outbound)';
+
 
 
 --TRANSACTION_EVENT

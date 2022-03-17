@@ -29,13 +29,6 @@ public class AffectedParty {
 	private String identifier;
 
 	/**
-	 * name of the source system that issued the identifier
-	 */
-	@Basic
-	@Column(name="identifier_source")
-	private String identifierSource;
-
-	/**
 	 * the type of identifier (PHN, MRN, drivers license no, etc)
 	 */
 	@Basic
@@ -43,15 +36,10 @@ public class AffectedParty {
 	private String identifierType;
 
 	/**
-	 * Status of the identifier (Active, Merged, Deleted)
+	 * Specifies the direction of the identifier in the transaction. (Inbound, Outbound)
 	 */
 	@Basic
-	private String status;
-	
-	/**
-	 * specifies direction of message(Inbound, Outbound)
-	 */
-	@Basic
+	@Column(name = "direction", nullable = false)
 	private String direction;
 
 	@Column(name = "transaction_id", columnDefinition = "uuid")
@@ -80,28 +68,12 @@ public class AffectedParty {
 		this.identifier = identifier;
 	}
 
-	public String getIdentifierSource() {
-		return identifierSource;
-	}
-
-	public void setIdentifierSource(String identifierSource) {
-		this.identifierSource = identifierSource;
-	}
-
 	public String getIdentifierType() {
 		return identifierType;
 	}
 
 	public void setIdentifierType(String identifierType) {
 		this.identifierType = identifierType;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
 	}
 
 	public String getDirection() {
@@ -123,7 +95,7 @@ public class AffectedParty {
 	@Override
 	public String toString() {
 		return "AffectedParty [affectedPartyId=" + affectedPartyId + ", identifier=" + identifier
-				+ ", identifierSource=" + identifierSource + ", identifierType=" + identifierType + ", status=" + status
+				 + ", identifierType=" + identifierType 
 				+ ", direction=" + direction + " transactionId=" + transactionId + "]";
 	}
 

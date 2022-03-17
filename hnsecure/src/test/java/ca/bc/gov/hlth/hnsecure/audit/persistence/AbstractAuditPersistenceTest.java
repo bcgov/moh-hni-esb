@@ -15,13 +15,13 @@ import java.util.UUID;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor.Direction;
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessage;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEvent;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
-import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 
@@ -58,14 +58,12 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15, "INBOUND",  transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15, Direction.INBOUND.name(),  transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("0314500001", affectedParty.getIdentifier()); //PHN from PID
-		assertEquals(null, affectedParty.getIdentifierSource());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(STATUS_CODE_ACTIVE, affectedParty.getStatus());
-		assertEquals(V2MessageUtil.MessageFlow.INBOUND.name(), affectedParty.getDirection());
+		assertEquals(Direction.INBOUND.name(), affectedParty.getDirection());
 	}
 
 	@Test
@@ -76,14 +74,12 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, "INBOUND", transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, Direction.INBOUND.name(), transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("", affectedParty.getIdentifier()); //Z05 has not PHN
-		assertEquals(null, affectedParty.getIdentifierSource());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(STATUS_CODE_ACTIVE, affectedParty.getStatus());
-		assertEquals(V2MessageUtil.MessageFlow.INBOUND.name(), affectedParty.getDirection());
+		assertEquals(Direction.INBOUND.name(), affectedParty.getDirection());
 	}
 
 	@Test
@@ -95,22 +91,19 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 			    Mockito.CALLS_REAL_METHODS);
 		
 		//R09 sample has multiple Affected Parties in repeating PID segments	 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(R09_RESPONSE_MESSAGE, "OUTBOUND", transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(R09_RESPONSE_MESSAGE, Direction.OUTBOUND.name(), transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
+		assertEquals(2, aps.size());
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("1314500002", affectedParty.getIdentifier());
-		assertEquals(null, affectedParty.getIdentifierSource());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(STATUS_CODE_ACTIVE, affectedParty.getStatus());
-		assertEquals(V2MessageUtil.MessageFlow.OUTBOUND.name(), affectedParty.getDirection());
+		assertEquals(Direction.OUTBOUND.name(), affectedParty.getDirection());
 				
 		affectedParty = aps.get(1);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("2564500001", affectedParty.getIdentifier());
-		assertEquals(null, affectedParty.getIdentifierSource());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(STATUS_CODE_ACTIVE, affectedParty.getStatus());
-		assertEquals(V2MessageUtil.MessageFlow.OUTBOUND.name(), affectedParty.getDirection());
+		assertEquals(Direction.OUTBOUND.name(), affectedParty.getDirection());
 	}
 
 	@Test
@@ -125,10 +118,8 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("0009735000001", affectedParty.getIdentifier()); //PHN in the ZCC
-		assertEquals(null, affectedParty.getIdentifierSource());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(STATUS_CODE_ACTIVE, affectedParty.getStatus());
-		assertEquals(V2MessageUtil.MessageFlow.INBOUND.name(), affectedParty.getDirection());
+		assertEquals(Direction.INBOUND.name(), affectedParty.getDirection());
 	}
 
 	

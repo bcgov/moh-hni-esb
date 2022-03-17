@@ -17,7 +17,6 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
-import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageFlow;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 
 /**
@@ -27,7 +26,10 @@ import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 public class AuditProcessor extends AbstractAuditPersistence implements Processor {
 
     private static Logger logger = LoggerFactory.getLogger(AuditProcessor.class);
-    private String messageFlow;
+    
+    public enum Direction {
+		INBOUND, OUTBOUND
+	}
     
     @Override
 	public void process(Exchange exchange) throws Exception {
@@ -44,16 +46,16 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String messageId = null;
 		boolean logAffectedParties = false;
+		String identifierDirection = null;
 		
 		switch (eventType) {
 		case TRANSACTION_START:
 			
-			createTransactionAudit(exchange, transactionId, eventTime, v2Message);
-			messageFlow = MessageFlow.OUTBOUND.name();
-	        
+			createTransactionAudit(exchange, transactionId, eventTime, v2Message);        
 	        //Affected Party - On transaction start log affected party info for R03, R09, R15, E45, R50        
 			if (!StringUtils.equals(msgType, MessageType.R09.name())) {
 				logAffectedParties = true;
+				identifierDirection = Direction.OUTBOUND.name();
 			}		
 			
 	        messageId = V2MessageUtil.getMsgId(v2Message);
@@ -63,8 +65,8 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 			//Affected Party - On message received log affected party info for R09 as it's only available in the response.        
 			if (StringUtils.equals(msgType, MessageType.R09.name())) {
 				logAffectedParties = true;
-			}
-			messageFlow = MessageFlow.INBOUND.name();
+				identifierDirection = Direction.INBOUND.name();
+			}		
 	        messageId = V2MessageUtil.getMsgId(v2Message);
 			break;
 		default:
@@ -75,7 +77,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		insert(transactionEvent);
 		
 		if (logAffectedParties) {
-			List<AffectedParty> affectedParties = createAffectedParties(v2Message, messageFlow, transactionId);
+			List<AffectedParty> affectedParties = createAffectedParties(v2Message, identifierDirection, transactionId);
 			if (affectedParties.size() > 0) {
 				insertList(affectedParties);
 			}

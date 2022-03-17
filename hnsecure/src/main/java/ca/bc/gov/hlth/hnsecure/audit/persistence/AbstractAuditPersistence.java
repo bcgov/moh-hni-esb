@@ -1,14 +1,12 @@
 package ca.bc.gov.hlth.hnsecure.audit.persistence;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.STATUS_CODE_ACTIVE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_HOST;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_NAME;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PASSWORD;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PORT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_USERNAME;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
-
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -157,6 +155,7 @@ public abstract class AbstractAuditPersistence {
 	 */
 	public List<AffectedParty> createAffectedParties(String v2Message, String direction, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
+		List<String> auditPhns = new ArrayList<>();
 		AffectedParty affectedParty = null;
 		UUID transactionUuid = UUID.fromString(transactionId);						
 	
@@ -176,8 +175,8 @@ public abstract class AbstractAuditPersistence {
 					String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
 					String patientIdentifier = V2MessageUtil.getIdentifierSectionZCC(segmentFields);	//ZCC Provincial Health Care ID field e.g. 0009735000001
 					affectedParty = new AffectedParty();		
-					populateAffectedParty(affectedParty, transactionUuid, patientIdentifier, direction);					
-					affectedParties.add(affectedParty);
+					populateAffectedParty(affectedParty, transactionUuid, patientIdentifier, direction);
+					affectedParties.add(affectedParty);		
 					break;
 				case E45:
 					//QPD e.g.
@@ -206,8 +205,11 @@ public abstract class AbstractAuditPersistence {
 						//affectedParty from PID External Patient ID e.g. 0891250000^^^BC^PH
 						String identifier = sections[0];
 						AffectedParty ap = new AffectedParty();
-						populateAffectedParty(ap, transactionUuid, identifier, direction);					
+						populateAffectedParty(ap, transactionUuid, identifier, direction);						
+						if (!auditPhns.contains(ap.getIdentifier())) {
 						affectedParties.add(ap);
+						auditPhns.add(ap.getIdentifier());
+						}
 					});
 					break;
 				}
@@ -226,10 +228,8 @@ public abstract class AbstractAuditPersistence {
 	 */
 	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier, String direction) {
 	    affectedParty.setTransactionId(transactionUuid);						
-		affectedParty.setIdentifier(identifier);
-		affectedParty.setIdentifierSource(null); //not required for this application
+		affectedParty.setIdentifier(identifier);	
 		affectedParty.setIdentifierType(BCPHN);
-		affectedParty.setStatus(STATUS_CODE_ACTIVE);
 		affectedParty.setDirection(direction);
 	}
 
