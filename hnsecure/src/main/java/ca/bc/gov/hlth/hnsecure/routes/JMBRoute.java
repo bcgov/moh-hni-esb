@@ -26,7 +26,7 @@ public class JMBRoute extends BaseRoute {
 
 	@Override
 	public void configure() throws Exception {
-		String jmbHttpUrl = String.format(properties.getValue(ApplicationProperty.JMB_HTTP_URI) + "?bridgeEndpoint=true");//NOSONAR
+		String jmbHttpUrl = String.format(properties.getValue(ApplicationProperty.JMB_HTTP_URI) + "?bridgeEndpoint=true");
 		
 		boolean isMQEnabled = Boolean.parseBoolean(properties.getValue(IS_MQ_ENABLED));	
 		String jmbRequestQueue = properties.getValue(JMB_REQUEST_QUEUE);
