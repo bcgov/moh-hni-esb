@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
+import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedPartyDirection;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessage;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
@@ -153,7 +154,7 @@ public abstract class AbstractAuditPersistence {
 	 * @param transactionId
 	 * @return
 	 */
-	public List<AffectedParty> createAffectedParties(String v2Message, String direction, String transactionId) {
+	public List<AffectedParty> createAffectedParties(String v2Message, AffectedPartyDirection direction, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
 		List<String> auditPhns = new ArrayList<>();
 		AffectedParty affectedParty = null;
@@ -226,11 +227,11 @@ public abstract class AbstractAuditPersistence {
 	 * @param identifier
 	 * @param direction
 	 */
-	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier, String direction) {
+	private void populateAffectedParty(AffectedParty affectedParty, UUID transactionUuid, String identifier, AffectedPartyDirection direction) {
 	    affectedParty.setTransactionId(transactionUuid);						
 		affectedParty.setIdentifier(identifier);	
 		affectedParty.setIdentifierType(BCPHN);
-		affectedParty.setDirection(direction);
+		affectedParty.setDirection(direction.getValue());
 	}
 
 	/**

@@ -1,7 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.audit.persistence;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.STATUS_CODE_ACTIVE;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
@@ -15,8 +14,8 @@ import java.util.UUID;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor.Direction;
 import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedParty;
+import ca.bc.gov.hlth.hnsecure.audit.entities.AffectedPartyDirection;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessage;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.Transaction;
@@ -58,12 +57,12 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15, Direction.INBOUND.name(),  transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15, AffectedPartyDirection.INBOUND,  transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("0314500001", affectedParty.getIdentifier()); //PHN from PID
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(Direction.INBOUND.name(), affectedParty.getDirection());
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
 	}
 
 	@Test
@@ -74,12 +73,12 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, Direction.INBOUND.name(), transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, AffectedPartyDirection.INBOUND, transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("", affectedParty.getIdentifier()); //Z05 has not PHN
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(Direction.INBOUND.name(), affectedParty.getDirection());
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
 	}
 
 	@Test
@@ -91,19 +90,19 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 			    Mockito.CALLS_REAL_METHODS);
 		
 		//R09 sample has multiple Affected Parties in repeating PID segments	 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(R09_RESPONSE_MESSAGE, Direction.OUTBOUND.name(), transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(R09_RESPONSE_MESSAGE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(2, aps.size());
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("1314500002", affectedParty.getIdentifier());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(Direction.OUTBOUND.name(), affectedParty.getDirection());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
 				
 		affectedParty = aps.get(1);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("2564500001", affectedParty.getIdentifier());
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(Direction.OUTBOUND.name(), affectedParty.getDirection());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
 	}
 
 	@Test
@@ -114,12 +113,12 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_PHARMANET, "INBOUND", transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_PHARMANET, AffectedPartyDirection.INBOUND, transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("0009735000001", affectedParty.getIdentifier()); //PHN in the ZCC
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(Direction.INBOUND.name(), affectedParty.getDirection());
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
 	}
 
 	
