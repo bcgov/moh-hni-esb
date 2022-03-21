@@ -153,7 +153,6 @@ public abstract class AbstractAuditPersistence {
 	 * @param transactionId
 	 * @return
 	 */
-
 	public List<AffectedParty> createAffectedParties(String v2Message, AffectedPartyDirection direction, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
 		List<String> auditPhns = new ArrayList<>();
