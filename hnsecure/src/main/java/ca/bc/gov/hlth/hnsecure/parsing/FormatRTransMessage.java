@@ -3,7 +3,7 @@
  */
 package ca.bc.gov.hlth.hnsecure.parsing;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7_ERROR_NO_INPUT;
 
 import org.apache.camel.Handler;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +29,7 @@ public class FormatRTransMessage {
 
 		// It should be impossible for the body to be empty here (the handshake server should catch that) but handle it just in case
 		if (StringUtils.isBlank(v2Message)) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
+			throw new CustomHNSException(HL7_ERROR_NO_INPUT);
         }
             return EIGHT_ZEROS + v2Message;
         

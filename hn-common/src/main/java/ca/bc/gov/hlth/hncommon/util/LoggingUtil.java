@@ -6,7 +6,10 @@ import java.util.Optional;
  * Utility class that contains methods related to logging.
  * 
  */
-public class LoggingUtil {
+public final class LoggingUtil {
+	
+	private LoggingUtil() {
+	}
 
 	/**
      * This method uses StackWalker API to get the names of the current calling method 

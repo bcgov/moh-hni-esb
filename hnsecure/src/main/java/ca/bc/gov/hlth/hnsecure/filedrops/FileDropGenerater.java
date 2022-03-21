@@ -49,8 +49,7 @@ public abstract class FileDropGenerater {
 			sendingFacility = Util.getSendingFacility(accessToken);
 		}
 		
-		String fileName = Util.buildFileName(sendingFacility,transactionid,msgType);
-		return fileName;
+		return Util.buildFileName(sendingFacility,transactionid,msgType);	
 	}
 
 	/**

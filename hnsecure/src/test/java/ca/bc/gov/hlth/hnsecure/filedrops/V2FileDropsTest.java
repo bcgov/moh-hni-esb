@@ -21,8 +21,8 @@ public class V2FileDropsTest extends TestPropertiesLoader{
 		
 		// First 5 positions are the UUID
 		assertNotNull("transactionid should not be null", sections[0]);
-		assertEquals(sections[5], "R03");
-		assertEquals(sections[6], "moh_hnclient_dev");	
+		assertEquals("R03", sections[5]);
+		assertEquals("moh_hnclient_dev", sections[6]);	
 	}
 	
 }

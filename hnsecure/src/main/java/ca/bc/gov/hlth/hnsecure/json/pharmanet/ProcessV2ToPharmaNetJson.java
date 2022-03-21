@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7Error_Msg_NoInputHL7;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.HL7_ERROR_NO_INPUT;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
@@ -27,14 +27,14 @@ public class ProcessV2ToPharmaNetJson {
      * @throws Exception if an internal processing error has occurred.
 	 */
 	@Handler
-	public String processV2ToPharmaNetJson(Exchange exchange) throws Exception {
+	public String processV2ToPharmaNetJson(Exchange exchange) throws CustomHNSException {
 		final String methodName = LoggingUtil.getMethodName();
 
 		Object exchangeBody = exchange.getIn().getBody();
 
 		// It should be impossible for the body to be empty here (the handshake server or base64 encoder should catch that) but handle it just in case
 		if (exchangeBody == null || StringUtil.isBlank(exchangeBody.toString())) {
-			throw new CustomHNSException(HL7Error_Msg_NoInputHL7);
+			throw new CustomHNSException(HL7_ERROR_NO_INPUT);
 		} else {
 			String message = exchangeBody.toString();							
 			String transactionUUID = exchange.getExchangeId();

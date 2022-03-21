@@ -29,7 +29,7 @@ public class HL7Message {
 
 	private String versionId;
 
-	private final String fieldSeparator = "|";
+	private static final String FIELD_SEPERATOR = "|";
 
 	public String getSegmentIdentifier() {
 		return segmentIdentifier;
@@ -40,7 +40,7 @@ public class HL7Message {
 	}
 
 	public String getFieldSeparator() {
-		return fieldSeparator;
+		return FIELD_SEPERATOR;
 	}
 
 	public String getEncodingCharacter() {

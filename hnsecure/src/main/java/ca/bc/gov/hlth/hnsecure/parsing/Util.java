@@ -22,21 +22,21 @@ import net.minidev.json.parser.ParseException;
 
 public final class Util {
 	private static final Logger logger = LoggerFactory.getLogger(Util.class);
-	public final static String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
-	public final static String HL7_DELIMITER = "|";
-	public final static String CARET = "^";
-	public final static String TILDE = "~";
-	public final static String MSH_SEGMENT = "MSH";
-	public final static String ZCB_SEGMENT = "ZCB";
-	public final static String RECEIVING_APP_PNP = "PNP";
-	public final static String MESSAGE_TYPE_PNP = "ZPN";
-	public final static String RECEIVING_APP_HNSECURE = "HNSECURE";
-	public final static String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
-	public final static String DATE_PATTERN = "yyyyMMddHHmmss";
-	public final static String GENERIC_PATTERN = "yyyyMMddHHmmssZ";
-	public final static String CARRIAGE_RETURN = "\r";
-	public final static String LINE_BREAK = "\n";
-	public final static String CARRIAGE_RETURN_LINE_BREAK = "\r\n";
+	public static final String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
+	public static final String HL7_DELIMITER = "|";
+	public static final String CARET = "^";
+	public static final String TILDE = "~";
+	public static final String MSH_SEGMENT = "MSH";
+	public static final String ZCB_SEGMENT = "ZCB";
+	public static final String RECEIVING_APP_PNP = "PNP";
+	public static final String MESSAGE_TYPE_PNP = "ZPN";
+	public static final String RECEIVING_APP_HNSECURE = "HNSECURE";
+	public static final String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
+	public static final String DATE_PATTERN = "yyyyMMddHHmmss";
+	public static final String GENERIC_PATTERN = "yyyyMMddHHmmssZ";
+	public static final String CARRIAGE_RETURN = "\r";
+	public static final String LINE_BREAK = "\n";
+	public static final String CARRIAGE_RETURN_LINE_BREAK = "\r\n";
 	
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String ACK = "ACK";
@@ -69,6 +69,9 @@ public final class Util {
 	
 	public static final String PROTOCOL_HTTP = "HTTP";
 	public static final String PROTOCOL_MQ = "MQ";	
+	
+	private Util() {
+	}
 
 	/**
 	 * return a Base64 encoding string
@@ -96,9 +99,8 @@ public final class Util {
 		}
 		byte[] bytesToDecode = stringToDecode.getBytes(StandardCharsets.UTF_8);
 		byte[] decodedBytes = Base64.getDecoder().decode(bytesToDecode);
-		String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
-
-		return decodedString;
+		
+		return  new String(decodedBytes, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -145,7 +147,7 @@ public final class Util {
         // loop chars one by one
         for (char temp : str.toCharArray()) {
             // convert char to int, for char `a` decimal 97
-            int decimal = (int) temp;
+            int decimal = temp;
             // convert int to hex, for decimal 97 hex 61
             hex.append(Integer.toHexString(decimal));
         }
@@ -181,9 +183,9 @@ public final class Util {
 	 */
 	public static String getGenericDateTime() {
 
-		DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(GENERIC_PATTERN);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(GENERIC_PATTERN);
 
-		return ZonedDateTime.now().format(FORMATTER);
+		return ZonedDateTime.now().format(formatter);
 
 	}
 	
@@ -209,8 +211,8 @@ public final class Util {
 	public static String buildFileName(String sendingFacility, String transactionId,
 			String msgType) {
 		String dateTime = Util.getDateTime();
-		String fileName = transactionId + "-" + msgType + "-" + sendingFacility + "-" + dateTime + "-";
-		return fileName;
+		
+		return transactionId + "-" + msgType + "-" + sendingFacility + "-" + dateTime + "-";
 	}
 
     /**

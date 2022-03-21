@@ -50,7 +50,7 @@ public abstract class AbstractAuditPersistence {
     private static final ApplicationProperties properties = ApplicationProperties.getInstance(); 
 
        
-    private static Map<String, String> persistenceUnitProperties = new HashMap<String, String>();
+    private static Map<String, String> persistenceUnitProperties = new HashMap<>();
     
    	static {   
    		String url = String.format("jdbc:postgresql://%s:%s/%s", properties.getValue(DATABASE_HOST), properties.getValue(DATABASE_PORT),properties.getValue(DATABASE_NAME));
@@ -65,7 +65,7 @@ public abstract class AbstractAuditPersistence {
 	 * Constructor that sets up the Entity Manager Factory so that it is only created once.
 	 * 
 	 */
-   	public AbstractAuditPersistence() {
+   	protected AbstractAuditPersistence() {
    		if (Boolean.TRUE.equals(Boolean.valueOf(properties.getValue(IS_AUDITS_ENABLED)))) {
    			emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
    		}
@@ -75,18 +75,18 @@ public abstract class AbstractAuditPersistence {
    	 * Inserts a single record.
    	 * 
    	 * @param <T>
-   	 * @param record
+   	 * @param transaction
    	 * @return
    	 */
-	public <T> T insert(T record) {
+	public <T> T insert(T transaction) {
 		EntityManager em = emf.createEntityManager();
         EntityTransaction et = em.getTransaction();
         
         et.begin();
-        em.persist(record);
+        em.persist(transaction);
         et.commit();
         em.close();
-        return record;
+        return transaction;
     }
 
 	/**
@@ -102,7 +102,7 @@ public abstract class AbstractAuditPersistence {
         
         et.begin();
 
-        records.forEach(r -> em.persist(r));
+        records.forEach(em :: persist);
         
         et.commit();
         em.close();
@@ -135,7 +135,6 @@ public abstract class AbstractAuditPersistence {
 	}
 
 	private String getServer() {
-		//TODO (dbarrett) check if we need this, it's the name of the server that processed the transaction. (this may not be relevant in openshift), and if so where it is taken from.		
 		String hostname = "";
 		try {
 			hostname = InetAddress.getLocalHost().getHostName();
@@ -154,9 +153,11 @@ public abstract class AbstractAuditPersistence {
 	 * @param transactionId
 	 * @return
 	 */
+
 	public List<AffectedParty> createAffectedParties(String v2Message, AffectedPartyDirection direction, String transactionId) {
 		List<AffectedParty> affectedParties = new ArrayList<AffectedParty>();
 		List<String> auditPhns = new ArrayList<>();
+
 		AffectedParty affectedParty = null;
 		UUID transactionUuid = UUID.fromString(transactionId);						
 	
@@ -192,9 +193,9 @@ public abstract class AbstractAuditPersistence {
 						affectedParties.add(ap);
 					});
 					break;
-				case R03:;
+				case R03:
 				case R09: 
-				case R15:;
+				case R15:
 				case R50:
 					/* PID e.g. 
 					PID||0891250000^^^BC^PH 
@@ -212,6 +213,8 @@ public abstract class AbstractAuditPersistence {
 						auditPhns.add(ap.getIdentifier());
 						}
 					});
+					break;
+				default:
 					break;
 				}
 			}

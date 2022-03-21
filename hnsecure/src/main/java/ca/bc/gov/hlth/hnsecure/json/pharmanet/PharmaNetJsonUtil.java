@@ -15,8 +15,12 @@ public class PharmaNetJsonUtil {
 
 	private static final Logger logger = LoggerFactory.getLogger(PharmaNetJsonUtil.class);
 	
-	public static String TRANSACTION_UUID = "transactionUUID";
-	public static String HL7_MESSAGE = "hl7Message";
+	public static final String TRANSACTION_UUID = "transactionUUID";
+	public static final String HL7_MESSAGE = "hl7Message";
+	
+	private PharmaNetJsonUtil() {
+		throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+	}
 
 	/**
 	 * Create a JSON message for PharmaNet from the HL7 message: The format is:
@@ -33,15 +37,16 @@ public class PharmaNetJsonUtil {
 	 */
 	public static JSONObject createJsonObjectPharmanet(final String transactionUUID, final String hl7Message) {
 		final String methodName = LoggingUtil.getMethodName();
-
-		if (StringUtil.isBlank(hl7Message)) {
-			return null;
-		}
-
 		JSONObject jsonObj = new JSONObject();
+		
+		if (StringUtil.isBlank(hl7Message)) {
+			return jsonObj;
+		}
+		
 		jsonObj.put(TRANSACTION_UUID, transactionUUID);
 		jsonObj.put(HL7_MESSAGE, hl7Message);
-		logger.debug("{} - The JSON Message is: {}", methodName, jsonObj.toJSONString());
+		String jsonString = jsonObj.toJSONString();
+		logger.debug("{} - The JSON Message is: {}", methodName, jsonString);
 
 		return jsonObj;		
 	}	

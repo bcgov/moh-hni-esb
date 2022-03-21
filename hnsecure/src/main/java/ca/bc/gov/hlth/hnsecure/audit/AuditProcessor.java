@@ -74,8 +74,10 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		insert(transactionEvent);
 		
 		if (logAffectedParties) {
-			List<AffectedParty> affectedParties = createAffectedParties(v2Message, affectedPartyDirection, transactionId);
-			if (affectedParties.size() > 0) {
+
+			List<AffectedParty> affectedParties = createAffectedParties(v2Message, transactionId);
+			if (!affectedParties.isEmpty()) {
+
 				insertList(affectedParties);
 			}
 		}		

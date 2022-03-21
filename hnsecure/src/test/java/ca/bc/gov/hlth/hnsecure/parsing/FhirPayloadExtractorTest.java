@@ -22,8 +22,8 @@ public class FhirPayloadExtractorTest extends TestPropertiesLoader {
 
     @Test
     public void testExtractFhirPayload_success() throws UnsupportedEncodingException, ParseException, CustomHNSException {
-        String v2 = FhirPayloadExtractor.extractFhirPayload(exchange, SamplesToSend.e45JsonMsg);
-        assertEquals(EXPECTED_DECODED_V2, v2);
+        FhirPayloadExtractor.extractFhirPayload(exchange, SamplesToSend.e45JsonMsg);
+        assertEquals(EXPECTED_DECODED_V2, exchange.getIn().getBody());
     }
 	
     @Test
@@ -39,7 +39,7 @@ public class FhirPayloadExtractorTest extends TestPropertiesLoader {
         	FhirPayloadExtractor.extractFhirPayload(exchange, SamplesToSend.invalidFhirJsonMsg);
         });
 
-        assertEquals(ErrorMessage.CustomError_Msg_InvalidRequest, exception.getErrorMessage());
+        assertEquals(ErrorMessage.CUSTOM_ERROR_INVALID_REQUEST, exception.getErrorMessage());
     }
     
 }

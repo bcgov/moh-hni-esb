@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
 import java.net.MalformedURLException;
@@ -20,7 +21,8 @@ public class TokenValidatorTest extends TestPropertiesLoader {
 
     @Test
     public void testConstructor() throws MalformedURLException {
-		new TokenValidator(new ValidatorImpl());
+    	Validator validator = new TokenValidator(new ValidatorImpl());
+    	assertNotNull(validator);
     }
 
     /**
@@ -34,7 +36,7 @@ public class TokenValidatorTest extends TestPropertiesLoader {
             	Validator validator = new TokenValidator(new ValidatorImpl());
             	validator.validate(exchange);        		
         	});
-        assertEquals(ErrorMessage.CustomError_Msg_MissingAuthKey, exception.getErrorMessage());
+        assertEquals(ErrorMessage.CUSTOM_ERROR_MISSING_AUTH_KEY, exception.getErrorMessage());
     }
     
     /**
@@ -48,7 +50,7 @@ public class TokenValidatorTest extends TestPropertiesLoader {
             	Validator validator = new TokenValidator(new ValidatorImpl());
             	validator.validate(exchange);        		
         	});
-        assertEquals(ErrorMessage.CustomError_Msg_InvalidAuthKey, exception.getErrorMessage());
+        assertEquals(ErrorMessage.CUSTOM_ERROR_INVALID_AUTH_KEY, exception.getErrorMessage());
     }
 
 

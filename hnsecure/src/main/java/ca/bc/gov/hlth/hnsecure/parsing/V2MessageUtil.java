@@ -1,7 +1,9 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,7 +40,7 @@ public class V2MessageUtil {
 		String sendingApplication = "";	
 		if (!StringUtils.isBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
-			if (segmentFields.length > 2) {
+			if (Arrays.stream(segmentFields).allMatch(Objects::nonNull) && segmentFields.length > 2) {
 				sendingApplication = segmentFields[2];
 			}
 		}
@@ -53,9 +55,9 @@ public class V2MessageUtil {
 	 */
 	public static String getSendingFacility(String v2Message) {	
 		String sendingFacility = "";	
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
-			if (segmentFields.length > 3) {
+			if (Arrays.stream(segmentFields).allMatch(Objects::nonNull) && segmentFields.length > 3) {
 				sendingFacility = segmentFields[3];
 			}
 		}
@@ -70,9 +72,9 @@ public class V2MessageUtil {
 	 */
 	public static String getSecurity(String v2Message) {	
 		String security = "";	
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String[] segmentFields = getMshSegmentFields(v2Message);
-			if (segmentFields.length > 7) {
+			if (Arrays.stream(segmentFields).allMatch(Objects::nonNull) && segmentFields.length > 7) {
 				security = segmentFields[7];
 			}
 		}
@@ -81,7 +83,7 @@ public class V2MessageUtil {
 
 	private static String getMSHSegment(String v2Message) {
 		String mshSegment = "";
-		if (!StringUtils.isBlank(v2Message)) {
+		if (StringUtils.isNotBlank(v2Message)) {
 			String trimmedMessage = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message : v2Message.substring(8);
 			String[] segments = V2MessageUtil.getMessageSegments(trimmedMessage);				
 			mshSegment = getSegment(segments, SegmentType.MSH);
@@ -90,10 +92,10 @@ public class V2MessageUtil {
 	}
 
 	public static String[] getMshSegmentFields(String v2Message) {
-		String [] segmentFields = null;
-		if (!StringUtils.isBlank(v2Message)) {
+		String [] segmentFields = {};
+		if (StringUtils.isNotBlank(v2Message)) {
 			String mshSegment = getMSHSegment(v2Message);
-			segmentFields = getSegmentFields(mshSegment);
+			segmentFields = getSegmentFields(mshSegment);			
 		}
 		return segmentFields;
 	}
@@ -135,9 +137,9 @@ public class V2MessageUtil {
 		}
 		
 		v2Message = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message : v2Message.substring(8);
-		String MSHSegment = getMSHSegment(v2Message);
+		String mshSegment = getMSHSegment(v2Message);
 	
-		if(StringUtils.isNotBlank(MSHSegment)) {
+		if (StringUtils.isNotBlank(mshSegment)) {
 		String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 		if (hl7MessageAtt.length > 8) {
 			msgType = hl7MessageAtt[8];			
@@ -148,7 +150,7 @@ public class V2MessageUtil {
 		}
 		// there is a special case for R50 message which the value of MSH.8 is
 		// "R50^Z05".
-		if (msgType != null && !msgType.isEmpty() && msgType.contains(Util.CARET)) {
+		if (!msgType.isEmpty() && msgType.contains(Util.CARET)) {
 			int index = msgType.indexOf(Util.CARET);
 			msgType = msgType.substring(0, index);
 		}
@@ -253,9 +255,9 @@ public class V2MessageUtil {
 	 */
 	public static boolean isSegmentPresent(String v2Message, String segmentType) {
 	
-		String[] v2DataLines_Pharmanet = v2Message.split(Util.LINE_BREAK);
+		String[] v2DataLines = v2Message.split(Util.LINE_BREAK);
 	
-		for (String segment : v2DataLines_Pharmanet) {
+		for (String segment : v2DataLines) {
 	
 			if (segment.startsWith(segmentType)) {
 				String[] messageSegments = segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
@@ -301,7 +303,7 @@ public class V2MessageUtil {
 	 * @return
 	 */
 	public static List<String> getSegments(String[] segments, SegmentType segmentType) {
-		List<String> requiredSegments = new ArrayList<String>();
+		List<String> requiredSegments = new ArrayList<>();
 		
 		if (segments != null) {
 			for (String segment : segments) {						
@@ -319,6 +321,9 @@ public class V2MessageUtil {
 	}
 
 	public static String[] getSegmentFields(String segment) {
+		if (StringUtils.isEmpty(segment)) {
+			 return new String[0];
+		}
 		return segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
 	}
 

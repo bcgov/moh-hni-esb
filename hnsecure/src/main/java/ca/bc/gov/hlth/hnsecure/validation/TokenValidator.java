@@ -1,6 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.validation;
 
-import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CustomError_Msg_MissingAuthKey;
+import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_MISSING_AUTH_KEY;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.AUDIENCE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.CERTS_ENDPOINT;
@@ -38,6 +38,7 @@ import com.nimbusds.oauth2.sdk.token.AccessToken;
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.authorization.CustomJWTClaimsVerifier;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
@@ -64,7 +65,7 @@ public class TokenValidator extends AbstractValidator {
 	}
 
 	@Override
-	public boolean validate(Exchange exchange) throws Exception {
+	public boolean validate(Exchange exchange) throws CustomHNSException, ValidationFailedException {
 		String methodName = LoggingUtil.getMethodName();
 
 		logger.debug("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getExchangeId());
@@ -73,7 +74,7 @@ public class TokenValidator extends AbstractValidator {
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if (StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getExchangeId());
-			throw new CustomHNSException(CustomError_Msg_MissingAuthKey);
+			throw new CustomHNSException(CUSTOM_ERROR_MISSING_AUTH_KEY);
 		}
 		try {
 			AccessToken accessToken = AccessToken.parse(authorizationKey);
@@ -88,7 +89,7 @@ public class TokenValidator extends AbstractValidator {
 			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getExchangeId());			
 		} catch (ParseException | java.text.ParseException | BadJOSEException | JOSEException e) {
 			logger.error("{} - TransactionId: {}, Error: {}", methodName, exchange.getExchangeId(), e.getMessage());
-			throw new CustomHNSException(ErrorMessage.CustomError_Msg_InvalidAuthKey);
+			throw new CustomHNSException(ErrorMessage.CUSTOM_ERROR_INVALID_AUTH_KEY);
 		}
 
 		// After token call the  other validations. Type of validation depends on wrapped class when initializing

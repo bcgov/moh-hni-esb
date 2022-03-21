@@ -20,12 +20,14 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
 import ca.bc.gov.hlth.hnsecure.audit.EventMessageProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.EventMessageErrorLevel;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
 import ca.bc.gov.hlth.hnsecure.message.ErrorMessage;
 import ca.bc.gov.hlth.hnsecure.message.ErrorResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.PharmanetErrorResponse;
+import ca.bc.gov.hlth.hnsecure.message.ResponseSegment;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
@@ -41,11 +43,11 @@ import net.minidev.json.parser.JSONParser;
  */
 public class PayLoadValidator extends AbstractValidator {
 	private static final Logger logger = LoggerFactory.getLogger(PayLoadValidator.class);
-	private static final String segmentIdentifier = "MSH";
+	private static final String SEGMENT_IDENTIFIER = "MSH";
 
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 	
-	private static final Boolean isAuditsEnabled = Boolean.valueOf(properties.getValue(ApplicationProperty.IS_AUDITS_ENABLED));
+	private static final Boolean IS_AUDIT_ENABLED = Boolean.valueOf(properties.getValue(ApplicationProperty.IS_AUDITS_ENABLED));
 	
 	private Validator validator;
 	
@@ -55,7 +57,7 @@ public class PayLoadValidator extends AbstractValidator {
 	}
 
 	@Override
-	public boolean validate(Exchange exchange) throws Exception {
+	public boolean validate(Exchange exchange) throws ValidationFailedException, CustomHNSException {
 		String methodName = LoggingUtil.getMethodName();
 		logger.info("{} - PayLoadValidator Validation started",methodName);
 		HL7Message messageObj = new HL7Message();
@@ -86,13 +88,11 @@ public class PayLoadValidator extends AbstractValidator {
 	 * @throws ValidationFailedException
 	 */
 	protected  void validatePharmanetMessageFormat(Exchange exchange, String v2Message, HL7Message messageObj,
-			boolean isPharmanetMode) throws ValidationFailedException {
-		if (isPharmanetMode) {
-			if (!V2MessageUtil.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
-				populateFieldsForErrorResponse(messageObj);
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_TransactionFormatError, exchange);
-			}
-		}
+			boolean isPharmanetMode) throws ValidationFailedException {	
+		if (isPharmanetMode && !V2MessageUtil.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
+			populateFieldsForErrorResponse(messageObj);
+			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_TRANSACTION_FORMAT_ERROR, exchange);
+		}		
 	}
 
 	/**
@@ -105,15 +105,15 @@ public class PayLoadValidator extends AbstractValidator {
 	protected  void validateReceivingFacility(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
 		if (StringUtils.isEmpty(messageObj.getReceivingFacility())) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_MissingReceivingFacility, exchange);
+			generateError(messageObj, ErrorMessage.HL7_ERROR_MISSING_RECEIVING_FACILITY, exchange);
 		} else if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
 			Set<String> validReceivingFacility = Util.getPropertyAsSet(properties.getValue(VALID_RECIEVING_FACILITY));
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+				generateError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 			}
 		} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-			generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_EncryptionError, exchange);
+			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 		}
 	}
 	
@@ -127,11 +127,11 @@ public class PayLoadValidator extends AbstractValidator {
 	protected  void validateReceivingApp(Exchange exchange, HL7Message messageObj)
 			throws ValidationFailedException {
 		if (StringUtils.isEmpty(messageObj.getReceivingApplication())) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+			generateError(messageObj, ErrorMessage.HL7_ERROR_INVALID_FORMAT, exchange);
 		}
 		// Check the validity
-		else if (!MessageUtil.mTypeCollection.containsValue(messageObj.getReceivingApplication())) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_UnknownReceivingApplication, exchange);
+		else if (!MessageUtil.getMtypecollection().containsValue(messageObj.getReceivingApplication())) {
+			generateError(messageObj, ErrorMessage.HL7_ERROR_UNKNOWN_RECEIVING_APPLICATION, exchange);
 		}
 	}
 
@@ -155,9 +155,9 @@ public class PayLoadValidator extends AbstractValidator {
 		else if(!messageObj.getSendingFacility().equalsIgnoreCase(facilityNameFromAccessToken)) {
 			messageObj.setClientFacilityId(facilityNameFromAccessToken);
 			if(isPharmanetMode) {
-				generatePharmanetError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+				generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_FACILITY_ID_MISMATCH, exchange);
 			}else {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_FacilityIDMismatch, exchange);
+				generateError(messageObj, ErrorMessage.HL7_ERROR_FACILITY_ID_MISMATCH, exchange);
 			}
 		}
 		else {
@@ -187,25 +187,25 @@ public class PayLoadValidator extends AbstractValidator {
 				exchange.getProperties().put(PROPERTY_MESSAGE_TYPE, msgType);
 			}
 			if (Arrays.stream(v2Segments).allMatch(Objects::nonNull) && v2Segments.length >= 12) {
-				ErrorResponse.initSegment(v2Segments, messageObj);				
+				ResponseSegment.initSegment(v2Segments, messageObj);				
 			} else {
-				generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+				generateError(messageObj, ErrorMessage.HL7_ERROR_INVALID_FORMAT, exchange);
 			}
 		} else {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_NoInputHL7, exchange);
+			generateError(messageObj, ErrorMessage.HL7_ERROR_NO_INPUT, exchange);
 		}
 
 		// Validate segment identifier
-		if (!messageObj.getSegmentIdentifier().equals(segmentIdentifier)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_MSHSegmentMissing, exchange);
+		if (!messageObj.getSegmentIdentifier().equals(SEGMENT_IDENTIFIER)) {
+			generateError(messageObj, ErrorMessage.HL7_ERROR_MSH_SEGMENT_MISSING, exchange);
 		}
 
 		// Validate encoding characters
 		if (StringUtils.isEmpty(messageObj.getEncodingCharacter())
 				|| messageObj.getEncodingCharacter().toCharArray().length != 4) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidHL7Format, exchange);
+			generateError(messageObj, ErrorMessage.HL7_ERROR_INVALID_FORMAT, exchange);
 		} else if (!sameChars(messageObj.getEncodingCharacter(), Util.ENCODING_CHARACTERS)) {
-			generateError(messageObj, ErrorMessage.HL7Error_Msg_InvalidMSHSegment, exchange);
+			generateError(messageObj, ErrorMessage.HL7_ERROR_INVALID_MSH_SEGMENT, exchange);
 		}
 	}
 	
@@ -264,7 +264,7 @@ public class PayLoadValidator extends AbstractValidator {
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);				
 		// Write to Audit tables in enabled
-		if (Boolean.TRUE.equals(isAuditsEnabled)) {			
+		if (Boolean.TRUE.equals(IS_AUDIT_ENABLED)) {			
 			writeEventMessageAudit(exchange, errorMessage.getErrorSequence(), errorText);
 		}
 		throw new ValidationFailedException(errorMessage);
@@ -287,7 +287,7 @@ public class PayLoadValidator extends AbstractValidator {
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);				
 		// Write to Audit tables in enabled
-		if (Boolean.TRUE.equals(isAuditsEnabled)) {;
+		if (Boolean.TRUE.equals(IS_AUDIT_ENABLED)) {
 			writeEventMessageAudit(exchange, errorMessage.getErrorSequence(), errorText);
 		}
 		throw new ValidationFailedException(errorMessage);
