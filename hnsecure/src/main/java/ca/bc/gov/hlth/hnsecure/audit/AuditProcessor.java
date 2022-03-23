@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 
 /**
  * Processor for logging auditing information.
@@ -39,6 +41,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		Date eventTime = (Date) exchange.getProperty(Util.PROPERTY_TRANSACTION_EVENT_TIME);
 
 		String v2Message = (String) exchange.getIn().getBody();
+		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String messageId = null;
 		boolean logAffectedParties = false;
 		AffectedPartyDirection affectedPartyDirection = null;
@@ -49,14 +52,21 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 			createTransactionAudit(exchange, transactionId, eventTime, v2Message);
 			// Affected Party - On transaction start log affected party info for R03, R09,
 			// R15, E45, R50
-			logAffectedParties = true;
-			affectedPartyDirection = AffectedPartyDirection.OUTBOUND;
+			if (!StringUtils.equals(msgType, MessageType.R09.name())) {
+				logAffectedParties = true;
+				affectedPartyDirection = AffectedPartyDirection.OUTBOUND;
+			}
+
 			messageId = V2MessageUtil.getMsgId(v2Message);
 			break;
 		case MESSAGE_RECEIVED:
 
-			logAffectedParties = true;
-			affectedPartyDirection = AffectedPartyDirection.INBOUND;
+			// Affected Party - On message received log affected party info for R09 as it's
+			// only available in the response.
+			if (StringUtils.equals(msgType, MessageType.R09.name())) {
+				logAffectedParties = true;
+				affectedPartyDirection = AffectedPartyDirection.INBOUND;
+			}
 			messageId = V2MessageUtil.getMsgId(v2Message);
 			break;
 		default:
