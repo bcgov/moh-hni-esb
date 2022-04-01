@@ -96,8 +96,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 			    Mockito.CALLS_REAL_METHODS);
 			 
 		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, AffectedPartyDirection.INBOUND, transactionId.toString());	
-		assertEquals(0, aps.size()); //Z05 has not PHN
-		
+		assertEquals(0, aps.size()); //Z05 has not PHN		
 	}
 	
 	@Test
@@ -113,8 +112,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("9878259011", affectedParty.getIdentifier()); //PHN from PID
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
-		
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());		
 	}
 	
 	@Test
