@@ -1,10 +1,20 @@
 package ca.bc.gov.hlth.hnsecure.audit.persistence;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_RESPONSE;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_RESPONSE;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15_RESPONSE;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R32_CARRIAGE_RETURN_EOL;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R32_MULTI_PID_RESPONSE;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.R09_RESPONSE_MESSAGE;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_ZO6;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09_RESPONSE;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_RESPONSE;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
@@ -50,39 +60,78 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 	}
 
 	@Test
-	public void testCreateAffectedParties_R15() {
+	public void testCreateAffectedParties_R15_INBOUND() {
 		UUID transactionId = UUID.randomUUID();
 		
 		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15, AffectedPartyDirection.INBOUND,  transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15_REQUEST, AffectedPartyDirection.INBOUND,  transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("0314500001", affectedParty.getIdentifier()); //PHN from PID
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
 		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
 	}
-
+	
 	@Test
-	public void testCreateAffectedParties_R50() {
+	public void testCreateAffectedParties_R15_OUTBOUND() {
 		UUID transactionId = UUID.randomUUID();
 		
 		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
 			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, AffectedPartyDirection.INBOUND, transactionId.toString());
-		AffectedParty affectedParty = aps.get(0);
-		assertEquals(transactionId, affectedParty.getTransactionId());
-		assertEquals("", affectedParty.getIdentifier()); //Z05 has not PHN
-		assertEquals(BCPHN, affectedParty.getIdentifierType());
-		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15_RESPONSE, AffectedPartyDirection.OUTBOUND,  transactionId.toString());	
+		assertEquals(0, aps.size());		
 	}
 
 	@Test
-	public void testCreateAffectedParties_R09() {
+	public void testCreateAffectedParties_R50_Z05_INBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+			 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, AffectedPartyDirection.INBOUND, transactionId.toString());	
+		assertEquals(0, aps.size()); //Z05 has not PHN
+		
+	}
+	
+	@Test
+	public void testCreateAffectedParties_R50_Z06_INBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+			 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_ZO6, AffectedPartyDirection.INBOUND, transactionId.toString());	
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("9878259011", affectedParty.getIdentifier()); //PHN from PID
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
+		
+	}
+	
+	@Test
+	public void testCreateAffectedParties_R09_INBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		
+		//R09 sample has no Affected Parties in request	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R09_REQUEST, AffectedPartyDirection.INBOUND, transactionId.toString());		
+		assertEquals(0, aps.size());		
+	}
+
+	@Test
+	public void testCreateAffectedParties_R09_OUTBOUND() {
 		UUID transactionId = UUID.randomUUID();
 		
 		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
@@ -90,7 +139,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 			    Mockito.CALLS_REAL_METHODS);
 		
 		//R09 sample has multiple Affected Parties in repeating PID segments	 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(R09_RESPONSE_MESSAGE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R09_RESPONSE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(2, aps.size());
 		assertEquals(transactionId, affectedParty.getTransactionId());
@@ -106,21 +155,143 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 	}
 
 	@Test
-	public void testCreateAffectedParties_MSG_PHARMANET() {
+	public void testCreateAffectedParties_MSG_PHARMANET_INBOUND() {
 		UUID transactionId = UUID.randomUUID();
 		
 		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
 				AbstractAuditPersistence.class, 
 			    Mockito.CALLS_REAL_METHODS);
-			 
-		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_PHARMANET, AffectedPartyDirection.INBOUND, transactionId.toString());
+		//PNP request sample has Affected Parties in ZCC segments	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_PHARMANET_REQUEST, AffectedPartyDirection.INBOUND, transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
 		assertEquals("0009735000001", affectedParty.getIdentifier()); //PHN in the ZCC
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
 		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
 	}
-
+	
+	@Test
+	public void testCreateAffectedParties_MSG_PHARMANET_OUTBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		//PNP response sample has Affected Parties in ZCC segments	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_PHARMANET_RESPONSE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("123456789", affectedParty.getIdentifier()); //PHN in the ZCC
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_MSG_R03_INBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+			 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R03_REQUEST, AffectedPartyDirection.OUTBOUND, transactionId.toString());
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("0891250000", affectedParty.getIdentifier()); //PHN in the ZCC
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_MSG_R03_OUTBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+			 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R03_RESPONSE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("123456789", affectedParty.getIdentifier());
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_MSG_R32_INBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+			 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R32_CARRIAGE_RETURN_EOL, AffectedPartyDirection.INBOUND, transactionId.toString());
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("9306448169", affectedParty.getIdentifier());
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_MSG_R32_OUTBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		//R32 sample has multiple Affected Parties in repeating PID segments	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R32_MULTI_PID_RESPONSE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
+		AffectedParty affectedParty1 = aps.get(0);
+		AffectedParty affectedParty2 = aps.get(1);
+		AffectedParty affectedParty3 = aps.get(2);
+		assertEquals(transactionId, affectedParty1.getTransactionId());
+		//Must have unique identifiers
+		assertEquals(3, aps.size());
+		assertEquals("9337796509", affectedParty1.getIdentifier());
+		assertEquals("9360338021", affectedParty2.getIdentifier()); 
+		assertEquals("9301073095", affectedParty3.getIdentifier()); 
+		
+		assertEquals(BCPHN, affectedParty1.getIdentifierType());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty1.getDirection());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty2.getDirection());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty3.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_E45_INBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		//E45 sample has Affected Parties in QPD segment	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_E45_REQUEST, AffectedPartyDirection.INBOUND,  transactionId.toString());	
+		assertEquals(1, aps.size());
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("9020198746", affectedParty.getIdentifier());
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.INBOUND.getValue(), affectedParty.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_E45_OUTBOUND() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		//E45 sample has Affected Parties in QPD segments	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_E45_RESPONSE, AffectedPartyDirection.OUTBOUND,  transactionId.toString());	
+		assertEquals(1, aps.size());
+		AffectedParty affectedParty = aps.get(0);
+		assertEquals(transactionId, affectedParty.getTransactionId());
+		assertEquals("9390352021", affectedParty.getIdentifier());
+		assertEquals(BCPHN, affectedParty.getIdentifierType());
+		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
+	}
 	
 	@Test
 	public void testCreateTransactionEvent() {

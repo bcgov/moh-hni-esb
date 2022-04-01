@@ -193,8 +193,9 @@ public abstract class AbstractAuditPersistence {
 					});
 					break;
 				case R03:
-				case R09: 
+				case R09:			
 				case R15:
+				case R32:
 				case R50:
 					/* PID e.g. 
 					PID||0891250000^^^BC^PH 
@@ -205,11 +206,14 @@ public abstract class AbstractAuditPersistence {
 						String [] sections =  V2MessageUtil.getIdentifierSectionsPID(fields);
 						//affectedParty from PID External Patient ID e.g. 0891250000^^^BC^PH
 						String identifier = sections[0];
-						AffectedParty ap = new AffectedParty();
-						populateAffectedParty(ap, transactionUuid, identifier, direction);						
-						if (!auditPhns.contains(ap.getIdentifier())) {
-						affectedParties.add(ap);
-						auditPhns.add(ap.getIdentifier());
+						if (StringUtils.isNotEmpty(identifier)) {
+							AffectedParty ap = new AffectedParty();
+							populateAffectedParty(ap, transactionUuid, identifier, direction);
+							
+							if (!auditPhns.contains(ap.getIdentifier())) {
+								affectedParties.add(ap);
+								auditPhns.add(ap.getIdentifier());
+							}
 						}
 					});
 					break;

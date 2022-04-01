@@ -2,11 +2,11 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
 
 import org.apache.camel.builder.RouteBuilder;
@@ -38,12 +38,12 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 	public void testParseV2MessageInfoPhamanet() throws Exception {
 		MockEndpoint mock = getMockEndpoint("mock:outputHNSecure");
 		mock.expectedMessageCount(1);
-		mock.expectedBodiesReceived(MSG_PHARMANET);
+		mock.expectedBodiesReceived(MSG_PHARMANET_REQUEST);
 		// Phamanet message only cares the receiving application value. If it is PNP,
 		// the message should be delivery to phamanet endpoint.
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "ZPN");
 		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "PNP");	
-		template.sendBody("direct:sampleHNSecure", MSG_PHARMANET);
+		template.sendBody("direct:sampleHNSecure", MSG_PHARMANET_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
 
@@ -51,10 +51,10 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 	public void testParseV2MessageInfoE45() throws Exception {
 		MockEndpoint mock = getMockEndpoint("mock:outputHNSecure");
 		mock.expectedMessageCount(1);
-		mock.expectedBodiesReceived(MSG_E45);
+		mock.expectedBodiesReceived(MSG_E45_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "E45");
 		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIGET-DOC-SUM");
-		template.sendBody("direct:sampleHNSecure", MSG_E45);
+		template.sendBody("direct:sampleHNSecure", MSG_E45_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
 
@@ -73,10 +73,10 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 	public void testParseV2MessageInfoR09() throws Exception {
 		MockEndpoint mock = getMockEndpoint("mock:outputHNSecure");
 		mock.expectedMessageCount(1);
-		mock.expectedBodiesReceived(MSG_R09);
+		mock.expectedBodiesReceived(MSG_R09_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R09");
 		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIPRSN-NM-SRCH");
-		template.sendBody("direct:sampleHNSecure", MSG_R09);
+		template.sendBody("direct:sampleHNSecure", MSG_R09_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
 
@@ -84,10 +84,10 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 	public void testParseV2MessageInfoR03() throws Exception {
 		MockEndpoint mock = getMockEndpoint("mock:outputHNSecure");
 		mock.expectedMessageCount(1);
-		mock.expectedBodiesReceived(MSG_R03);
+		mock.expectedBodiesReceived(MSG_R03_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R03");
 		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIGT-PRSN-DMGR");
-		template.sendBody("direct:sampleHNSecure", MSG_R03);
+		template.sendBody("direct:sampleHNSecure", MSG_R03_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
 
@@ -95,10 +95,10 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 	public void testParseV2MessageInfoR15() throws Exception {
 		MockEndpoint mock = getMockEndpoint("mock:outputHNSecure");
 		mock.expectedMessageCount(1);
-		mock.expectedBodiesReceived(MSG_R15);
+		mock.expectedBodiesReceived(MSG_R15_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R15");
 		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAICHK-BNF-CVST");
-		template.sendBody("direct:sampleHNSecure", MSG_R15);
+		template.sendBody("direct:sampleHNSecure", MSG_R15_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
 }

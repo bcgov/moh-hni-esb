@@ -1,10 +1,10 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_NO_EOL;
-import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R15_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R32_CARRIAGE_RETURN_EOL;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R50_Z05;
 import static org.junit.Assert.assertEquals;
@@ -40,14 +40,14 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetReceivingAppE45() {
 		String expectedValue ="RAIGET-DOC-SUM";
-		String actualValue = V2MessageUtil.getReceivingApp(MSG_E45);
+		String actualValue = V2MessageUtil.getReceivingApp(MSG_E45_REQUEST);
 		assertEquals(expectedValue, actualValue);
 	}
 	
 	@Test
 	public void testGetMsgTypeE45() {
 		String expectedValue ="E45";
-		String actualValue = V2MessageUtil.getMsgType(MSG_E45);
+		String actualValue = V2MessageUtil.getMsgType(MSG_E45_REQUEST);
 		assertEquals(expectedValue, actualValue);
 	}
 	
@@ -68,28 +68,28 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetReceivingAppR03() {
 		String expectedValue ="RAIGT-PRSN-DMGR";
-		String actualValue = V2MessageUtil.getReceivingApp(MSG_R03);
+		String actualValue = V2MessageUtil.getReceivingApp(MSG_R03_REQUEST);
 		assertEquals(expectedValue, actualValue);
 	}
 	
 	@Test
 	public void testGetMsgTypeR03() {
 		String expectedValue ="R03";
-		String actualValue = V2MessageUtil.getMsgType(MSG_R03);
+		String actualValue = V2MessageUtil.getMsgType(MSG_R03_REQUEST);
 		assertEquals(expectedValue, actualValue);
 	}
 	
 	@Test
 	public void testGetReceivingAppR15() {
 		String expectedValue ="RAICHK-BNF-CVST";
-		String actualValue = V2MessageUtil.getReceivingApp(MSG_R15);
+		String actualValue = V2MessageUtil.getReceivingApp(MSG_R15_REQUEST);
 		assertEquals(expectedValue, actualValue);
 	}
 	
 	@Test
 	public void testGetMsgTypeR15() {
 		String expectedValue ="R15";
-		String actualValue = V2MessageUtil.getMsgType(MSG_R15);
+		String actualValue = V2MessageUtil.getMsgType(MSG_R15_REQUEST);
 		assertEquals(expectedValue, actualValue);
 	}
 	
@@ -144,7 +144,7 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetMessageSegmentsNewLineEOL() {
 		//Expected segments from messages using new line end of line character.
-		String[] segments = V2MessageUtil.getMessageSegments(MSG_PHARMANET);
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_PHARMANET_REQUEST);
 		assertNotNull(segments);
 		assertEquals(5, segments.length);
 		assertEquals("00000352MSH|^~\\&|PLEXIAPNP|BC01000176|PNP|MD|2020/11/26 21:52:53|JHEWH$#!:192.168.22.66|ZPN|18|D|2.1||", segments[0]);
@@ -157,7 +157,7 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetMessageSegmentsCarriageReturnNewLineEOL() {
 		//Expected segments from messages using carriage return new line end of line character.
-		String[] segments = V2MessageUtil.getMessageSegments(MSG_R03);
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_R03_REQUEST);
 		assertNotNull(segments);
 		assertEquals(3, segments.length);
 		assertEquals("MSH|^~\\&|HNWeb|BC01000030|RAIGT-PRSN-DMGR|BC00002041|20191108083244|train96|R03|20191108083244|D|2.4||", segments[0]);
@@ -176,7 +176,7 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetIdentifierSectionsPID() {
 		//Expected 0891250000^^^BC^PH
-		String[] segments = V2MessageUtil.getMessageSegments(MSG_R03);				
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_R03_REQUEST);				
 		String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.PID);
 		String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
 		String[] patientIdentifierSections = V2MessageUtil.getIdentifierSectionsPID(segmentFields);			
@@ -188,7 +188,7 @@ public class V2MessageUtilTest {
 	@Test
 	public void testGetIdentifierSectionsQPD() {
 		//Expected 9020198746^^^CANBC^JHN^MOH
-		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45);				
+		String[] segments = V2MessageUtil.getMessageSegments(MSG_E45_REQUEST);				
 		String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.QPD);
 		String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
 		String[] patientIdentifierSections = V2MessageUtil.getIdentifierSectionsQPD(segmentFields);			

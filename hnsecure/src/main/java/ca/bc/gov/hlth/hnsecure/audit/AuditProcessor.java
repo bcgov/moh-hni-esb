@@ -51,21 +51,20 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 
 			createTransactionAudit(exchange, transactionId, eventTime, v2Message);
 			// Affected Party - On transaction start log affected party info for R03, R09,
-			// R15, E45, R50
+			// R15, R32, E45, R50 & PNP
 			if (!StringUtils.equals(msgType, MessageType.R09.name())) {
 				logAffectedParties = true;
-				affectedPartyDirection = AffectedPartyDirection.OUTBOUND;
+				affectedPartyDirection = AffectedPartyDirection.INBOUND;
 			}
 
 			messageId = V2MessageUtil.getMsgId(v2Message);
 			break;
 		case MESSAGE_RECEIVED:
 
-			// Affected Party - On message received log affected party info for R09 as it's
-			// only available in the response.
-			if (StringUtils.equals(msgType, MessageType.R09.name())) {
+			// Affected Party - On message received log affected party info for R03, R09, R32, R50, E45 & PNP.
+			if (!StringUtils.equals(msgType, MessageType.R15.name())) {
 				logAffectedParties = true;
-				affectedPartyDirection = AffectedPartyDirection.INBOUND;
+				affectedPartyDirection = AffectedPartyDirection.OUTBOUND;
 			}
 			messageId = V2MessageUtil.getMsgId(v2Message);
 			break;
