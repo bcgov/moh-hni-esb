@@ -50,7 +50,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		case TRANSACTION_START:
 
 			createTransactionAudit(exchange, transactionId, eventTime, v2Message);
-			// Affected Party - On transaction start log affected party info for R03, R09,
+			// Affected Party - On transaction start log affected party info for R03,
 			// R15, R32, E45, R50 & PNP
 			if (!StringUtils.equals(msgType, MessageType.R09.name())) {
 				logAffectedParties = true;
