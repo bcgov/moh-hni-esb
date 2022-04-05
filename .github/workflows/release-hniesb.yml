@@ -17,7 +17,7 @@ env:
   IMAGE_REGISTRY_USER: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_USER }}
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
   IMAGE_NAME: hniesb
-  IMAGE_TAGS:
+  IMAGE_TAGS: 
   RELEASE_VERSION:
   #Required if we are deploying as well in this workflow.
   #TESTNS_IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test
@@ -105,4 +105,49 @@ jobs:
           tags: ${{ steps.build-docker-hniesb.outputs.tags }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
-          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}            
+          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}      
+  
+  
+  # This job updates the Gitops repository with image created in  this workflow. 
+  # Updating the image in Deployment.yml will result in deploying that image in OpenShift
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: [createHniEsbRelease]
+    env:
+      OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
+      OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
+
+    steps:
+      - name: Step to move image to test namespace
+        run: |
+          echo "This step should move the image to repository to test namespace"
+      
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
+
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
+          repository: ${{ secrets.GITOPS_C5839F_REPO }}
+          ref: main
+       
+      - name: Print messages
+        run: |
+          echo "Job complete"
+        
+      
+  
+  
+  # This job creates a tag in Git repository with same name as release tag
+  createReleaseInGit:
+    runs-on:  ubuntu-latest
+    needs: [createHniEsbRelease]
+    steps:
+      - id: create-tag
+        run: |
+          echo "This step should add tag"
+  
+          
