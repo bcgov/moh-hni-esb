@@ -56,14 +56,12 @@ jobs:
       - name: Determine Version number
         # Branch name is fixed to 'main' in version identifier
         run: |
-          echo "RELEASE_VERSION=Release_1.0_main_${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "RELEASE_VERSION=Release_1.0_${{github.ref_name}}_${{github.run_number}}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
         run: |
           echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{ github.event.inputs.OPENSHIFT_IMAGE_TAG }}  " | tee -a $GITHUB_ENV
-
-
 
       # Support step .. can be removed after development is complete
       - name: Print values
@@ -74,3 +72,18 @@ jobs:
           echo "Image tags: ${{ env.IMAGE_TAGS }}"
           mvn -version
 
+      # Run the maven install for client code
+      - name: Maven run for client code
+        run: |
+          pwd
+          cd ${{github.workspace}}/hn-common
+          pwd
+          mvn install
+
+      # Run the maven install for hnsesb code
+      - name: Maven run for hnsecure code
+        run: |
+          pwd
+          cd ${{github.workspace}}/hn-secure
+          pwd
+          mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
