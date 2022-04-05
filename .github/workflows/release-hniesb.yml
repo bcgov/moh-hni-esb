@@ -1,36 +1,76 @@
-# This is a basic workflow to help you get started with Actions
+# This is a manual workflow that performs following activities:
+# 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution>  
+# 2. Determine tags for OpenShift image
+# 3. Run the maven install for client code
+# 4. Run the maven install for hnsesb code
+# 5. Pass the foder to OpenShift build and start the build
+# 6. Tag the image in namespace with build tag.
+# 7. if build succesful Move the image from tools namespace to the environment
 
-name: CI
+
+name: release-hniesb
+
+# Build the image and deploy in OpenShift environment
+env:
+  # Registries such as GHCR, Quay.io, and Docker Hub are supported.
+  IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools
+  IMAGE_REGISTRY_USER: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_USER }}
+  IMAGE_REGISTRY_PASSWORD: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
+  IMAGE_NAME: hniesb
+  IMAGE_TAGS:
+  RELEASE_VERSION:
+  #Required if we are deploying as well in this workflow.
+  #TESTNS_IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test
 
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ main, 5915-hniesb-rel-workflow ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # The user specifies the optional tag  
+  # --------------------------------------------------------------------------
   workflow_dispatch:
-
+    inputs:
+      OPENSHIFT_IMAGE_TAG:
+        description: 'Optional parameter for additional tags on released images. '
+        required: false
+        default:
+              
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This workflow contains a single job called "createHniEsbRelease"
+  createHniEsbRelease:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      # It should get the code from branch that triggered this workflow
+      - name: Check out code
+        id: checkout
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution> 
+      - name: Determine Version number
+        # Branch name is fixed to 'main' in version identifier
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "RELEASE_VERSION=Release_1.0_main_${{github.run_number}}" | tee -a $GITHUB_ENV
+        
+      # 2. Determine tags for OpenShift image
+      - name: Determine image tags
+        run: |
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{ github.event.inputs.OPENSHIFT_IMAGE_TAG }}  " | tee -a $GITHUB_ENV
+
+
+
+      # Support step .. can be removed after development is complete
+      - name: Print values
+        run: |
+          echo "Branch in use: ${{ github.ref_name }}"
+          echo "Run number: ${{ github.run_number }}"
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
+          echo "Image tags: ${{ env.IMAGE_TAGS }}"
+          mvn -version
+
