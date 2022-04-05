@@ -19,7 +19,6 @@ env:
   IMAGE_NAME: hniesb
   IMAGE_TAGS: 
   RELEASE_VERSION:
-  OPENSHIFT_IMAGE_SHA:
   #Required if we are deploying as well in this workflow.
   #TESTNS_IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test
 
@@ -44,6 +43,9 @@ jobs:
   createHniEsbRelease:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      OPENSHIFT_IMAGE_SHA: ${{ steps.push-image.outputs.digest }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -107,13 +109,7 @@ jobs:
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
           password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
-        
-      # Push the image sha in env variables for use in next job
-      - name: Set image sha
-        id: set-image-sha
-        run: |
-          echo "OPENSHIFT_IMAGE_SHA=${{ steps.push-image.outputs.digest }}" | tee -a $GITHUB_ENV
-  
+ 
   
   # This job updates the Gitops repository with image created in  this workflow. 
   # Updating the image in Deployment.yml will result in deploying that image in OpenShift
@@ -154,7 +150,7 @@ jobs:
       - name: Print messages
         run: |
           echo "Image digest is ${{ github.OPENSHIFT_IMAGE_SHA }}"
-          echo "Image digest using job id ${{ jobs.createHniEsbRelease.steps.push-image.outputs.digest }}"
+          echo "Image digest using job output ${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
           echo "Job complete"
         
       
