@@ -10,7 +10,7 @@
 
 name: release-hniesb
 
-# Build the image and deploy in OpenShift environment
+# Build the image and deploy in OpenShift test environment
 env:
   # Registries such as GHCR, Quay.io, and Docker Hub are supported.
   IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools
@@ -19,6 +19,7 @@ env:
   IMAGE_NAME: hniesb
   IMAGE_TAGS: 
   RELEASE_VERSION:
+  OPENSHIFT_IMAGE_SHA:
   #Required if we are deploying as well in this workflow.
   #TESTNS_IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test
 
@@ -36,7 +37,7 @@ on:
         description: 'Optional parameter for additional tags on released images. '
         required: false
         default:
-              
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "createHniEsbRelease"
@@ -105,7 +106,13 @@ jobs:
           tags: ${{ steps.build-docker-hniesb.outputs.tags }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
-          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}      
+          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
+        
+      # Push the image sha in env variables for use in next job
+      - name: Set image sha
+        id: set-image-sha
+        run: |
+          echo "OPENSHIFT_IMAGE_SHA=${{ steps.push-image-frontend.outputs.digest }}" | tee -a $GITHUB_ENV
   
   
   # This job updates the Gitops repository with image created in  this workflow. 
@@ -113,10 +120,7 @@ jobs:
   Deploy:
     runs-on: ubuntu-latest
     needs: [createHniEsbRelease]
-    env:
-      OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
-      OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
-
+    
     steps:
       - name: Step to move image to test namespace
         run: |
@@ -128,23 +132,37 @@ jobs:
           ssh-private-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
 
       - name: Check out manifest repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
           repository: ${{ secrets.GITOPS_C5839F_REPO }}
-          ref: main
+          ref: 5917-hnsecure-argocd
+
+      # - name: Set up Kustomize
+      #   uses: imranismail/setup-kustomize@v1
+
+      # - name: Update image ID and commit change
+      #   if: ${{ success() }}
+      #   run: |
+      #     cd hniesb-devops/overlays/dev
+      #     kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/c5839f-dev/hnsesb@${{ env.BACKEND_IMAGE_ID }}"
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git commit -am "Update image ids using release workflow."
+      #     git push origin    
        
       - name: Print messages
         run: |
+          echo "Image digest is ${{ github.OPENSHIFT_IMAGE_SHA }}"
           echo "Job complete"
         
       
   
   
   # This job creates a tag in Git repository with same name as release tag
-  createReleaseInGit:
+  createTagInGit:
     runs-on:  ubuntu-latest
-    needs: [createHniEsbRelease]
+    needs: [Deploy]
     steps:
       - id: create-tag
         run: |
