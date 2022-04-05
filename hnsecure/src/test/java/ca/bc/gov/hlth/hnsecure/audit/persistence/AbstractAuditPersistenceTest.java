@@ -16,6 +16,7 @@ import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09_RESPONSE;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_RESPONSE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -84,7 +85,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 			    Mockito.CALLS_REAL_METHODS);
 			 
 		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R15_RESPONSE, AffectedPartyDirection.OUTBOUND,  transactionId.toString());	
-		assertEquals(0, aps.size());		
+		assertTrue(aps.isEmpty());		
 	}
 
 	@Test
@@ -96,7 +97,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 			    Mockito.CALLS_REAL_METHODS);
 			 
 		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R50_Z05, AffectedPartyDirection.INBOUND, transactionId.toString());	
-		assertEquals(0, aps.size()); //Z05 has not PHN		
+		assertTrue(aps.isEmpty()); //Z05 has no PHN		
 	}
 	
 	@Test
@@ -125,7 +126,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 		
 		//R09 sample has no Affected Parties in request	 
 		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R09_REQUEST, AffectedPartyDirection.INBOUND, transactionId.toString());		
-		assertEquals(0, aps.size());		
+		assertTrue(aps.isEmpty());		
 	}
 
 	@Test
@@ -195,7 +196,7 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_R03_REQUEST, AffectedPartyDirection.OUTBOUND, transactionId.toString());
 		AffectedParty affectedParty = aps.get(0);
 		assertEquals(transactionId, affectedParty.getTransactionId());
-		assertEquals("0891250000", affectedParty.getIdentifier()); //PHN in the ZCC
+		assertEquals("0891250000", affectedParty.getIdentifier()); //PHN in the PID
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
 		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
 	}
