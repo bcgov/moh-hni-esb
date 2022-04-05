@@ -85,3 +85,24 @@ jobs:
         run: |
           cd ${{github.workspace}}/hnsecure
           mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
+      # Build from docker file
+      - name: Build hnsesb image from Dockerfile
+        id: build-docker-hniesb
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
+          context: ./hnsecure
+          dockerfiles: |
+            ./hnsecure/Dockerfile
+
+      # Upload the images in image repository in tools namespace
+      - name: Push frontend image to registry
+        id: push-image-frontend
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-docker-hniesb.outputs.image }}
+          tags: ${{ steps.build-docker-hniesb.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.IMAGE_REGISTRY_USER }}
+          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}            
