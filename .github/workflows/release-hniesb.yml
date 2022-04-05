@@ -72,7 +72,6 @@ jobs:
           echo "Image tags: ${{ env.IMAGE_TAGS }}"
           echo "Full commit version: ${{github.sha}}"
           echo "12 digits commit version#1: ${GITHUB_SHA::12}"
-          echo "12 digits commit version#2: ${{{github.sha::12}}"
           mvn -version
 
       # Run the maven install for client code
