@@ -98,8 +98,8 @@ jobs:
             ./hnsecure/Dockerfile
 
       # Upload the images in image repository in tools namespace
-      - name: Push frontend image to registry
-        id: push-image-frontend
+      - name: Push image to registry
+        id: push-image
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{ steps.build-docker-hniesb.outputs.image }}
@@ -112,7 +112,7 @@ jobs:
       - name: Set image sha
         id: set-image-sha
         run: |
-          echo "OPENSHIFT_IMAGE_SHA=${{ steps.push-image-frontend.outputs.digest }}" | tee -a $GITHUB_ENV
+          echo "OPENSHIFT_IMAGE_SHA=${{ steps.push-image.outputs.digest }}" | tee -a $GITHUB_ENV
   
   
   # This job updates the Gitops repository with image created in  this workflow. 
@@ -154,6 +154,7 @@ jobs:
       - name: Print messages
         run: |
           echo "Image digest is ${{ github.OPENSHIFT_IMAGE_SHA }}"
+          echo "Image digest using job id ${{ jobs.createHniEsbRelease.steps.push-image.outputs.digest }}"
           echo "Job complete"
         
       
