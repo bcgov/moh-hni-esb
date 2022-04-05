@@ -84,6 +84,6 @@ jobs:
       - name: Maven run for hnsecure code
         run: |
           pwd
-          cd ${{github.workspace}}/hn-secure
+          cd ${{github.workspace}}/hnsecure
           pwd
           mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
