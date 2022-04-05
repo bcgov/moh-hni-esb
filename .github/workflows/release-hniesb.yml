@@ -70,20 +70,19 @@ jobs:
           echo "Run number: ${{ github.run_number }}"
           echo "Release version: ${{ env.RELEASE_VERSION }}"
           echo "Image tags: ${{ env.IMAGE_TAGS }}"
+          echo "Full commit version: ${{github.sha}}"
+          echo "12 digits commit version#1: ${GITHUB_SHA::12}"
+          echo "12 digits commit version#2: ${{{github.sha::12}}"
           mvn -version
 
       # Run the maven install for client code
       - name: Maven run for client code
         run: |
-          pwd
           cd ${{github.workspace}}/hn-common
-          pwd
           mvn install
 
       # Run the maven install for hnsesb code
       - name: Maven run for hnsecure code
         run: |
-          pwd
           cd ${{github.workspace}}/hnsecure
-          pwd
           mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
