@@ -146,10 +146,10 @@ jobs:
           ssh-private-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
 
       - name: Check out manifest repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
-          repository: ${{ secrets.GITOPS_C5839F_REPO }}
+          repository: bcgov-c/tenant-gitops-c5839f
           ref: main
 
       - name: Set up Kustomize
