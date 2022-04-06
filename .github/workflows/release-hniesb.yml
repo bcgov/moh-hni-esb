@@ -13,9 +13,11 @@ name: release-hniesb
 # Build the image and deploy in OpenShift test environment
 env:
   # Registries such as GHCR, Quay.io, and Docker Hub are supported.
+  OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
+  OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
+  DEFAULT_NAMESPACE: "c5839f-tools"
   IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools
   IMAGE_REGISTRY_USER: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_USER }}
-  IMAGE_REGISTRY_PASSWORD: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
   IMAGE_NAME: hniesb
   IMAGE_TAGS: 
   RELEASE_VERSION:
@@ -46,6 +48,7 @@ jobs:
     # Map a step output to a job output
     outputs:
       OPENSHIFT_IMAGE_SHA: ${{ steps.push-image.outputs.digest }}
+      RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -108,7 +111,7 @@ jobs:
           tags: ${{ steps.build-docker-hniesb.outputs.tags }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
-          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
+          password: ${{ env.OPENSHIFT_TOKEN }}
  
   
   # This job updates the Gitops repository with image created in  this workflow. 
@@ -118,9 +121,24 @@ jobs:
     needs: [createHniEsbRelease]
     
     steps:
-      - name: Step to move image to test namespace
+      - name: Step to move image to dev namespace
         run: |
           echo "This step should move the image to repository to test namespace"
+
+      # 1. Login to OpenShift
+      - name: Log in to OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ env.OPENSHIFT_SERVER }}
+          openshift_token: ${{ env.OPENSHIFT_TOKEN }}
+          insecure_skip_tls_verify: true
+          namespace: ${{ env.DEFAULT_NAMESPACE }}
+
+      # 4. Push the image to selected repository
+      - name: Push Image to dev 
+        run: |
+          oc tag ${{env.IMAGE_REGISTRY}}:${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} image-registry.apps.silver.devops.gov.bc.ca/c5839f-dev/hnsesb:${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}
+          
       
       - name: Prepare deploy key
         uses: webfactory/ssh-agent@v0.5.3
@@ -132,28 +150,20 @@ jobs:
         with:
           ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
           repository: ${{ secrets.GITOPS_C5839F_REPO }}
-          ref: 5917-hnsecure-argocd
+          ref: main
 
-      # - name: Set up Kustomize
-      #   uses: imranismail/setup-kustomize@v1
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
 
-      # - name: Update image ID and commit change
-      #   if: ${{ success() }}
-      #   run: |
-      #     cd hniesb-devops/overlays/dev
-      #     kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/c5839f-dev/hnsesb@${{ env.BACKEND_IMAGE_ID }}"
-      #     git config --local user.email "action@github.com"
-      #     git config --local user.name "GitHub Action"
-      #     git commit -am "Update image ids using release workflow."
-      #     git push origin    
-       
-      - name: Print messages
+      - name: Update image ID and commit change
+        if: ${{ success() }}
         run: |
-          echo "Image digest is ${{ github.OPENSHIFT_IMAGE_SHA }}"
-          echo "Image digest using job output ${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
-          echo "Job complete"
-        
-      
+          cd hniesb-devops/overlays/dev
+          kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/c5839f-dev/hnsesb@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying release: ${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}  using release workflow."
+          git push origin    
   
   
   # This job creates a tag in Git repository with same name as release tag
