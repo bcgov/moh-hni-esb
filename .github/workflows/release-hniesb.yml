@@ -137,7 +137,7 @@ jobs:
       # 4. Push the image to selected repository
       - name: Push Image to dev 
         run: |
-          oc tag ${{env.IMAGE_REGISTRY}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} image-registry.apps.silver.devops.gov.bc.ca/c5839f-dev/hnsesb:${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}
+          oc tag ${{DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} c5839f-dev/hnsesb:${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}
           
       
       - name: Prepare deploy key
