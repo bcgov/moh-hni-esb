@@ -151,6 +151,11 @@ jobs:
           ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
           repository: bcgov-c/tenant-gitops-c5839f
           ref: main
+      
+      - name: Support commands
+        run: |
+          pwd
+          ls
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
