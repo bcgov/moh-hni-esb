@@ -163,7 +163,7 @@ jobs:
       - name: Update image ID and commit change
         if: ${{ success() }}
         run: |
-          cd hnsesb-devops/overlays/dev
+          cd hnsesb-devops/overlay/dev
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/c5839f-dev/hnsesb@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
