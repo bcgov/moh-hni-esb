@@ -27,7 +27,15 @@ env:
 on:
   # Triggers the workflow on push events for the main branch
   push:
-    branches: [ main,5915-hniesb-rel-workflow ]
+    branches: [ main ]
+  
+  # The user specifies the optional tag  
+  workflow_dispatch:
+    inputs:
+      OPENSHIFT_IMAGE_TAG:
+        description: 'Optional parameter for additional tags on released images. '
+        required: false
+        default:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -47,6 +55,8 @@ jobs:
       - name: Check out code
         id: checkout
         uses: actions/checkout@v3
+        with:
+          ref: main
 
       # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution> 
       - name: Determine Version number
@@ -57,7 +67,7 @@ jobs:
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
         run: |
-          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }}" | tee -a $GITHUB_ENV
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{env.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
 
       # Run the maven install for client code
       - name: Maven run for client code
