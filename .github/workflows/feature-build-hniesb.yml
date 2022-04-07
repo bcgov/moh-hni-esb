@@ -123,7 +123,7 @@ jobs:
       # 4. Push the image to selected repository
       - name: Push Image to dev 
         run: |
-          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATUREBUILD_NAME}}
           
       
       - name: Prepare deploy key
@@ -149,7 +149,7 @@ jobs:
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{needs.createHniEsbRelease.outputs.FEATUREBUILD_NAME}}  using release workflow."
+          git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATUREBUILD_NAME}}  using release workflow."
           git push origin    
 
           
