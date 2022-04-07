@@ -61,7 +61,7 @@ jobs:
       - name: Determine Version number
         # Branch name is fixed to 'main' in version identifier
         run: |
-          echo "RELEASE_VERSION=Release_1.0_${{github.ref_name}}_${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "RELEASE_VERSION=Release-1.0-${{github.ref_name}}-${{github.run_number}}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
