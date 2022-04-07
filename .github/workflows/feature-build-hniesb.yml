@@ -15,9 +15,9 @@ name: hnsesb-feature-build
 env:
   OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
-  DEFAULT_NAMESPACE: "c5839f-tools"
+  DEFAULT_NAMESPACE: c5839f-tools
   DEV_NAMESPACE: c5839f-dev
-  IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools
+  IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca
   IMAGE_REGISTRY_USER: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_USER }}
   IMAGE_NAME: hnsesb
   IMAGE_TAGS: 
@@ -95,9 +95,9 @@ jobs:
         with:
           image: ${{ steps.build-docker-hniesb.outputs.image }}
           tags: ${{ steps.build-docker-hniesb.outputs.tags }}
-          registry: ${{ env.IMAGE_REGISTRY }}
-          username: ${{ env.IMAGE_REGISTRY_USER }}
-          password: ${{ env.OPENSHIFT_TOKEN }}
+          registry: ${{env.IMAGE_REGISTRY}}/${{env.DEFAULT_NAMESPACE}}
+          username: ${{env.IMAGE_REGISTRY_USER}}
+          password: ${{env.OPENSHIFT_TOKEN}}
  
   
   # This job updates the Gitops repository with image created in  this workflow. 
@@ -146,7 +146,7 @@ jobs:
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/dev
-          kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/c5839f-dev/hnsesb@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
+          kustomize edit set image "hnsesb-image=${{IMAGE_REGISTRY}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying feature build: ${{needs.createHniEsbRelease.outputs.FEATUREBUILD_NAME}}  using release workflow."
