@@ -64,7 +64,7 @@ jobs:
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
         run: |
-          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{env.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{github.event.inputs.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
 
       # Run the maven install for client code
       - name: Maven run for client code
