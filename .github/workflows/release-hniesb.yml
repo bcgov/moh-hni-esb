@@ -159,7 +159,7 @@ jobs:
   # This job creates a tag in Git repository with same name as release tag
   createTagInGit:
     runs-on:  ubuntu-latest
-    needs: [Deploy]
+    needs: [createHniEsbRelease]
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # It should get the code from branch that triggered this workflow
