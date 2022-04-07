@@ -3,41 +3,31 @@
 # 2. Determine tags for OpenShift image
 # 3. Run the maven install for client code
 # 4. Run the maven install for hnsesb code
-# 5. Pass the foder to OpenShift build and start the build
-# 6. Tag the image in namespace with build tag.
-# 7. if build succesful Move the image from tools namespace to the environment
+# 5. Run the docker file to create image
+# 6. Push the image to OpenShift repository
+# 7. Deploy the image in Dev environment
+# 8. Create a tag for git repository
 
 
 name: release-hniesb
 
 # Build the image and deploy in OpenShift test environment
 env:
-  # Registries such as GHCR, Quay.io, and Docker Hub are supported.
   OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
   DEFAULT_NAMESPACE: "c5839f-tools"
+  DEV_NAMESPACE: c5839f-dev
   IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools
   IMAGE_REGISTRY_USER: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_USER }}
-  IMAGE_NAME: hniesb
+  IMAGE_NAME: hnsesb
   IMAGE_TAGS: 
   RELEASE_VERSION:
-  #Required if we are deploying as well in this workflow.
-  #TESTNS_IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-test
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push events for the main branch
   push:
-    branches: [ main, 5915-hniesb-rel-workflow ]
-
-  # The user specifies the optional tag  
-  # --------------------------------------------------------------------------
-  workflow_dispatch:
-    inputs:
-      OPENSHIFT_IMAGE_TAG:
-        description: 'Optional parameter for additional tags on released images. '
-        required: false
-        default:
+    branches: [ main ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -67,7 +57,7 @@ jobs:
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
         run: |
-          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{ github.event.inputs.OPENSHIFT_IMAGE_TAG }}  " | tee -a $GITHUB_ENV
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }}" | tee -a $GITHUB_ENV
 
       # Run the maven install for client code
       - name: Maven run for client code
@@ -80,6 +70,7 @@ jobs:
         run: |
           cd ${{github.workspace}}/hnsecure
           mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
+
       # Build from docker file
       - name: Build hnsesb image from Dockerfile
         id: build-docker-hniesb
@@ -126,7 +117,7 @@ jobs:
       # 4. Push the image to selected repository
       - name: Push Image to dev 
         run: |
-          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} c5839f-dev/hnsesb:${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}
           
       
       - name: Prepare deploy key
