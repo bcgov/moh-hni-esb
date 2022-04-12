@@ -1,7 +1,7 @@
 # This is a manual workflow that performs following activities:
 # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution>  
 # 2. Determine tags for OpenShift image
-# 3. Run the maven install for client code
+# 3. Run the maven install for common code
 # 4. Run the maven install for hnsesb code
 # 5. Run the docker file to create image
 # 6. Push the image to OpenShift repository
@@ -9,7 +9,7 @@
 # 8. Create a tag for git repository
 
 
-name: hnsesb-release
+name: release-hnsesb
 
 # Build the image and deploy in OpenShift test environment
 env:
@@ -66,8 +66,8 @@ jobs:
         run: |
           echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{github.event.inputs.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
 
-      # Run the maven install for client code
-      - name: Maven run for client code
+      # Run the maven install for common code
+      - name: Maven run for common code
         run: |
           cd ${{github.workspace}}/hn-common
           mvn install
