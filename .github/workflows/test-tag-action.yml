@@ -39,6 +39,7 @@ jobs:
       - id: validate
         run: |
           pwd
+          git tag
           
     # Tag and push the tag
       - name: Tag the commit with Release number
