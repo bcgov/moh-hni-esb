@@ -171,6 +171,7 @@ jobs:
       - name: Tag the commit with Release number
         id: tag
         run: |
+          git fetch --all
           git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
