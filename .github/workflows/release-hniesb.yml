@@ -9,7 +9,7 @@
 # 8. Create a tag for git repository
 
 
-name: release-hnsesb
+name: release-hnsesb-old
 
 # Build the image and deploy in OpenShift test environment
 env:
