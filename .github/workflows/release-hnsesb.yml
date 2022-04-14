@@ -1,42 +1,182 @@
-# This is a basic workflow to help you get started with Actions
+# This is a manual workflow that performs following activities:
+# 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution>  
+# 2. Determine tags for OpenShift image
+# 3. Run the maven install for common code
+# 4. Run the maven install for hnsesb code
+# 5. Run the docker file to create image
+# 6. Push the image to OpenShift repository
+# 7. Deploy the image in Dev environment
+# 8. Create a tag for git repository
 
-name: hnsesb-feature-build
+
+name: release-hnsesb
+
+# Build the image and deploy in OpenShift test environment
+env:
+  OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
+  OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
+  DEFAULT_NAMESPACE: "c5839f-tools"
+  DEV_NAMESPACE: c5839f-dev
+  IMAGE_REGISTRY: image-registry.apps.silver.devops.gov.bc.ca/c5839f-tools
+  IMAGE_REGISTRY_USER: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_USER }}
+  IMAGE_NAME: hnsesb
+  IMAGE_TAGS: 
+  RELEASE_VERSION:
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
   # The user specifies the optional tag  
   workflow_dispatch:
     inputs:
       OPENSHIFT_IMAGE_TAG:
         description: 'Optional parameter for additional tags on released images. '
         required: false
-        default: test
+        default:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This job runs the maven commands to compile code and build package.
+  # This job also creates docker image and push the image to OpenShift repository
+  createHniEsbRelease:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      OPENSHIFT_IMAGE_SHA: ${{ steps.push-image.outputs.digest }}
+      RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+      COMMIT_SHA: ${{env.COMMIT_SHA}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      # It should get the code from branch that triggered this workflow
+      - name: Check out code
+        id: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution> 
+      - name: Determine Version number
+        # Branch name is fixed to 'main' in version identifier
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "RELEASE_VERSION=Release-1.0-${{github.ref_name}}-${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "COMMIT_SHA=${GITHUB_SHA}" | tee -a $GITHUB_ENV
+        
+      # 2. Determine tags for OpenShift image
+      - name: Determine image tags
+        run: |
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{github.event.inputs.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
+
+      # Run the maven install for common code
+      - name: Maven run for common code
+        run: |
+          cd ${{github.workspace}}/hn-common
+          mvn install
+
+      # Run the maven install for hnsesb code
+      - name: Maven run for hnsecure code
+        run: |
+          cd ${{github.workspace}}/hnsecure
+          mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
+
+      # Build from docker file
+      - name: Build hnsesb image from Dockerfile
+        id: build-docker-hniesb
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
+          context: ./hnsecure
+          dockerfiles: |
+            ./hnsecure/Dockerfile
+
+      # Upload the images in image repository in tools namespace
+      - name: Push image to registry
+        id: push-image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-docker-hniesb.outputs.image }}
+          tags: ${{ steps.build-docker-hniesb.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.IMAGE_REGISTRY_USER }}
+          password: ${{ env.OPENSHIFT_TOKEN }}
+ 
+  
+  # This job updates the Gitops repository with image created in  this workflow. 
+  # Updating the image in Deployment.yml will result in deploying that image in OpenShift
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: [createHniEsbRelease]
+    
+    steps:
+      - name: Step to move image to dev namespace
+        run: |
+          echo "This step should move the image to repository to test namespace"
+
+      # 1. Login to OpenShift
+      - name: Log in to OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ env.OPENSHIFT_SERVER }}
+          openshift_token: ${{ env.OPENSHIFT_TOKEN }}
+          insecure_skip_tls_verify: true
+          namespace: ${{ env.DEFAULT_NAMESPACE }}
+
+      # 4. Push the image to selected repository
+      - name: Push Image to dev 
+        run: |
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}
+          
+      
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
+
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
+          repository: bcgov-c/tenant-gitops-c5839f
+          ref: main
+      
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Update image ID and commit change
+        if: ${{ success() }}
+        run: |
+          cd hnsesb-devops/overlay/dev
+          kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/c5839f-dev/hnsesb@${{needs.createHniEsbRelease.outputs.OPENSHIFT_IMAGE_SHA}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying release: ${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}  using release workflow."
+          git push origin    
+  
+  
+  # This job creates a tag in Git repository with same name as release tag
+  createTagInGit:
+    runs-on:  ubuntu-latest
+    needs: [createHniEsbRelease]
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # It should get the code from branch that triggered this workflow
+      - name: Check out code
+        id: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+    # Tag and push the tag
+          # git fetch --all
+          # git pull
+      - name: Tag the commit with Release number
+        id: tag
+        run: |
+          echo "Tagging the commit: ${GITHUB_SHA}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a -f "v${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}" -m "Tag generated by GitHub Actions: release-hnsesb."
+          git push origin --tags          
