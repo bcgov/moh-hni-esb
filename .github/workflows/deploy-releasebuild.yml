@@ -120,27 +120,30 @@ jobs:
       #   uses: imranismail/setup-kustomize@v1
 
       - name: Determine Kustomize folder location
-        id: set-kustomize-folder
+        id: get-kustomize-folder
         uses: actions/github-script@v5
         with:
           script: |
             if (`${{github.event.inputs.Environment}}` == 'dev') {
-              echo "KUSTOMIZE_FOLDER=dev" | tee -a $GITHUB_ENV
+              return "dev"
             }
             if (`${{github.event.inputs.Environment}}` == 'test') {
-              echo "KUSTOMIZE_FOLDER=test" | tee -a $GITHUB_ENV
+              return "test"
             }
             if (`${{github.event.inputs.Environment}}` == 'sandbox') {
-              echo "KUSTOMIZE_FOLDER=sbx" | tee -a $GITHUB_ENV
+              return "sbx"
             }
             if (`${{github.event.inputs.Environment}}` == 'production') {
-              echo "KUSTOMIZE_FOLDER=prod" | tee -a $GITHUB_ENV
+              return "prod"
+            }
+            else{
+              core.setFailed(`❌ Invalid input for environment" );
             }
 
       - name: Update image ID and commit change
         if: ${{success()}}
         run: |
-          echo "Folder location is ${{env.KUSTOMIZE_FOLDER}}"          
+          echo "Folder location is ${{steps.get-kustomize-folder.outputs.result}}"          
 
         # cd mspdirect-devops/overlays/${{github.event.inputs.Environment}}
         # kustomize edit set image "backend-image=image-registry.openshift-image-registry.svc:5000/${{env.OPENSHIFT_NAMESPACE}}/${{env.BACKEND_IMAGE_NAME}}@${{env.BACKEND_IMAGE_ID}}"
