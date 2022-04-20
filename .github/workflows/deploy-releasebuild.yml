@@ -104,21 +104,20 @@ jobs:
       # Kustomize in the runner, update the image ID, commit the change, and
       # push the changes back to the manifest repository.
       # ------------------------------------------------------------------------
-      - name: Prepare deploy key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+      # - name: Prepare deploy key
+      #   uses: webfactory/ssh-agent@v0.5.3
+      #   with:
+      #     ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
 
-      - name: Check out manifest repo
-        uses: actions/checkout@v2
-        with:
-          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
-          repository: ${{secrets.GITOPS_C5839F_REPO}}
-          # Update ref to main after this branch is merged
-          ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
+      # - name: Check out manifest repo
+      #   uses: actions/checkout@v2
+      #   with:
+      #     ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+      #     repository: ${{secrets.GITOPS_C5839F_REPO}}
+      #     ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
 
-      - name: Set up Kustomize
-        uses: imranismail/setup-kustomize@v1
+      # - name: Set up Kustomize
+      #   uses: imranismail/setup-kustomize@v1
 
       - name: Determine Kustomize folder location
         id: set-kustomize-folder
