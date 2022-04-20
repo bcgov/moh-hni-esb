@@ -9,144 +9,31 @@
 
 name: deploy-release-build-hnsesb
 
-env:
-  OPENSHIFT_SERVER: ${{secrets.C5839F_OPENSHIFT_SERVER}}
-  OPENSHIFT_TOKEN: ${{secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN}}
-  IMAGE_NAME: hnsesb
-  DEFAULT_NAMESPACE: "c5839f-tools"
-  TARGET_NAMESPACE:
-  VERSION_PREFIX: "Release-1.0-main-"
-  IMAGE_ID:
-
 # Controls when the workflow will run
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    inputs:
-      Environment:
-        type: choice
-        description: Select an environment to deploy
-        options:
-        - dev
-        - test
-        - sandbox
-        - production
-      Release:
-        description: 'Enter build number: '
-        required: true
-        default: 1
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  deploy:
+  # This workflow contains a single job called "build"
+  build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
 
-      # 1. Login to OpenShift
-      - name: Log in to OpenShift
-        uses: redhat-actions/oc-login@v1
-        with:
-          openshift_server_url: ${{env.OPENSHIFT_SERVER}}
-          openshift_token: ${{env.OPENSHIFT_TOKEN}}
-          insecure_skip_tls_verify: true
-          namespace: ${{env.DEFAULT_NAMESPACE}}
-      # 2. Find the namespace and image digest from input parameters
-      - name: Compute namespace
-        id: set-namespace
-        uses: actions/github-script@v5
-        with:
-          script: |
-            if (`${{github.event.inputs.Environment}}` == 'dev') {
-              return "c5839f-dev"
-            }
-            if (`${{github.event.inputs.Environment}}` == 'test' || `${{github.event.inputs.Environment}}` == 'sandbox') {
-              return "c5839f-test"
-            }
-            if (`${{github.event.inputs.Environment}}` == 'production') {
-              return "c5839f-prod"
-            }
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
 
-      - name: Compute Version image
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
         run: |
-          echo "TARGET_NAMESPACE=${{steps.set-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
-          echo "VERSION=${{env.VERSION_PREFIX}}${{github.event.inputs.Release}}"  | tee -a $GITHUB_ENV
-
-      - name: Find image
-        run: |
-          oc project
-          echo "IMAGE_ID=$(oc get istag/${{env.IMAGE_NAME}}:${{env.VERSION}} -o jsonpath={.image.metadata.name})" | tee -a $GITHUB_ENV
-
-      # 3. Validate if that is correct. If not, exit the job
-      - name: Validate image
-        uses: actions/github-script@v4
-        with:
-          script: |
-            if (`${{env.IMAGE_ID}}`.length == 0 || `${{env.IMAGE_ID}}`.length == 0) {
-              core.setFailed(`❌ Image version: ${{env.VERSION}}. \n` +
-                "Please provide a valid image build number." );
-            }
-            else {
-              core.info(`✅ Valid image found.`);
-            }
-      # 4. Push the image to selected repository
-      - name: Push Image
-        run: |
-          oc tag ${{env.IMAGE_ID}}:${{env.VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.VERSION}}
-
-      # 5. Edit the selcted Argo CD manifest file
-      # Update the image ID in the manifest repository used by Argo CD.
-      # We need to use the SSH deploy key to check out the manifest repo, set up
-      # Kustomize in the runner, update the image ID, commit the change, and
-      # push the changes back to the manifest repository.
-      # ------------------------------------------------------------------------
-      - name: Prepare deploy key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
-
-      - name: Check out manifest repo
-        uses: actions/checkout@v2
-        with:
-          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
-          repository: ${{secrets.GITOPS_C5839F_REPO}}
-          # Update ref to main after this branch is merged
-          ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
-
-      - name: Set up Kustomize
-        uses: imranismail/setup-kustomize@v1
-
-      - name: Determine Kustomize folder location
-        id: set-kustomize-folder
-        with:
-          script: |
-            if (`${{github.event.inputs.Environment}}` == 'dev') {
-              echo "KUSTOMIZE_FOLDER=dev" | tee -a $GITHUB_ENV
-            }
-            if (`${{github.event.inputs.Environment}}` == 'test') {
-              echo "KUSTOMIZE_FOLDER=test" | tee -a $GITHUB_ENV
-            }
-            if (`${{github.event.inputs.Environment}}` == 'sandbox') {
-              echo "KUSTOMIZE_FOLDER=sbx" | tee -a $GITHUB_ENV
-            }
-            if (`${{github.event.inputs.Environment}}` == 'production') {
-              echo "KUSTOMIZE_FOLDER=prod" | tee -a $GITHUB_ENV
-            }
-
-      - name: Update image ID and commit change
-        if: ${{success()}}
-        run: |
-          echo "Folder location is ${{env.KUSTOMIZE_FOLDER}}"          
-
-        # cd mspdirect-devops/overlays/${{github.event.inputs.Environment}}
-        # kustomize edit set image "backend-image=image-registry.openshift-image-registry.svc:5000/${{env.OPENSHIFT_NAMESPACE}}/${{env.BACKEND_IMAGE_NAME}}@${{env.BACKEND_IMAGE_ID}}"
-        # kustomize edit set image "frontend-image=image-registry.openshift-image-registry.svc:5000/${{env.OPENSHIFT_NAMESPACE}}/${{env.FRONTEND_IMAGE_NAME}}@${{env.FRONTEND_IMAGE_ID}}"
-        # git config --local user.email "action@github.com"
-        # git config --local user.name "GitHub Action"
-        # git commit -am "Update frontend and backend image ids using deploy workflow."
-        # git push origin    
-          
+          echo Add other actions to build,
+          echo test, and deploy your project.
