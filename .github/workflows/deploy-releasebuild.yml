@@ -104,43 +104,43 @@ jobs:
       # Kustomize in the runner, update the image ID, commit the change, and
       # push the changes back to the manifest repository.
       # ------------------------------------------------------------------------
-      # - name: Prepare deploy key
-      #   uses: webfactory/ssh-agent@v0.5.3
-      #   with:
-      #     ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
 
-      # - name: Check out manifest repo
-      #   uses: actions/checkout@v2
-      #   with:
-      #     ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
-      #     repository: ${{secrets.GITOPS_C5839F_REPO}}
-      #     # Update ref to main after this branch is merged
-      #     ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+          repository: ${{secrets.GITOPS_C5839F_REPO}}
+          # Update ref to main after this branch is merged
+          ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
 
-      # - name: Set up Kustomize
-      #   uses: imranismail/setup-kustomize@v1
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
 
-      # - name: Determine Kustomize folder location
-      #   id: set-kustomize-folder
-      #   with:
-      #     script: |
-      #       if (`${{github.event.inputs.Environment}}` == 'dev') {
-      #         echo "KUSTOMIZE_FOLDER=dev" | tee -a $GITHUB_ENV
-      #       }
-      #       if (`${{github.event.inputs.Environment}}` == 'test') {
-      #         echo "KUSTOMIZE_FOLDER=test" | tee -a $GITHUB_ENV
-      #       }
-      #       if (`${{github.event.inputs.Environment}}` == 'sandbox') {
-      #         echo "KUSTOMIZE_FOLDER=sbx" | tee -a $GITHUB_ENV
-      #       }
-      #       if (`${{github.event.inputs.Environment}}` == 'production') {
-      #         echo "KUSTOMIZE_FOLDER=prod" | tee -a $GITHUB_ENV
-      #       }
+      - name: Determine Kustomize folder location
+        id: set-kustomize-folder
+        with:
+          script: |
+            if (`${{github.event.inputs.Environment}}` == 'dev') {
+              echo "KUSTOMIZE_FOLDER=dev" | tee -a $GITHUB_ENV
+            }
+            if (`${{github.event.inputs.Environment}}` == 'test') {
+              echo "KUSTOMIZE_FOLDER=test" | tee -a $GITHUB_ENV
+            }
+            if (`${{github.event.inputs.Environment}}` == 'sandbox') {
+              echo "KUSTOMIZE_FOLDER=sbx" | tee -a $GITHUB_ENV
+            }
+            if (`${{github.event.inputs.Environment}}` == 'production') {
+              echo "KUSTOMIZE_FOLDER=prod" | tee -a $GITHUB_ENV
+            }
 
-      # - name: Update image ID and commit change
-      #   if: ${{success()}}
-      #   run: |
-      #     echo "Folder location is ${{env.KUSTOMIZE_FOLDER}}"          
+      - name: Update image ID and commit change
+        if: ${{success()}}
+        run: |
+          echo "Folder location is ${{env.KUSTOMIZE_FOLDER}}"          
 
         # cd mspdirect-devops/overlays/${{github.event.inputs.Environment}}
         # kustomize edit set image "backend-image=image-registry.openshift-image-registry.svc:5000/${{env.OPENSHIFT_NAMESPACE}}/${{env.BACKEND_IMAGE_NAME}}@${{env.BACKEND_IMAGE_ID}}"
