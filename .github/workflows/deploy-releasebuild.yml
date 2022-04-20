@@ -137,7 +137,7 @@ jobs:
               return "prod"
             }
             else{
-              core.setFailed(`❌ Invalid input for environment" );
+              core.setFailed(`❌ Invalid input for environment` );
             }
 
       - name: Update image ID and commit change
