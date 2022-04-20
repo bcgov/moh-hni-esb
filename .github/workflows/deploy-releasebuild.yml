@@ -121,6 +121,7 @@ jobs:
 
       - name: Determine Kustomize folder location
         id: set-kustomize-folder
+        uses: actions/github-script@v5
         with:
           script: |
             if (`${{github.event.inputs.Environment}}` == 'dev') {
