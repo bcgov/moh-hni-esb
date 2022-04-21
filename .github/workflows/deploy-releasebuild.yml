@@ -74,12 +74,12 @@ jobs:
       - name: Compute Version image
         run: |
           echo "TARGET_NAMESPACE=${{steps.get-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
-          echo "VERSION=${{env.VERSION_PREFIX}}${{github.event.inputs.Release}}"  | tee -a $GITHUB_ENV
+          echo "BUILD_VERSION=${{env.VERSION_PREFIX}}${{github.event.inputs.Release}}"  | tee -a $GITHUB_ENV
 
       - name: Find image
         run: |
           oc project
-          echo "IMAGE_ID=$(oc get istag/${{env.IMAGE_NAME}}:${{env.VERSION}} -o jsonpath={.image.metadata.name})" | tee -a $GITHUB_ENV
+          echo "IMAGE_ID=$(oc get istag/${{env.IMAGE_NAME}}:${{env.BUILD_VERSION}} -o jsonpath={.image.metadata.name})" | tee -a $GITHUB_ENV
 
       # 3. Validate if that is correct. If not, exit the job
       - name: Validate image
@@ -87,7 +87,7 @@ jobs:
         with:
           script: |
             if (`${{env.IMAGE_ID}}`.length == 0 || `${{env.IMAGE_ID}}`.length == 0) {
-              core.setFailed(`❌ Image version: ${{env.VERSION}}. \n` +
+              core.setFailed(`❌ Image version: ${{env.BUILD_VERSION}}. \n` +
                 "Please provide a valid image build number." );
             }
             else {
@@ -96,7 +96,7 @@ jobs:
       # 4. Push the image to selected repository
       - name: Push Image
         run: |
-          oc tag ${{env.IMAGE_NAME}}:${{env.VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.VERSION}}
+          oc tag ${{env.IMAGE_NAME}}:${{env.BUILD_VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.BUILD_VERSION}}
 
       # 5. Edit the selcted Argo CD manifest file
       # Update the image ID in the manifest repository used by Argo CD.
@@ -136,18 +136,15 @@ jobs:
             if (`${{github.event.inputs.Environment}}` == 'production') {
               return "prod"
             }
-            else{
-              core.setFailed(`❌ Invalid input for environment` );
-            }
 
       - name: Update image ID and commit change
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
-          kustomize edit set image "image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.RELEASE_VERSION}}"
+          kustomize edit set image "image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.BUILD_VERSION}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying release: ${{env.RELEASE_VERSION}} using deploy-release-build-hnsesb workflow."
+          git commit -am "Deploying release: ${{env.BUILD_VERSION}} using deploy-release-build-hnsesb workflow."
           git push origin    
           
