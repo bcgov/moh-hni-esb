@@ -94,9 +94,9 @@ jobs:
               core.info(`✅ Valid image found.`);
             }
       # 4. Push the image to selected repository
-      # - name: Push Image
-      #   run: |
-      #     oc tag ${{env.IMAGE_ID}}:${{env.VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.VERSION}}
+      - name: Push Image
+        run: |
+          oc tag ${{env.IMAGE_ID}}:${{env.VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.VERSION}}
 
       # 5. Edit the selcted Argo CD manifest file
       # Update the image ID in the manifest repository used by Argo CD.
@@ -104,20 +104,20 @@ jobs:
       # Kustomize in the runner, update the image ID, commit the change, and
       # push the changes back to the manifest repository.
       # ------------------------------------------------------------------------
-      # - name: Prepare deploy key
-      #   uses: webfactory/ssh-agent@v0.5.3
-      #   with:
-      #     ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
 
-      # - name: Check out manifest repo
-      #   uses: actions/checkout@v2
-      #   with:
-      #     ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
-      #     repository: ${{secrets.GITOPS_C5839F_REPO}}
-      #     ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+          repository: ${{secrets.GITOPS_C5839F_REPO}}
+          ref: 5918-Set-up-HNSecure-Test-and-Sandbox-via-ArgoCD
 
-      # - name: Set up Kustomize
-      #   uses: imranismail/setup-kustomize@v1
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
 
       - name: Determine Kustomize folder location
         id: get-kustomize-folder
@@ -143,13 +143,10 @@ jobs:
       - name: Update image ID and commit change
         if: ${{success()}}
         run: |
-          echo "Folder location is ${{steps.get-kustomize-folder.outputs.result}}"          
-
-        # cd mspdirect-devops/overlays/${{github.event.inputs.Environment}}
-        # kustomize edit set image "backend-image=image-registry.openshift-image-registry.svc:5000/${{env.OPENSHIFT_NAMESPACE}}/${{env.BACKEND_IMAGE_NAME}}@${{env.BACKEND_IMAGE_ID}}"
-        # kustomize edit set image "frontend-image=image-registry.openshift-image-registry.svc:5000/${{env.OPENSHIFT_NAMESPACE}}/${{env.FRONTEND_IMAGE_NAME}}@${{env.FRONTEND_IMAGE_ID}}"
-        # git config --local user.email "action@github.com"
-        # git config --local user.name "GitHub Action"
-        # git commit -am "Update frontend and backend image ids using deploy workflow."
-        # git push origin    
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
+          kustomize edit set image "image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying release: ${{env.RELEASE_VERSION}} using deploy-release-build-hnsesb workflow."
+          git push origin    
           
