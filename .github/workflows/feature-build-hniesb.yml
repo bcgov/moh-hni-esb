@@ -144,7 +144,7 @@ jobs:
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.OPENSHIFT_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}} using release workflow."
+          git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}} in dev using feature-build-hnsesb workflow."
           git push origin    
 
           

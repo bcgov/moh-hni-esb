@@ -138,6 +138,6 @@ jobs:
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{env.BUILD_VERSION}} using deploy-release-build-hnsesb workflow."
+          git commit -am "Deploying feature build: ${{env.BUILD_VERSION}} in ${{github.event.inputs.Environment}} using deploy-feature-build-hnsesb workflow."
           git push origin    
           
