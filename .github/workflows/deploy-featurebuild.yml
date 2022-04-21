@@ -15,7 +15,7 @@ env:
   IMAGE_NAME: hnsesb
   DEFAULT_NAMESPACE: "c5839f-tools"
   TARGET_NAMESPACE:
-  VERSION_PREFIX: "FeatureBuild-1.0-"
+  VERSION_PREFIX: "FeatureBuild-"
   IMAGE_ID:
 
 # Controls when the workflow will run
