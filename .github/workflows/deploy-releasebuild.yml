@@ -144,7 +144,8 @@ jobs:
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
-          kustomize edit set image "image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
+          kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
+          kustomize edit set image "image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.RELEASE_VERSION}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying release: ${{env.RELEASE_VERSION}} using deploy-release-build-hnsesb workflow."
