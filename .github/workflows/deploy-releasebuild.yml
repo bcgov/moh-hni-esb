@@ -57,7 +57,7 @@ jobs:
           namespace: ${{env.DEFAULT_NAMESPACE}}
       # 2. Find the namespace and image digest from input parameters
       - name: Compute namespace
-        id: set-namespace
+        id: get-namespace
         uses: actions/github-script@v5
         with:
           script: |
@@ -73,7 +73,7 @@ jobs:
 
       - name: Compute Version image
         run: |
-          echo "TARGET_NAMESPACE=${{steps.set-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
+          echo "TARGET_NAMESPACE=${{steps.get-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
           echo "VERSION=${{env.VERSION_PREFIX}}${{github.event.inputs.Release}}"  | tee -a $GITHUB_ENV
 
       - name: Find image
@@ -96,7 +96,7 @@ jobs:
       # 4. Push the image to selected repository
       - name: Push Image
         run: |
-          oc tag ${{env.IMAGE_ID}}:${{env.VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.VERSION}}
+          oc tag ${{env.IMAGE_NAME}}:${{env.VERSION}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.VERSION}}
 
       # 5. Edit the selcted Argo CD manifest file
       # Update the image ID in the manifest repository used by Argo CD.
