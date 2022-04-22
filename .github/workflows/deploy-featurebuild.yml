@@ -128,7 +128,7 @@ jobs:
         with:
           script: |
             if (`${{env.IMAGE_ID}}`.length == 0 || `${{env.IMAGE_ID}}`.length == 0) {
-              core.setFailed(`❌ Image tag: ${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}. \n` +
+              core.setFailed(`❌ Image tag: ${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}. \n` +
                 "Please provide a valid image build number." );
             }
             else {
