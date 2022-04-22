@@ -97,10 +97,10 @@ jobs:
         with:
           script: |
             if (`${{github.event.inputs.Build_Type}}` == 'Release') {
-              return ${{env.RELEASE_BUILD_IMAGE_TAG_PREFIX}}-main
+              return "${{env.RELEASE_BUILD_IMAGE_TAG_PREFIX}}-main"
             }
             if (`${{github.event.inputs.Build_Type}}` == 'Feature') {
-              return ${{env.FEATURE_BUILD_IMAGE_TAG_PREFIX}}-${{github.event.inputs.Branch}}
+              return "${{env.FEATURE_BUILD_IMAGE_TAG_PREFIX}}-${{github.event.inputs.Branch}}"
             }
 
       - name: Compute image tag
