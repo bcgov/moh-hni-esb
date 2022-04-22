@@ -106,7 +106,7 @@ jobs:
       - name: Compute image tag
         run: |
           echo "TARGET_NAMESPACE=${{steps.get-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
-          echo "IAMGE_TAG=${{steps.get-image-prefix.outputs.result}}-${{github.event.inputs.Build_Run_Number}}"  | tee -a $GITHUB_ENV
+          echo "IMAGE_TAG=${{steps.get-image-prefix.outputs.result}}-${{github.event.inputs.Build_Run_Number}}"  | tee -a $GITHUB_ENV
 
       # Login to OpenShift
       - name: Log in to OpenShift
@@ -128,8 +128,8 @@ jobs:
         with:
           script: |
             if (`${{env.IMAGE_ID}}`.length == 0 || `${{env.IMAGE_ID}}`.length == 0) {
-              core.setFailed(`❌ Image tag: ${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}. \n` +
-                "Please provide a valid image build number." );
+              core.setFailed(`❌ Image tag: ${{env.IMAGE_TAG}} does not exist for image: ${{env.IMAGE_NAME}}. \n` +
+                "Please provide a valid image information." );
             }
             else {
               core.info(`✅ Valid image found.`);
