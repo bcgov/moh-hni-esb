@@ -58,7 +58,7 @@ jobs:
       IMAGE_ID: ${{env.IMAGE_ID}}
       IMAGE_TAG: ${{env.IMAGE_TAG}}
       COMMIT_SHA: ${{env.COMMIT_SHA}}
-      TARGET_NAMESPACE: ${{TARGET_NAMESPACE}}
+      TARGET_NAMESPACE: ${{env.TARGET_NAMESPACE}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
