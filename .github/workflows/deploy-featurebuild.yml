@@ -200,13 +200,8 @@ jobs:
             if (`${{github.event.inputs.Environment}}` == 'test') {
               return "test"
             }
-            if (`${{github.event.inputs.Environment}}` == 'sandbox') {
-              return "sbx"
-            }
-            if (`${{github.event.inputs.Environment}}` == 'production') {
-              return "prod"
-            }
-
+            core.setFailed(`❌ Invalid inputs for Environment and branch`  );
+            
       - name: Update image ID and commit change
         if: ${{success()}}
         run: |
@@ -231,8 +226,8 @@ jobs:
         id: set-env
         run: |
           echo "IMAGE_ID=${{needs.validate.outputs.IMAGE_ID}}"  | tee -a $GITHUB_ENV
-          echo "IMAGE_ID=${{needs.validate.outputs.IMAGE_TAG}}"  | tee -a $GITHUB_ENV
-          echo "IMAGE_ID=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
+          echo "IMAGE_TAG=${{needs.validate.outputs.IMAGE_TAG}}"  | tee -a $GITHUB_ENV
+          echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
 
 
       # Login to OpenShift
