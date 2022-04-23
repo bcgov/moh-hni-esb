@@ -148,8 +148,8 @@ jobs:
         id: set-env
         run: |
           echo "IMAGE_ID=${{needs.validate.outputs.IMAGE_ID}}"  | tee -a $GITHUB_ENV
-          echo "IMAGE_ID=${{needs.validate.outputs.IMAGE_TAG}}"  | tee -a $GITHUB_ENV
-          echo "IMAGE_ID=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
+          echo "IMAGE_TAG=${{needs.validate.outputs.IMAGE_TAG}}"  | tee -a $GITHUB_ENV
+          echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
 
 
       # Login to OpenShift
