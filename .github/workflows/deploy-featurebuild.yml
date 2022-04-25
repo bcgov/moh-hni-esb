@@ -1,13 +1,23 @@
-# This is a deployment workflow to deploy a selected release in selected environment
+# This is a multi job workflow to deploy a selected release build or feature build in selected environment
+# No approval require for deploying feature build.
+# Approval required for deploying release build to any environment.
 # Steps are:
-# 1. Login to OpenShift
-# 2. Find the image digest from input parameters
-# 3. Validate if that is correct. If not, exit the job
-# 4. Push the image to selected repository
-# 5. Edit the selcted Argo CD manifest file
+# Job 1:
+#   Validates if it is valid input
+#   Determine target namespace for the input
+#   Determine image tag from the input
+#   Login to openshift and Determine image sha from impage repository 
+# Job 2: Feature build deploy 
+#   Push the image to target repository
+#   Update GitOps repo with sha to deploy using ArgoCD autoSync   
+#   
+# Job 3: Relase build deploy
+#   After deploy request is approved
+#   Push the image to target repository
+#   Update GitOps repo with sha to deploy using ArgoCD autoSync
 
 
-name: deploy-feature-build-hnsesb
+name: deploy-hnsesb
 
 env:
   OPENSHIFT_SERVER: ${{secrets.C5839F_OPENSHIFT_SERVER}}
@@ -62,7 +72,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
-      # 2. Find the namespace and image digest from input parameters
+      # Find the namespace and image digest from input parameters
       - name: Compute target namespace
         id: get-namespace
         uses: actions/github-script@v5
@@ -121,7 +131,7 @@ jobs:
         run: |
           echo "IMAGE_ID=$(oc get istag/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}} -o jsonpath={.image.metadata.name})" | tee -a $GITHUB_ENV
 
-      # 3. Validate if that is correct. If not, exit the job
+      # Validate if that is correct. If not, exit the job
       - name: Validate image
         uses: actions/github-script@v4
         with:
@@ -216,7 +226,7 @@ jobs:
     if: github.event.inputs.Build_Type == 'Release'
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    environment: Development
+    environment: ReviewRequired
     needs: [validate]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
