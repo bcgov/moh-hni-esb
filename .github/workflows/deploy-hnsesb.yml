@@ -52,11 +52,10 @@ on:
       Branch:
         description: 'Enter feature branch name. For release build deployments this input is ignored.'
         required: true
-        default: 6334-hns-esb-504-timeout-error
+        default: main
       Build_Run_Number:
         description: 'Enter feature build run number: '
         required: true
-        default: 41
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
