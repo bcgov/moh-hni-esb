@@ -1,12 +1,12 @@
 # This is a multi job workflow to deploy a selected release build or feature build in selected environment
-# No approval require for deploying feature build.
+# No approval required for deploying feature build.
 # Approval required for deploying release build to any environment.
 # Steps are:
 # Job 1:
 #   Validates if it is valid input
 #   Determine target namespace for the input
 #   Determine image tag from the input
-#   Login to openshift and Determine image sha from impage repository 
+#   Login to openshift and Determine image sha from image repository 
 # Job 2: Feature build deploy 
 #   Push the image to target repository
 #   Update GitOps repo with sha to deploy using ArgoCD autoSync   
@@ -135,7 +135,7 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            if (`${{env.IMAGE_ID}}`.length == 0 || `${{env.IMAGE_ID}}`.length == 0) {
+            if (`${{env.IMAGE_ID}}`.length == 0) {
               core.setFailed(`❌ Image tag: ${{env.IMAGE_TAG}} does not exist for image: ${{env.IMAGE_NAME}}. \n` +
                 "Please provide a valid image information." );
             }
