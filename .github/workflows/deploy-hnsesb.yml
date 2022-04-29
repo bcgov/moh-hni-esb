@@ -71,29 +71,36 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
+      # Step to set environment variables from user inputs
+      - name: Set environment variables
+        id: set-env
+        run: |
+          echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
+          echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
+
       # Find the namespace and image digest from input parameters
       - name: Compute target namespace
         id: get-namespace
         uses: actions/github-script@v5
         with:
           script: |
-            if(`${{github.event.inputs.Build_Type}}` == 'Feature'){
-              if (`${{github.event.inputs.Environment}}` == 'dev') {
+            if(`${{env.BUILD_TYPE}}` == 'Feature'){
+              if (`${{env.ENVIRONMENT}}` == 'dev') {
                 return "c5839f-dev"
               }
-              if (`${{github.event.inputs.Environment}}` == 'test' ) {
+              if (`${{env.ENVIRONMENT}}` == 'test' ) {
                 return "c5839f-test"
               }
                core.setFailed(`❌ Feature build can only be deployed in dev or test environments`  );
             }
-            if(`${{github.event.inputs.Build_Type}}` == 'Release'){
-              if (`${{github.event.inputs.Environment}}` == 'dev') {
+            if(`${{env.BUILD_TYPE}}` == 'Release'){
+              if (`${{env.ENVIRONMENT}}` == 'dev') {
                 return "c5839f-dev"
               }
-              if (`${{github.event.inputs.Environment}}` == 'test' || `${{github.event.inputs.Environment}}` == 'sandbox') {
+              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox') {
                 return "c5839f-test"
               }
-              if (`${{github.event.inputs.Environment}}` == 'production') {
+              if (`${{env.ENVIRONMENT}}` == 'production') {
                 return "c5839f-prod"
               }
             }
@@ -104,10 +111,10 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            if (`${{github.event.inputs.Build_Type}}` == 'Release') {
+            if (`${{env.BUILD_TYPE}}` == 'Release') {
               return "${{env.RELEASE_BUILD_IMAGE_TAG_PREFIX}}-main"
             }
-            if (`${{github.event.inputs.Build_Type}}` == 'Feature') {
+            if (`${{env.BUILD_TYPE}}` == 'Feature') {
               return "${{env.FEATURE_BUILD_IMAGE_TAG_PREFIX}}-${{github.event.inputs.Branch}}"
             }
 
@@ -153,12 +160,14 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
-      - name: Set environment variables from previous job
+      - name: Set environment variables from user inputs and  previous job
         id: set-env
         run: |
           echo "IMAGE_ID=${{needs.validate.outputs.IMAGE_ID}}"  | tee -a $GITHUB_ENV
           echo "IMAGE_TAG=${{needs.validate.outputs.IMAGE_TAG}}"  | tee -a $GITHUB_ENV
           echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
+          echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
+          echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
 
 
       # Login to OpenShift
@@ -203,10 +212,10 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            if (`${{github.event.inputs.Environment}}` == 'dev') {
+            if (`${{env.ENVIRONMENT}}` == 'dev') {
               return "dev"
             }
-            if (`${{github.event.inputs.Environment}}` == 'test') {
+            if (`${{env.ENVIRONMENT}}` == 'test') {
               return "test"
             }
             core.setFailed(`❌ Invalid inputs for Environment and branch`  );
@@ -218,7 +227,7 @@ jobs:
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{github.event.inputs.Environment}} using deploy-feature-build-hnsesb workflow."
+          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-feature-build-hnsesb workflow."
           git push origin    
 
   deploy-release-build:
@@ -237,7 +246,8 @@ jobs:
           echo "IMAGE_ID=${{needs.validate.outputs.IMAGE_ID}}"  | tee -a $GITHUB_ENV
           echo "IMAGE_TAG=${{needs.validate.outputs.IMAGE_TAG}}"  | tee -a $GITHUB_ENV
           echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
-
+          echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
+          echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
 
       # Login to OpenShift
       - name: Log in to OpenShift
@@ -281,16 +291,16 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            if (`${{github.event.inputs.Environment}}` == 'dev') {
+            if (`${{env.ENVIRONMENT}}` == 'dev') {
               return "dev"
             }
-            if (`${{github.event.inputs.Environment}}` == 'test') {
+            if (`${{env.ENVIRONMENT}}` == 'test') {
               return "test"
             }
-            if (`${{github.event.inputs.Environment}}` == 'sandbox') {
+            if (`${{env.ENVIRONMENT}}` == 'sandbox') {
               return "sbx"
             }
-            if (`${{github.event.inputs.Environment}}` == 'production') {
+            if (`${{env.ENVIRONMENT}}` == 'production') {
               return "prod"
             }
 
@@ -301,5 +311,5 @@ jobs:
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{github.event.inputs.Environment}} using deploy-feature-build-hnsesb workflow."
+          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-feature-build-hnsesb workflow."
           git push origin    

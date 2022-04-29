@@ -1,4 +1,5 @@
-# This is a manual workflow that performs following activities:
+# This is multi job workflow that builds the image, deploy that image in OpenShift dev environment and creates a tag in gihub repository.
+# This workflow is triggered manually and performs following activities:
 # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution>  
 # 2. Determine tags for OpenShift image
 # 3. Run the maven install for common code
@@ -11,7 +12,6 @@
 
 name: release-hnsesb
 
-# Build the image and deploy in OpenShift test environment
 env:
   OPENSHIFT_SERVER: ${{ secrets.C5839F_OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.C5839F_OPENSHIFT_GITHUB_ACTIONS_SA_TOKEN }}
