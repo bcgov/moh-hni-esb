@@ -109,7 +109,7 @@ parameters:
     description: |
       The name of the application for labelling all artifacts.
     displayName: Application Name
-    value: hni-patroni-postgresql
+    value: hnsesb-prod-patroni
   - name: PATRONI_SUPERUSER_USERNAME
     description: |
       Username of the superuser account for initialization.
@@ -132,10 +132,9 @@ parameters:
     generate: expression
     from: "[a-z0-9]{32}"
   - name: APP_DB_USERNAME
-    generate: expression
-    from: "[a-z0-9]{8}"
+    value: hnsesb-auditdb-user
   - name: APP_DB_NAME
-    value: registry
+    value: hnsesb-auditdb
   - name: APP_DB_PASSWORD
     generate: expression
     from: "[a-z0-9]{32}"
@@ -145,4 +144,4 @@ parameters:
       in dev and test when you want to clear all and have a clean working namespace.
     name: APP_LABEL_NAME
     required: true
-    value: hni-patroni-postgresql
+    value: hnsesb-prod-patroni

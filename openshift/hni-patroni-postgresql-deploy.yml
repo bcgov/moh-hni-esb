@@ -199,7 +199,7 @@ parameters:
     description: |
       The name of the application for labelling all artifacts.
     displayName: Application Name
-    value: hni-patroni-postgresql
+    value: hnsesb-prod-patroni
   - name: REPLICAS
     description: |
       The number of StatefulSet replicas to use.
@@ -227,7 +227,7 @@ parameters:
       The OpenShift Namespace where the patroni and postgresql
       ImageStream resides.
     displayName: ImageStream Namespace
-    value: bcgov
+    value: bcgov-docker-local
   - name: IMAGE_NAME
     description: |
       The Patroni image stream name
@@ -244,11 +244,11 @@ parameters:
   - name: STORAGE_CLASS
     value: netapp-file-standard
   - name: IMAGE_REGISTRY
-    value: artifacts.developer.gov.bc.ca/bcgov-docker-local
+    value: artifacts.developer.gov.bc.ca
   - displayName: App label name
     description: |
       The App label name used for all components of the application. This is useful
       in dev and test when you want to clear all and have a clean working namespace.
     name: APP_LABEL_NAME
     required: true
-    value: hni-patroni-postgresql
+    value: hnsesb-prod-patroni
