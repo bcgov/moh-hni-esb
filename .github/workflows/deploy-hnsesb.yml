@@ -227,7 +227,7 @@ jobs:
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-feature-build-hnsesb workflow."
+          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-hnsesb workflow."
           git push origin    
 
   deploy-release-build:
@@ -311,5 +311,5 @@ jobs:
           kustomize edit set image "hnsesb-image=image-registry.openshift-image-registry.svc:5000/${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.IMAGE_ID}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-feature-build-hnsesb workflow."
+          git commit -am "Deploying release build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-hnsesb workflow."
           git push origin    
