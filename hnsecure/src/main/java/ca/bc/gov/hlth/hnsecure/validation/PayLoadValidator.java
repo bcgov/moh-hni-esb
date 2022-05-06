@@ -109,10 +109,12 @@ public class PayLoadValidator extends AbstractValidator {
 		} else if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
 			Set<String> validReceivingFacility = Util.getPropertyAsSet(properties.getValue(VALID_RECIEVING_FACILITY));
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
+				logger.error("{} - TransactionId: {}. Facility Not Found '{}, {}'", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getReceivingFacility(), messageObj.getProcessingId());
 				generateError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 			}
 		} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
+			logger.error("{} - TransactionId: {}. Receiving application is PNP for non-PNP Message Type {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getMessageType());
 			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 		}
 	}
@@ -260,7 +262,7 @@ public class PayLoadValidator extends AbstractValidator {
 		
 		ErrorResponse errorResponse = new ErrorResponse();		
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {} {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage.getErrorSequence(), errorText);
+		logger.error("{} - TransactionId: {}, FacilityId: {}. Error message is: {} {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObject.getSendingFacility(), errorMessage.getErrorSequence(), errorText);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);				
 		// Write to Audit tables in enabled
@@ -283,7 +285,7 @@ public class PayLoadValidator extends AbstractValidator {
 		
 		PharmanetErrorResponse errorResponse = new PharmanetErrorResponse();
 		String v2Response = errorResponse.constructResponse(messageObject, errorMessage);
-		logger.info("{} - TransactionId: {}, FacilityId: {}, Error message is: {} {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage.getErrorSequence(), errorText);
+		logger.error("{} - TransactionId: {}, FacilityId: {}. Error message is: {} {}", LoggingUtil.getMethodName(), exchange.getExchangeId(),messageObject.getSendingFacility(), errorMessage.getErrorSequence(), errorText);
 		exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, httpStatusCode);
 		exchange.getIn().setBody(v2Response);				
 		// Write to Audit tables in enabled
