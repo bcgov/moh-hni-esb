@@ -281,7 +281,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
           repository: ${{secrets.GITOPS_C5839F_REPO}}
-          ref: main
+          ref: 2410-create-prod-environment
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
