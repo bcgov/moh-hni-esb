@@ -27,7 +27,7 @@ public class V2MessageUtil {
 	}
 	
 	public enum SegmentType {
-		MSH, PID, QPD, ZCC, ZPA
+		MSH, PID, QPD, ZCC, ZPA, ZZZ
 	}	
 
 	/**

@@ -9,6 +9,8 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import ca.bc.gov.hlth.hnsecure.exception.ValidationFailedException;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.SegmentType;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 import ca.bc.gov.hlth.hnsecure.test.TestPropertiesLoader;
 
@@ -123,6 +125,28 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
         
         assertEquals("BC01000030", clientId);
         assertEquals(expectedResponse, response);
+    }
+    
+    @Test
+    public void testHL7ErrorMsgFacilityIdMismatchPharmanet() {
+    	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
+        String msgInput = "MSH|^&~\\|DESKTOP|BC01000030|PNP|PP|2012/01/06 15:47:24|SS0AR|ZPN|000008|D|2.1||\r\n"+
+        		"ZZZ|TRP|R|000008|P1|XXASD||||\r\n"+
+        		"ZCA|000001|03|00|AR|04|\r\n"+
+        		"ZCC||||||||||0009735391361|\r\n";
+    	String expectedResponse = "ZZZ||1|||||VLDT008E  The Client Facility and HL7 Sending Facility IDs do not match: moh_hnclient_dev||";
+    	exchange.getIn().setBody(msgInput);
+    	assertThrows(ValidationFailedException.class, () -> {
+            v2PayloadValidator.validate(exchange);
+        });
+    	assertEquals(HttpStatus.SC_BAD_REQUEST, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
+    	String[] segments = ((String)exchange.getIn().getBody()).split("\n");
+    	String msh =  V2MessageUtil.getSegment(segments, SegmentType.MSH);
+    	String clientId  = msh.split("\\|")[5];
+    	String zzz = V2MessageUtil.getSegment(segments, SegmentType.ZZZ);
+        
+        assertEquals("BC01000030", clientId);
+        assertEquals(expectedResponse, zzz);
     }
     
     @Test
