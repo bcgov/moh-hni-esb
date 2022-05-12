@@ -91,7 +91,7 @@ public class PayLoadValidator extends AbstractValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {	
 		if (isPharmanetMode && !V2MessageUtil.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 			populateFieldsForErrorResponse(messageObj);
-			logger.error("{} - TransactionId: {}. ZCB segment missing", LoggingUtil.getMethodName(), exchange.getExchangeId());
+			logger.error("{} - TransactionId: {}. couldn't find ZCB segment", LoggingUtil.getMethodName(), exchange.getExchangeId());
 			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_TRANSACTION_FORMAT_ERROR, exchange);
 		}		
 	}
@@ -115,7 +115,7 @@ public class PayLoadValidator extends AbstractValidator {
 			}
 		} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-			logger.error("{} - TransactionId: {}. Receiving application is PNP for non-PNP Message Type {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getMessageType());
+			logger.error("{} - TransactionId: {}. Receiving application is PNP for non-ZPN Message Type: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getMessageType());
 			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 		}
 	}
