@@ -91,6 +91,7 @@ public class PayLoadValidator extends AbstractValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {	
 		if (isPharmanetMode && !V2MessageUtil.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 			populateFieldsForErrorResponse(messageObj);
+			logger.error("{} - TransactionId: {}. ZCB segment missing", LoggingUtil.getMethodName(), exchange.getExchangeId());
 			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_TRANSACTION_FORMAT_ERROR, exchange);
 		}		
 	}

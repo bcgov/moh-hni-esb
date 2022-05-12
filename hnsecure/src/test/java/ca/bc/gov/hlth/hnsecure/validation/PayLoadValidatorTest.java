@@ -206,7 +206,7 @@ public class PayLoadValidatorTest extends TestPropertiesLoader {
     
     
     @Test
-    public void testPNPMessageFormat() {
+    public void testPNPMessageFormat_missingZCB() {
     	exchange.getIn().setHeader("Authorization", SamplesToSend.AUTH_HEADER);
         String msgInput="MSH|^&~\\|DESKTOP|moh_hnclient_dev|PNP|PP|2012/01/06 15:47:24|SS0AR|ZPN|000008|D|2.1||\r\n"+
         		"ZZZ|TRP|R|000008|P1|XXASD||||\r\n"+
