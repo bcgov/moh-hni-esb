@@ -12,7 +12,7 @@ public class ErrorResponse extends ResponseSegment {
 
 	@Override
 	public String constructResponse(HL7Message messageObj, ErrorMessage errorMessage) {
-		String formattedResponseText = errorMessage.getErrorSequence() + "  " + errorMessage.formatErrorMessage(messageObj);	
+		String formattedResponseText = errorMessage.getErrorSequence() + "  " + errorMessage.formatErrorMessage(messageObj);
 		return constructMSH(messageObj) + constructMSA(messageObj.getMessageControlId(), formattedResponseText);
 	}
 
