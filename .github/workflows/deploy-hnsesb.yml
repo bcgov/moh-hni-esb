@@ -6,16 +6,15 @@
 #   Validates if it is valid input
 #   Determine target namespace for the input
 #   Determine image tag from the input
-#   Login to openshift and Determine image sha from image repository 
-# Job 2: Feature build deploy 
+#   Login to openshift and Determine image sha from image repository
+# Job 2: Feature build deploy
 #   Push the image to target repository
-#   Update GitOps repo with sha to deploy using ArgoCD autoSync   
-#   
+#   Update GitOps repo with sha to deploy using ArgoCD autoSync
+#
 # Job 3: Relase build deploy
 #   After deploy request is approved
 #   Push the image to target repository
 #   Update GitOps repo with sha to deploy using ArgoCD autoSync
-
 
 name: deploy-hnsesb
 
@@ -31,7 +30,6 @@ env:
 
 # Controls when the workflow will run
 on:
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -39,22 +37,22 @@ on:
         type: choice
         description: Select an environment to deploy
         options:
-        - dev
-        - test
-        - sandbox
-        - production
+          - dev
+          - test
+          - sandbox
+          - production
       Build_Type:
         type: choice
         description: Select type of build
         options:
-        - Feature
-        - Release
+          - Feature
+          - Release
       Branch:
-        description: 'Enter feature branch name. For release build deployments this input is ignored.'
+        description: "Enter feature branch name. For release build deployments this input is ignored."
         required: true
         default: main
       Build_Run_Number:
-        description: 'Enter build run number: '
+        description: "Enter build run number: "
         required: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -62,7 +60,7 @@ jobs:
   validate:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    
+
     outputs:
       IMAGE_ID: ${{env.IMAGE_ID}}
       IMAGE_TAG: ${{env.IMAGE_TAG}}
@@ -70,7 +68,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-
       # Step to set environment variables from user inputs
       - name: Set environment variables
         id: set-env
@@ -150,7 +147,6 @@ jobs:
               core.info(`✅ Valid image found.`);
             }
 
-
   deploy-feature-build:
     if: github.event.inputs.Build_Type == 'Feature'
     # The type of runner that the job will run on
@@ -159,7 +155,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-
       - name: Set environment variables from user inputs and  previous job
         id: set-env
         run: |
@@ -168,7 +163,6 @@ jobs:
           echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
           echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
           echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
-
 
       # Login to OpenShift
       - name: Log in to OpenShift
@@ -179,12 +173,10 @@ jobs:
           insecure_skip_tls_verify: true
           namespace: ${{env.DEFAULT_NAMESPACE}}
 
-
       # Push the image to selected repository
       - name: Push Image
         run: |
           oc tag ${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}
-
 
       # 5. Edit the selcted Argo CD manifest file
       # Update the image ID in the manifest repository used by Argo CD.
@@ -219,7 +211,7 @@ jobs:
               return "test"
             }
             core.setFailed(`❌ Invalid inputs for Environment and branch`  );
-            
+
       - name: Update image ID and commit change
         if: ${{success()}}
         run: |
@@ -228,7 +220,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying feature build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-hnsesb workflow."
-          git push origin    
+          git push origin
 
   deploy-release-build:
     if: github.event.inputs.Build_Type == 'Release'
@@ -239,7 +231,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-
       - name: Set environment variables from previous job
         id: set-env
         run: |
@@ -258,12 +249,10 @@ jobs:
           insecure_skip_tls_verify: true
           namespace: ${{env.DEFAULT_NAMESPACE}}
 
-
       # Push the image to selected repository
       - name: Push Image
         run: |
           oc tag ${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}} ${{env.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}
-
 
       # 5. Edit the selcted Argo CD manifest file
       # Update the image ID in the manifest repository used by Argo CD.
@@ -281,7 +270,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
           repository: ${{secrets.GITOPS_C5839F_REPO}}
-          ref: 2410-create-prod-environment
+          ref: main
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
@@ -312,4 +301,4 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying release build: ${{env.IMAGE_TAG}} in ${{env.ENVIRONMENT}} using deploy-hnsesb workflow."
-          git push origin    
+          git push origin
