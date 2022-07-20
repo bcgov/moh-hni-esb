@@ -25,9 +25,9 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
  * format:{messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
  *
  */
-public abstract class FileDropGenerater {
+public abstract class FileDropGenerator {
 
-	private static final Logger logger = LoggerFactory.getLogger(FileDropGenerater.class);
+	private static final Logger logger = LoggerFactory.getLogger(FileDropGenerator.class);
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
 
 	/**

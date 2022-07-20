@@ -17,9 +17,9 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * kinda like a Wire Tap.
  * 
  */
-public class ResponseFileDropGenerater extends FileDropGenerater {
+public class ResponseFileDropGenerator extends FileDropGenerator {
 
-	private static final Logger logger = LoggerFactory.getLogger(ResponseFileDropGenerater.class);
+	private static final Logger logger = LoggerFactory.getLogger(ResponseFileDropGenerator.class);
 	public static final String RESPONSE_FILE = "response.txt";
 
 	@Handler

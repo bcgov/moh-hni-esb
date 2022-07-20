@@ -1,7 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.json.pharmanet;
 
 /**
- *	Represents the JSON PhamraNet message as a java object
+ *	Represents the JSON Pharmanet message as a java object
  *
  */
 public class PharmaNetJsonMessage {

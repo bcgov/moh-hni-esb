@@ -24,7 +24,7 @@ public abstract class BaseRoute extends RouteBuilder {
 	 * 2.requestTimeout: The timeout for waiting for a reply when using the InOut Exchange Pattern (in milliseconds).
 	 * 3.timeToLive: When sending messages, specifies the time-to-live of the message (in milliseconds).
 	 * 4.targetClient: Removes {@link MQRFH2} header.
-	 * 5.mdWriteEnabled: permits to edit MQMD field on destination.
+	 * 5.mdWriteEnabled: permits editing MQMD field on destination.
 	 * Refer: https://camel.apache.org/components/3.11.x/jms-component.html
 	 */
 	protected static final String JMS_DESTINATION_NAME_FORMAT = "queue:///%s?targetClient=1&&mdWriteEnabled=true";

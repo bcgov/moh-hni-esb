@@ -7,7 +7,7 @@
   <description>Contains code common to both hnclient and hnsecure</description>
 
   	<properties>
-	  <java.version>13</java.version>
+	  <java.version>11</java.version>
 	  <maven.compiler.source>${java.version}</maven.compiler.source>
 	  <maven.compiler.target>${java.version}</maven.compiler.target>
       <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>

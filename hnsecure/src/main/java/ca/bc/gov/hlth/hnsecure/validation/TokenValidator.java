@@ -70,7 +70,7 @@ public class TokenValidator extends AbstractValidator {
 
 		logger.debug("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getExchangeId());
 		
-		// If more validataion is required for exchange message, we should create a new bean
+		// If more validation is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		if (StringUtils.isBlank(authorizationKey)) {
 			logger.info("{} - TransactionId: {}, No authorization key passed in request header.", methodName, exchange.getExchangeId());

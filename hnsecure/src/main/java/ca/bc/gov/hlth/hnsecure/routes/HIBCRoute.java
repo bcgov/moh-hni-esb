@@ -1,11 +1,12 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_MQ_NOT_ENABLED;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_MQ_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.PHARMANET_CERT_PASSWORD;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
@@ -17,18 +18,42 @@ import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
-import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
+import org.apache.camel.component.http.HttpComponent;
+import org.apache.camel.spi.Registry;
+import org.apache.camel.support.jsse.KeyManagersParameters;
+import org.apache.camel.support.jsse.KeyStoreParameters;
+import org.apache.camel.support.jsse.SSLContextParameters;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class HIBCRoute extends BaseRoute {
 
 	private static final String DIRECT_AUDIT = "direct:audit";
 	private static final String DIRECT_HIBC_MQ = "direct:hibcMQ";
+	private static final String DIRECT_HIBC_HTTP = "direct:hibcHTTP";
+
+	private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
+
+	private static final String SSL_CONTEXT_HIBC = "ssl_context_hibc";
+
+	private static final String SSL2 = "ssl2";
+
+	private static final String BASIC = "Basic ";
+
+	private static final String CAMEL_HTTP_METHOD = "CamelHttpMethod";
 
 	@Override
 	public void configure() throws Exception {
 
-		String hibcHttpUrl = properties.getValue(ApplicationProperty.HIBC_HTTP_URI) + "?bridgeEndpoint=true";
-		
+		setupSSLContextHibcRegistry(getContext());
+
+		String hibcHttpUrl = String.format(
+				properties.getValue(HIBC_HTTP_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
+				SSL_CONTEXT_HIBC, properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
+		String basicToken = buildBasicToken(properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
+
 		boolean isMQEnabled = Boolean.parseBoolean(properties.getValue(IS_MQ_ENABLED));		
 		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);
 		String hibcReplyQueue = properties.getValue(HIBC_REPLY_QUEUE);
@@ -40,7 +65,7 @@ public class HIBCRoute extends BaseRoute {
 			.process(new ProtocolEvaluator()).id("ProtocolEvaluator")
 			.choice()
 				.when(exchangeProperty(Util.PROPERTY_MESSAGE_PROTOCOL).isEqualTo(Util.PROTOCOL_HTTP))
-					.to("direct:hibcHTTP")
+					.to(DIRECT_HIBC_HTTP)
 				.when(exchangeProperty(Util.PROPERTY_MESSAGE_PROTOCOL).isEqualTo(Util.PROTOCOL_MQ))
 					.to(DIRECT_HIBC_MQ)
 				.otherwise()
@@ -50,20 +75,16 @@ public class HIBCRoute extends BaseRoute {
 
 		// XXX This is currently just a simple HTTP route which will need additional configuration (auth, request/response conversion)
 		// once the endpoint is available
-		from("direct:hibcHTTP").routeId("hibc-http-route")
-	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
-	     	.log("Sending to HIBC")
+		from(DIRECT_HIBC_HTTP).routeId("hibc-http-route")
+	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	     	.wireTap(DIRECT_AUDIT).end()
-	     	.setBody().method(new Base64Encoder()).id("HIBCBase64Encoder")
-            .setBody().method(new ProcessV2ToJson()).id("HIBCProcessV2ToJson")
 	     	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-	        .setHeader("CamelHttpMethod", POST)
-	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
+	        .setHeader(CAMEL_HTTP_METHOD, POST)
+			.setHeader(AUTHORIZATION, simple(basicToken))
+	     	.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	     	.to(hibcHttpUrl).id("ToHibcHttpUrl")
-	     	.log("Received response from HIBC")
-	     	.bean(FhirPayloadExtractor.class)
-	     	.log("Decoded V2: ${body}")
+			.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
 
@@ -86,6 +107,35 @@ public class HIBCRoute extends BaseRoute {
 	    	.log("MQ routes are disabled.")
 	    	.throwException(new CustomHNSException(CUSTOM_ERROR_MQ_NOT_ENABLED));
 		}
+	}
+
+	private void setupSSLContextHibcRegistry(CamelContext camelContext) {
+		KeyStoreParameters ksp = new KeyStoreParameters();
+		ksp.setResource(properties.getValue(HIBC_CERT));
+		ksp.setPassword(properties.getValue(HIBC_CERT_PASSWORD));
+		ksp.setType(KEY_STORE_TYPE_PKCS12);
+
+		KeyManagersParameters kmp = new KeyManagersParameters();
+		kmp.setKeyStore(ksp);
+		kmp.setKeyPassword(properties.getValue(HIBC_CERT_PASSWORD));
+
+		SSLContextParameters sslContextParameters = new SSLContextParameters();
+		sslContextParameters.setKeyManagers(kmp);
+
+		HttpComponent httpComponent = camelContext.getComponent("https", HttpComponent.class);
+		//This is important to make your cert skip CN/Hostname checks
+		httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
+
+		Registry registry = camelContext.getRegistry();
+		registry.bind(SSL_CONTEXT_HIBC, sslContextParameters);
+		registry.bind(SSL2, new SSLContextParameters()); // If there is only one bound SSL context then Camel will default to always use it in every URL. So as a workaround to stop this a default new empty context is added here.
+	}
+
+	private String buildBasicToken(String username, String password) {
+		String usernamePassword = username + ":" + password;
+		String token = new String(Base64.getEncoder().encode(usernamePassword.getBytes(StandardCharsets.UTF_8)));
+
+		return BASIC + token;
 	}
 	
 }
