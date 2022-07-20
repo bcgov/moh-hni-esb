@@ -20,9 +20,11 @@ import java.util.Properties;
 import javax.jms.JMSException;
 
 import org.apache.camel.Predicate;
+import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.support.builder.PredicateBuilder;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +69,9 @@ public class Route extends BaseRoute {
 		String isAuditsEnabled = applicationProperties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
 		Predicate isMessageForHIBC = isMessageForHIBC();
+
+		HttpComponent httpComponent = getContext().getComponent("https", HttpComponent.class);
+		httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
 
 		handleExceptions();
 
