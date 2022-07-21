@@ -33,6 +33,8 @@ public class HIBCRoute extends BaseRoute {
 	public void configure() throws Exception {
 
 		boolean isMQEnabled = Boolean.parseBoolean(properties.getValue(IS_MQ_ENABLED));
+		String e45Protocol = properties.getValue("E45.protocol");
+		String r15Protocol = properties.getValue("E45.protocol");
 
 		// Setup web endpoint config
 		setupSSLContextHibcRegistry(getContext());
@@ -56,8 +58,8 @@ public class HIBCRoute extends BaseRoute {
 				.when(exchangeProperty(Util.PROPERTY_MESSAGE_PROTOCOL).isEqualTo(Util.PROTOCOL_MQ))
 					.to(DIRECT_HIBC_MQ)
 				.otherwise()
-					.log("Protocol for HIBC message type ${exchangeProperty.messageType} not found or not valid. Defaulting to MQ")
-					.to(DIRECT_HIBC_MQ)
+					.log("Protocol for HIBC message type ${exchangeProperty.messageType} not found or not valid. Defaulting to HTTP")
+					.to(DIRECT_HIBC_HTTP)
 			.end();
 
 		from(DIRECT_HIBC_HTTP).routeId("hibc-http-route")
@@ -73,7 +75,8 @@ public class HIBCRoute extends BaseRoute {
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
 
-		if (isMQEnabled) {
+		// Don't start up this MQ route if neither E45 nor R15 will use it
+		if (isMQEnabled && (e45Protocol.equals(Util.PROTOCOL_MQ) || r15Protocol.equals(Util.PROTOCOL_MQ))) {
 			from(DIRECT_HIBC_MQ).routeId("hibc-mq-route")
 		        .log(String.format("Processing HIBC messages. Request Queue : %s, ReplyQ: %s", hibcRequestQueue, hibcReplyQueue))
 		        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
