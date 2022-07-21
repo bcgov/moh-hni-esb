@@ -1,4 +1,4 @@
-package ca.bc.gov.hlth.hnsecure.endpointauthentication;
+package ca.bc.gov.hlth.hnsecure.routes;
 
 import org.apache.camel.support.jsse.KeyManagersParameters;
 import org.apache.camel.support.jsse.KeyStoreParameters;
@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 
-public class WebAuthenticationUtils {
+public class RouteUtils {
 
     private static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
     private static final String BASIC = "Basic ";

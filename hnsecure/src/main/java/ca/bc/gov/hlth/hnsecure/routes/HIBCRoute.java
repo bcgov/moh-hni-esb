@@ -5,7 +5,6 @@ import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
-import ca.bc.gov.hlth.hnsecure.endpointauthentication.WebAuthenticationUtils;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 
@@ -41,7 +40,7 @@ public class HIBCRoute extends BaseRoute {
 		String hibcHttpUrl = String.format(
 				properties.getValue(HIBC_HTTP_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
 				SSL_CONTEXT_HIBC, properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
-		String basicAuthToken = WebAuthenticationUtils.buildBasicAuthToken(properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
+		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
 
 		// Setup MQ config
 		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);
@@ -98,7 +97,7 @@ public class HIBCRoute extends BaseRoute {
 	}
 
 	private void setupSSLContextHibcRegistry(CamelContext camelContext) {
-		SSLContextParameters sslContextParameters = WebAuthenticationUtils.setupSslContextParameters(properties.getValue(HIBC_CERT), properties.getValue(HIBC_CERT_PASSWORD));
+		SSLContextParameters sslContextParameters = RouteUtils.setupSslContextParameters(properties.getValue(HIBC_CERT), properties.getValue(HIBC_CERT_PASSWORD));
 
 		Registry registry = camelContext.getRegistry();
 		registry.bind(SSL_CONTEXT_HIBC, sslContextParameters);
