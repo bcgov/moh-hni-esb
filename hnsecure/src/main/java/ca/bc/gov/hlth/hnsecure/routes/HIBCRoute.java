@@ -33,7 +33,7 @@ public class HIBCRoute extends BaseRoute {
 
 		boolean isMQEnabled = Boolean.parseBoolean(properties.getValue(IS_MQ_ENABLED));
 		String e45Protocol = properties.getValue("E45.protocol");
-		String r15Protocol = properties.getValue("E45.protocol");
+		String r15Protocol = properties.getValue("R15.protocol");
 
 		// Setup web endpoint config
 		setupSSLContextHibcRegistry(getContext());
