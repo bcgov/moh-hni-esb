@@ -25,7 +25,7 @@ env:
   DEFAULT_NAMESPACE: "c5839f-tools"
   TARGET_NAMESPACE:
   FEATURE_BUILD_IMAGE_TAG_PREFIX: "FeatureBuild"
-  RELEASE_BUILD_IMAGE_TAG_PREFIX: "Release-1.0"
+  RELEASE_BUILD_IMAGE_TAG_PREFIX: "release-1.0"
   IMAGE_ID:
 
 # Controls when the workflow will run
