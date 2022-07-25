@@ -17,7 +17,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
  */
 public class AuditSetupProcessor implements Processor {
 
-    private static Logger logger = LoggerFactory.getLogger(AuditSetupProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuditSetupProcessor.class);
 
     private TransactionEventType eventType;
     

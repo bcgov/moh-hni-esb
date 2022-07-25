@@ -14,8 +14,8 @@ public class ApplicationProperties {
 	}
 	
     /**
-     * This method is created to inject application properties at the start up    
-     * @param main
+     * This method injects application properties on start up
+     * @param properties
      */
     public void injectProperties(Properties properties) {
     	this.properties = properties;

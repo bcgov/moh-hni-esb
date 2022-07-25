@@ -20,9 +20,11 @@ import java.util.Properties;
 import javax.jms.JMSException;
 
 import org.apache.camel.Predicate;
+import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.support.builder.PredicateBuilder;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +39,8 @@ import ca.bc.gov.hlth.hnsecure.TransactionIdGenerator;
 import ca.bc.gov.hlth.hnsecure.audit.AuditProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
-import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerater;
-import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerater;
+import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerator;
+import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerator;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -67,6 +69,9 @@ public class Route extends BaseRoute {
 		String isAuditsEnabled = applicationProperties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
 		Predicate isMessageForHIBC = isMessageForHIBC();
+
+		HttpComponent httpComponent = getContext().getComponent("https", HttpComponent.class);
+		httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
 
 		handleExceptions();
 
@@ -128,14 +133,14 @@ public class Route extends BaseRoute {
         from("direct:requestFileDrop").log("wireTap direct:requestFileDrop")
         	.choice()
 				.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
-					.bean(RequestFileDropGenerater.class).id("RequestFileDropGenerater")
+					.bean(RequestFileDropGenerator.class).id("RequestFileDropGenerater")
 					.log("wireTap direct:requestFileDrop done")
 			.end();
         // Response File Drop route
         from("direct:responseFileDrop").log("wireTap direct:responseFileDrop")
 	        .choice()
 	        	.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
-					.bean(ResponseFileDropGenerater.class).id("ResponseFileDropGenerater")
+					.bean(ResponseFileDropGenerator.class).id("ResponseFileDropGenerater")
 					.log("wireTap direct:responseFileDrop done")
 			.end();
         
@@ -246,7 +251,7 @@ public class Route extends BaseRoute {
         try {
         	mqQueueConnectionFactory.setTransportType(CommonConstants.WMQ_CM_CLIENT);         
         	mqQueueConnectionFactory.setChannel(applicationProperties.getValue(MQ_CHANNEL));
-        	mqQueueConnectionFactory.setPort(Integer.valueOf(applicationProperties.getValue(MQ_PORT)));
+        	mqQueueConnectionFactory.setPort(Integer.parseInt(applicationProperties.getValue(MQ_PORT)));
         	mqQueueConnectionFactory.setQueueManager(applicationProperties.getValue(MQ_QUEUEMANAGER));
     		logger.debug("{} - MQ connection factory has been created.", methodName);			
         } catch (JMSException je) {       	  

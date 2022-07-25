@@ -15,9 +15,9 @@ import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
  * This bean will be called in direct route as wiretap
  *
  */
-public class RequestFileDropGenerater extends FileDropGenerater {
+public class RequestFileDropGenerator extends FileDropGenerator {
 
-	private static final Logger logger = LoggerFactory.getLogger(RequestFileDropGenerater.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequestFileDropGenerator.class);
 	private static final String REQUEST_FILE = "request.txt";
 
 	@Handler

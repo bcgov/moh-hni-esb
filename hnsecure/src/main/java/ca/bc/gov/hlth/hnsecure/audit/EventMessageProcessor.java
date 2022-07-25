@@ -21,7 +21,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
  */
 public class EventMessageProcessor extends AbstractAuditPersistence {
 
-    private static Logger logger = LoggerFactory.getLogger(EventMessageProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(EventMessageProcessor.class);
 
 	public void process(Exchange exchange, TransactionEventType eventType, EventMessageErrorLevel errorLevel, String errorCode, String messageText) {
 		String methodName = LoggingUtil.getMethodName();

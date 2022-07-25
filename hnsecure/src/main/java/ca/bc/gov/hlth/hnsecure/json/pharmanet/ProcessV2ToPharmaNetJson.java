@@ -24,7 +24,7 @@ public class ProcessV2ToPharmaNetJson {
 	 * 
      * @param exchange the message exchange
 	 * @return 
-     * @throws Exception if an internal processing error has occurred.
+     * @throws CustomHNSException if an internal processing error has occurred.
 	 */
 	@Handler
 	public String processV2ToPharmaNetJson(Exchange exchange) throws CustomHNSException {

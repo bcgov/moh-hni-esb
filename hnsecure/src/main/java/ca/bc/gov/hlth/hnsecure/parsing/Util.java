@@ -25,8 +25,6 @@ public final class Util {
 	public static final String DOUBLE_BACKSLASH = "\\"; // For using specific string in regex mathces
 	public static final String HL7_DELIMITER = "|";
 	public static final String CARET = "^";
-	public static final String TILDE = "~";
-	public static final String MSH_SEGMENT = "MSH";
 	public static final String ZCB_SEGMENT = "ZCB";
 	public static final String RECEIVING_APP_PNP = "PNP";
 	public static final String MESSAGE_TYPE_PNP = "ZPN";
@@ -45,24 +43,17 @@ public final class Util {
 
 	public static final String PROPERTY_IS_AUDITS_ENABLED = "isAuditsEnabled";
 	public static final String PROPERTY_IS_FILE_DROPS_ENABLED = "isFileDropsEnabled";
-	public static final String PROPERTY_IS_MQ_ENABLED = "isMQEnabled";
 	public static final String PROPERTY_MESSAGE_PROTOCOL = "messageProtocol";
 	public static final String PROPERTY_MESSAGE_TYPE = "messageType";
 	public static final String PROPERTY_RECEIVING_APP = "receivingApp";
 	public static final String PROPERTY_SENDING_FACILITY = "sendingFacility";	
 	public static final String PROPERTY_TRANSACTION_EVENT_TYPE = "eventType";
 	public static final String PROPERTY_TRANSACTION_EVENT_TIME = "eventTime";
-	public static final String PROPERTY_ROUTE_COMPLETE = "HNSECURE_ROUTE_COMPLETE";
-
-	public static final String HEADER_CONTENT_TYPE = "Content-Type";
-	public static final String HEADER_PHARMACY_ID = "pharmacyId";
-	public static final String HEADER_TRACING_ID = "traceId";
 	
 	public static final String MEDIA_TYPE_FHIR_JSON = "application/fhir+json";
 	
 	public static final String BCPHN = "BCPHN";
 
-    public static final String STATUS_CODE_ACTIVE = "active";
     public static final String R03 = "R03";
 	public static final String R07 = "R07";
 	public static final String R09 = "R09";
@@ -204,7 +195,9 @@ public final class Util {
     }
     
 	/**
-	 * @param exchange
+	 * @param sendingFacility
+	 * @param transactionId
+	 * @param msgType
 	 * @return filename in the format
 	 * {messageid}-{messagetype}-{facilityid}-{messagedate}-{request/response}.txt
 	 */

@@ -100,7 +100,7 @@ public class ExceptionHandler implements Processor {
 		HL7Message hl7Message = new HL7Message();
 		String v2 = (String)exchange.getIn().getBody();
 		String[] v2Segments = V2MessageUtil.getMshSegmentFields(v2);
-		// Since this can be be invoked under multiple scenarios it is possible
+		// Since this can be invoked under multiple scenarios it is possible
 		// for the segments to be null
 		if (v2Segments != null) {
 			ResponseSegment.initSegment(v2Segments, hl7Message);
