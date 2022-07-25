@@ -1,4 +1,4 @@
-[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](<Redirect-URL>)
+[![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<Redirect-URL>)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_moh-hni-esb&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_moh-hni-esb)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bcgov_moh-hni-esb&metric=alert_status)](https://sonarcloud.io/dashboard?id=bcgov_moh-hni-esb)[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=bcgov_moh-hni-esb&metric=ncloc)](https://sonarcloud.io/dashboard?id=bcgov_moh-hni-esb)
 
