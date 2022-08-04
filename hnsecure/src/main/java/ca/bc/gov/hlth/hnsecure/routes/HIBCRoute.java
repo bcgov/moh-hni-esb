@@ -71,6 +71,7 @@ public class HIBCRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	     	.to(hibcHttpUrl).id("ToHibcHttpUrl")
 			.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+			.convertBodyTo(String.class)
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
 

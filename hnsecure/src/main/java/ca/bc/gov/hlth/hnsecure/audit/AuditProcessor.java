@@ -40,7 +40,7 @@ public class AuditProcessor extends AbstractAuditPersistence implements Processo
 		String transactionId = (String) exchange.getProperty(Exchange.CORRELATION_ID);
 		Date eventTime = (Date) exchange.getProperty(Util.PROPERTY_TRANSACTION_EVENT_TIME);
 
-		String v2Message = (String) exchange.getIn().getBody();
+		String v2Message = exchange.getIn().getBody(String.class);
 		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String messageId = null;
 		boolean logAffectedParties = false;
