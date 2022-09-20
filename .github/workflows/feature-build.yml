@@ -91,7 +91,7 @@ jobs:
 
       # Upload the images in image repository in tools namespace
       - name: Push image to gold registry
-        id: push-image
+        id: push-image-gold
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{steps.build-docker-hniesb.outputs.image}}
@@ -102,7 +102,7 @@ jobs:
  
       # Upload the images in image repository in tools namespace
       - name: Push image to gold dr registry
-        id: push-image
+        id: push-image-golddr
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{steps.build-docker-hniesb.outputs.image}}
