@@ -133,7 +133,7 @@ jobs:
       # 2. Push the image to selected repository
       - name: Push Image to dev 
         run: |
-          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}}
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLD_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}}
           
       
       - name: Prepare deploy key
@@ -156,7 +156,7 @@ jobs:
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/dev
-          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.OPENSHIFT_IMAGE_SHA}}"
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLD_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}} in dev using feature-build-hnsesb workflow."
@@ -179,7 +179,7 @@ jobs:
       # 2. Push the image to selected repository
       - name: Push Image to dev 
         run: |
-          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}}
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLDDR_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}}
           
       
       - name: Prepare deploy key
@@ -202,7 +202,7 @@ jobs:
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/dev-dr
-          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.OPENSHIFT_IMAGE_SHA}}"
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLDDR_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}} in dev dr using feature-build-hnsesb workflow."
