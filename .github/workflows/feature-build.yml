@@ -206,6 +206,6 @@ jobs:
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{env.GOLDDR_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying feature build: ${{env..FEATURE_BUILD_NAME}} in dev dr using feature-build-hnsesb workflow."
+          git commit -am "Deploying feature build: ${{env.FEATURE_BUILD_NAME}} in dev dr using feature-build-hnsesb workflow."
           git push origin    
           
