@@ -43,4 +43,11 @@ jobs:
         run: |
           echo "Value outside job: ${{env.GOLDDR_IMAGE_SHA}}"
       
-    
+  verify:
+    runs-on: ubuntu-latest
+    needs: [build , deploy]
+    steps:
+      - id: check
+        run: |
+          echo "running depends on both jobs"
+     
