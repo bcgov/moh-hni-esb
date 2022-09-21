@@ -164,7 +164,7 @@ jobs:
 
   deployToGolddr:
     runs-on: ubuntu-latest
-    needs: [deployToGold]
+    needs: [createHniEsbFeatureBuild deployToGold]
     
     steps:
       # 1. Login to OpenShift
