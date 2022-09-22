@@ -46,7 +46,7 @@ jobs:
     outputs:
       GOLD_IMAGE_SHA: ${{steps.push-image-gold.outputs.digest}}
       GOLDDR_IMAGE_SHA: ${{steps.push-image-golddr.outputs.digest}}
-      RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+      RELEASE_VERSION: ${{env.RELEASE_VERSION}}
       COMMIT_SHA: ${{env.COMMIT_SHA}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -70,7 +70,7 @@ jobs:
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
         run: |
-          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{ env.RELEASE_VERSION }} ${{github.event.inputs.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{env.RELEASE_VERSION}} ${{github.event.inputs.OPENSHIFT_IMAGE_TAG}}" | tee -a $GITHUB_ENV
 
       # Run the maven install for common code
       - name: Maven run for common code
@@ -82,15 +82,15 @@ jobs:
       - name: Maven run for hnsecure code
         run: |
           cd ${{github.workspace}}/hnsecure
-          mvn install -Dimpl-version=${{ env.RELEASE_VERSION }} -Dgit-commit=${GITHUB_SHA::12}
+          mvn install -Dimpl-version=${{env.RELEASE_VERSION}} -Dgit-commit=${GITHUB_SHA::12}
 
       # Build from docker file
       - name: Build hnsesb image from Dockerfile
         id: build-docker-hniesb
         uses: redhat-actions/buildah-build@v2
         with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ env.IMAGE_TAGS }}
+          image: ${{env.IMAGE_NAME}}
+          tags: ${{env.IMAGE_TAGS}}
           context: ./hnsecure
           dockerfiles: |
             ./hnsecure/Dockerfile
@@ -100,8 +100,8 @@ jobs:
         id: push-image-gold
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ steps.build-docker-hniesb.outputs.image }}
-          tags: ${{ steps.build-docker-hniesb.outputs.tags }}
+          image: ${{steps.build-docker-hniesb.outputs.image}}
+          tags: ${{steps.build-docker-hniesb.outputs.tags}}
           registry: ${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEFAULT_NAMESPACE}}
           username: ${{env.OPENSHIFT_SA}}
           password: ${{env.OPENSHIFT_GOLD_TOKEN}}
@@ -111,8 +111,8 @@ jobs:
         id: push-image-golddr
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ steps.build-docker-hniesb.outputs.image }}
-          tags: ${{ steps.build-docker-hniesb.outputs.tags }}
+          image: ${{steps.build-docker-hniesb.outputs.image}}
+          tags: ${{steps.build-docker-hniesb.outputs.tags}}
           registry: ${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEFAULT_NAMESPACE}}
           username: ${{env.OPENSHIFT_SA}}
           password: ${{env.OPENSHIFT_GOLDDR_TOKEN}}
@@ -144,12 +144,12 @@ jobs:
       - name: Prepare deploy key
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.GITOPS_C8D6F2_PRIVATE_KEY }}
+          ssh-private-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
 
       - name: Check out manifest repo
         uses: actions/checkout@v2
         with:
-          ssh-key: ${{ secrets.GITOPS_C8D6F2_PRIVATE_KEY }}
+          ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
           ref: 5369-transition-to-gold
       
@@ -158,7 +158,7 @@ jobs:
         uses: imranismail/setup-kustomize@v1
 
       - name: Update image ID and commit change
-        if: ${{ success() }}
+        if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/dev
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.GOLD_IMAGE_SHA}}"
@@ -194,12 +194,12 @@ jobs:
       - name: Prepare deploy key
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.GITOPS_C8D6F2_PRIVATE_KEY }}
+          ssh-private-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
 
       - name: Check out manifest repo
         uses: actions/checkout@v2
         with:
-          ssh-key: ${{ secrets.GITOPS_C8D6F2_PRIVATE_KEY }}
+          ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
           ref: 5369-transition-to-gold
       
@@ -208,7 +208,7 @@ jobs:
         uses: imranismail/setup-kustomize@v1
 
       - name: Update image ID and commit change
-        if: ${{ success() }}
+        if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/dev-dr
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.GOLDDR_IMAGE_SHA}}"
