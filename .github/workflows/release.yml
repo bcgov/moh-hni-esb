@@ -64,7 +64,7 @@ jobs:
       - name: Determine Version number
         # Branch name is fixed to 'main' in version identifier
         run: |
-          echo "RELEASE_VERSION=Release-1.0-${{github.ref_name}}-${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "RELEASE_VERSION=Release-1.1-${{github.ref_name}}-${{github.run_number}}" | tee -a $GITHUB_ENV
           echo "COMMIT_SHA=${GITHUB_SHA}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image
@@ -172,7 +172,7 @@ jobs:
   # Updating the image in Deployment.yml will result in deploying that image in OpenShift
   deployToGolddr:
     runs-on: ubuntu-latest
-    needs: [createHniEsbRelease deployToGold]
+    needs: [createHniEsbRelease , deployToGold]
     
     steps:
 
