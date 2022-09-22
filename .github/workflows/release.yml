@@ -10,7 +10,7 @@
 # 8. Create a tag for git repository
 
 
-name: release-hnsesb
+name: release
 
 env:
   OPENSHIFT_SERVER_GOLD: ${{secrets.OPENSHIFT_SERVER_GOLD}}
