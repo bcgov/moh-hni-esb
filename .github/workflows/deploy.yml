@@ -1,31 +1,304 @@
-# This is a basic workflow to help you get started with Actions
+# This is a multi job workflow to deploy a selected release build or feature build in selected environment
+# No approval required for deploying feature build.
+# Approval required for deploying release build to any environment.
+# Steps are:
+# Job 1:
+#   Validates if it is valid input
+#   Determine target namespace for the input
+#   Determine image tag from the input
+#   Login to openshift and Determine image sha from image repository
+# Job 2: Feature build deploy
+#   Push the image to target repository
+#   Update GitOps repo with sha to deploy using ArgoCD autoSync
+#
+# Job 3: Relase build deploy
+#   After deploy request is approved
+#   Push the image to target repository
+#   Update GitOps repo with sha to deploy using ArgoCD autoSync
 
-name: deploy
+name: deploy-hnsesb
+
+env:
+  OPENSHIFT_SERVER_GOLD: ${{secrets.OPENSHIFT_SERVER_GOLD}}
+  OPENSHIFT_SERVER_GOLDDR: ${{secrets.OPENSHIFT_SERVER_GOLDDR}}
+  DEFAULT_NAMESPACE: c8d6f2-tools
+  DEV_NAMESPACE: c8d6f2-dev
+  IMAGE_REGISTRY_GOLD: image-registry.apps.gold.devops.gov.bc.ca
+  IMAGE_REGISTRY_GOLDDR: image-registry.apps.golddr.devops.gov.bc.ca
+  OPENSHIFT_SA: ${{secrets.C8D6F2_OPENSHIFT_GITHUB_ACTIONS_SA}}
+  OPENSHIFT_GOLD_TOKEN: ${{secrets.C8D6F2_OPENSHIFT_GITHUB_ACTIONS_SA_GOLD_TOKEN}}
+  OPENSHIFT_GOLDDR_TOKEN: ${{secrets.C8D6F2_OPENSHIFT_GITHUB_ACTIONS_SA_GOLDDR_TOKEN}}
+  IMAGE_NAME: hnsesb
+  TARGET_NAMESPACE:
+  FEATURE_BUILD_IMAGE_TAG_PREFIX: "FeatureBuild"
+  RELEASE_BUILD_IMAGE_TAG_PREFIX: "release-1.1"
+  IMAGE_ID:
 
 # Controls when the workflow will run
 on:
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      Environment:
+        type: choice
+        description: Select an environment to deploy
+        options:
+          - dev
+          - test
+          - sandbox
+          - production
+      Build_Type:
+        type: choice
+        description: Select type of build
+        options:
+          - Feature
+          - Release
+      Branch:
+        description: "Enter feature branch name. For release build deployments this input is ignored."
+        required: true
+        default: main
+      Build_Run_Number:
+        description: "Enter build run number: "
+        required: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  validate:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    outputs:
+      IMAGE_ID: ${{env.IMAGE_ID}}
+      IMAGE_TAG: ${{env.IMAGE_TAG}}
+      TARGET_NAMESPACE: ${{env.TARGET_NAMESPACE}}
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # Step to set environment variables from user inputs
+      - name: Set environment variables
+        id: set-env
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
+          echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
+
+      # Find the namespace and image digest from input parameters
+      - name: Compute target namespace
+        id: get-namespace
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if(`${{env.BUILD_TYPE}}` == 'Feature'){
+              if (`${{env.ENVIRONMENT}}` == 'dev') {
+                return "c8d6f2-dev"
+              }
+              if (`${{env.ENVIRONMENT}}` == 'test' ) {
+                return "c8d6f2-test"
+              }
+               core.setFailed(`❌ Feature build can only be deployed in dev or test environments`  );
+            }
+            if(`${{env.BUILD_TYPE}}` == 'Release'){
+              if (`${{env.ENVIRONMENT}}` == 'dev') {
+                return "c8d6f2-dev"
+              }
+              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox') {
+                return "c8d6f2-test"
+              }
+              if (`${{env.ENVIRONMENT}}` == 'production') {
+                return "c8d6f2-prod"
+              }
+            }
+            core.setFailed(`❌ Invalid inputs for Environment and branch`  );
+
+      - name: Compute image prefix
+        id: get-image-prefix
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (`${{env.BUILD_TYPE}}` == 'Release') {
+              return "${{env.RELEASE_BUILD_IMAGE_TAG_PREFIX}}-main"
+            }
+            if (`${{env.BUILD_TYPE}}` == 'Feature') {
+              return "${{env.FEATURE_BUILD_IMAGE_TAG_PREFIX}}-${{github.event.inputs.Branch}}"
+            }
+
+      - name: Compute image tag
+        run: |
+          echo "TARGET_NAMESPACE=${{steps.get-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
+          echo "IMAGE_TAG=${{steps.get-image-prefix.outputs.result}}-${{github.event.inputs.Build_Run_Number}}"  | tee -a $GITHUB_ENV
+
+      # Login to OpenShift
+      - name: Log in to OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{env.OPENSHIFT_SERVER_GOLD}}
+          openshift_token: ${{env.OPENSHIFT_GOLD_TOKEN}}
+          insecure_skip_tls_verify: true
+          namespace: ${{env.DEFAULT_NAMESPACE}}
+
+      - name: Find image
+        id: get-image-id
+        run: |
+          echo "IMAGE_ID=$(oc get istag/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}} -o jsonpath={.image.metadata.name})" | tee -a $GITHUB_ENV
+
+      # Validate if that is correct. If not, exit the job
+      - name: Validate image
+        uses: actions/github-script@v4
+        with:
+          script: |
+            if (`${{env.IMAGE_ID}}`.length == 0) {
+              core.setFailed(`❌ Image tag: ${{env.IMAGE_TAG}} does not exist for image: ${{env.IMAGE_NAME}}. \n` +
+                "Please provide a valid image information." );
+            }
+            else {
+              core.info(`✅ Valid image found.`);
+            }
+  prepare:
+    runs-on: ubuntu-latest
+    needs: [validate]
+    steps:
+          # Login to Gold OpenShift
+      - name: Log in to Gold OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{env.OPENSHIFT_SERVER_GOLD}}
+          openshift_token: ${{env.OPENSHIFT_GOLD_TOKEN}}
+          insecure_skip_tls_verify: true
+          namespace: ${{env.DEFAULT_NAMESPACE}}
+
+      # Push the image to selected repository
+      - name: Push Image
+        run: |
+          oc tag ${{needs.validate.outputs.IMAGE_NAME}}:${{needs.validate.outputs.IMAGE_TAG}} ${{needs.validate.outputs.TARGET_NAMESPACE}}/${{needs.validate.outputs.IMAGE_NAME}}:${{needs.validate.outputs.IMAGE_TAG}}
+
+      # Login to GoldDR  OpenShift
+      - name: Log in to Gold DR OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{env.OPENSHIFT_SERVER_GOLDDR}}
+          openshift_token: ${{env.OPENSHIFT_GOLDDR_TOKEN}}
+          insecure_skip_tls_verify: true
+          namespace: ${{env.DEFAULT_NAMESPACE}}
+
+      # Push the image to selected repository
+      - name: Push Image
+        run: |
+          oc tag ${{needs.validate.outputs.IMAGE_NAME}}:${{needs.validate.outputs.IMAGE_TAG}} ${{needs.validate.outputs.TARGET_NAMESPACE}}/${{needs.validate.outputs.IMAGE_NAME}}:${{needs.validate.outputs.IMAGE_TAG}}
+
+
+
+
+  deploy-feature-build:
+    if: github.event.inputs.Build_Type == 'Feature'
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    needs: [validate , prepare]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # 5. Edit the selcted Argo CD manifest file
+      # Update the image ID in the manifest repository used by Argo CD.
+      # We need to use the SSH deploy key to check out the manifest repo, set up
+      # Kustomize in the runner, update the image ID, commit the change, and
+      # push the changes back to the manifest repository.
+      # ------------------------------------------------------------------------
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+          repository: ${{secrets.GITOPS_C5839F_REPO}}
+          ref: 5369-transition-to-gold
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Determine Kustomize folder location
+        id: get-kustomize-folder
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (`${{env.ENVIRONMENT}}` == 'dev') {
+              return "dev"
+            }
+            if (`${{env.ENVIRONMENT}}` == 'test') {
+              return "test"
+            }
+            core.setFailed(`❌ Invalid inputs for Environment and branch`  );
+
+      - name: Update image ID and commit change
+        if: ${{success()}}
+        run: |
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{needs.validate.outputs.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}-dr
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{needs.validate.outputs.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying feature build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
+          git push origin
+
+  deploy-release-build:
+    if: github.event.inputs.Build_Type == 'Release'
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    environment: ReviewRequired
+    needs: [validate , prepare]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # 5. Edit the selcted Argo CD manifest file
+      # Update the image ID in the manifest repository used by Argo CD.
+      # We need to use the SSH deploy key to check out the manifest repo, set up
+      # Kustomize in the runner, update the image ID, commit the change, and
+      # push the changes back to the manifest repository.
+      # ------------------------------------------------------------------------
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+          repository: ${{secrets.GITOPS_C5839F_REPO}}
+          ref: 5369-transition-to-gold
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Determine Kustomize folder location
+        id: get-kustomize-folder
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (`${{env.ENVIRONMENT}}` == 'dev') {
+              return "dev"
+            }
+            if (`${{env.ENVIRONMENT}}` == 'test') {
+              return "test"
+            }
+            if (`${{env.ENVIRONMENT}}` == 'sandbox') {
+              return "sbx"
+            }
+            if (`${{env.ENVIRONMENT}}` == 'production') {
+              return "prod"
+            }
+
+      - name: Update image ID and commit change
+        if: ${{success()}}
+        run: |
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{needs.validate.outputs.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}-dr
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{needs.validate.outputs.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
+          git push origin
