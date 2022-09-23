@@ -222,10 +222,10 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            if (`${{env.ENVIRONMENT}}` == 'dev') {
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'dev') {
               return "dev"
             }
-            if (`${{env.ENVIRONMENT}}` == 'test') {
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'test') {
               return "test"
             }
             core.setFailed(`❌ Invalid inputs for Environment and branch`  );
@@ -278,16 +278,16 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            if (`${{env.ENVIRONMENT}}` == 'dev') {
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'dev') {
               return "dev"
             }
-            if (`${{env.ENVIRONMENT}}` == 'test') {
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'test') {
               return "test"
             }
-            if (`${{env.ENVIRONMENT}}` == 'sandbox') {
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'sandbox') {
               return "sbx"
             }
-            if (`${{env.ENVIRONMENT}}` == 'production') {
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'production') {
               return "prod"
             }
 
