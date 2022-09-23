@@ -261,13 +261,13 @@ jobs:
       - name: Prepare deploy key
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
+          ssh-private-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
 
       - name: Check out manifest repo
         uses: actions/checkout@v2
         with:
-          ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
-          repository: ${{secrets.GITOPS_C5839F_REPO}}
+          ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
+          repository: bcgov-c/tenant-gitops-c8d6f2
           ref: 5369-transition-to-gold
 
       - name: Set up Kustomize
