@@ -16,7 +16,7 @@
 #   Push the image to target repository
 #   Update GitOps repo with sha to deploy using ArgoCD autoSync
 
-name: deploy-hnsesb
+name: deploy
 
 env:
   OPENSHIFT_SERVER_GOLD: ${{secrets.OPENSHIFT_SERVER_GOLD}}
