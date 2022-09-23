@@ -296,7 +296,7 @@ jobs:
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}-dr
+          cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
