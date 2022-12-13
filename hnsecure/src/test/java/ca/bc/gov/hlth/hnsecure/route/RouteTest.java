@@ -110,6 +110,26 @@ public class RouteTest extends CamelTestSupport {
 
 		context.stop();
 	}
+	
+	@Test
+	public void testSuccessfulDateTimeRequest() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		responseEndpoint.expectedMessageCount(1);
+
+		// Send a message with header
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		// trigger route execution by sending input to route
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.dateTimeMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
 
 	@Test
 	public void testCustomTransactionIdFromHttpHeader() throws Exception {

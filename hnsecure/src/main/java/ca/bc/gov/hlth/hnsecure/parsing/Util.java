@@ -57,6 +57,7 @@ public final class Util {
     public static final String R03 = "R03";
 	public static final String R07 = "R07";
 	public static final String R09 = "R09";
+	public static final String HNETDTTN = "HNETDTTN";
 	
 	public static final String PROTOCOL_HTTP = "HTTP";
 	public static final String PROTOCOL_MQ = "MQ";	

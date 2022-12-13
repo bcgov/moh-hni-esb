@@ -10,7 +10,7 @@ public class ErrorResponse extends ResponseSegment {
 
 	private static final String ACK_CODE = "AR";
 
-	@Override
+	
 	public String constructResponse(HL7Message messageObj, ErrorMessage errorMessage) {
 		String formattedResponseText = errorMessage.getErrorSequence() + "  " + errorMessage.formatErrorMessage(messageObj);
 		return constructMSH(messageObj) + constructMSA(messageObj.getMessageControlId(), formattedResponseText);

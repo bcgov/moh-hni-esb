@@ -6,15 +6,13 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
-public abstract class ResponseSegment {
+public class ResponseSegment {
 
 	private static final String UNKNOWN_APP = "UNKNOWNAPP";
 
 	private static final String UNKNOWN_CLIENT = "UNKNOWNCLIENT";
 	
 	private static final ApplicationProperties properties = ApplicationProperties.getInstance();
-
-	abstract String constructResponse(HL7Message messageObj, ErrorMessage error);
 
 	/**
 	 * @param v2Segment
