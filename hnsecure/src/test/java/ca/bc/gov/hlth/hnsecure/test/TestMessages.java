@@ -19,6 +19,10 @@ public class TestMessages {
 			+ "ZZZ|TRP|0|1|P1|XXXXX||0 Operation successful\r\n"
 			+ "ZCC||||||||||123456789|\r\n" 
 			+ "ZPB|ZPB1^CLINICAL CONDITION DESCRIPTION^N^PA^19950101^CLINICAL";
+	
+	public static final String MSG_PHARMANET_ERROR_RESPONSE = "MSH|^~\\&|123456789|123456789|123456789|123456789|||ZPN|000001|P|2.1\r\n" 
+			+ "ZCB|PHARMACYXX|DATE|000001\r\n"  
+			+ "ZZZ||1|||||143 Request cannot be processed : Call Help Desk :Incident#12279159\r\n";
 
 	public static final String MSG_E45_REQUEST = "MSH|^~\\&|HR|BC00000098|RAIGET-DOC-SUM|BC0003000|19991004103039|lharris|E45|19980915000015|D|2.3"
 			+ "HDR|||TRAININGAdmin\r\n" + "SFT|1.0||testorg^^orgid^^^MOH|1.0|barebones||\r\n"
