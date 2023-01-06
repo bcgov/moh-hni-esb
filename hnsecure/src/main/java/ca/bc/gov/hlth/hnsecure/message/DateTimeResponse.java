@@ -14,11 +14,10 @@ public class DateTimeResponse extends ResponseSegment{
 	private static final String SEGMENT_IDENTIFIER = "MSA";
 
 	private static final String ACK_CODE = "AA";
-
 	
 	public String constructResponse(HL7Message messageObj) {
 		
-		return constructMSH(messageObj) + constructMSA()+ constructNCK();
+		return constructMSH(messageObj) + constructMSA() + constructNCK();
 	}
 
 	private String constructMSA() {

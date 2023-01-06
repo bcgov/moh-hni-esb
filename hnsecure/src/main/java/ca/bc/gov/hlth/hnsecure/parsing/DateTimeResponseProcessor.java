@@ -5,12 +5,9 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
-import ca.bc.gov.hlth.hnsecure.HnsEsbMainMethod;
 import ca.bc.gov.hlth.hnsecure.message.DateTimeResponse;
 import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.ResponseSegment;
-import net.minidev.json.JSONObject;
 
 /**
  * This class is created to get current date and time of the HNSecure server

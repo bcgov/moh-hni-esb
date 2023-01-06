@@ -6,7 +6,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 
-public class ResponseSegment {
+public abstract class ResponseSegment {
 
 	private static final String UNKNOWN_APP = "UNKNOWNAPP";
 

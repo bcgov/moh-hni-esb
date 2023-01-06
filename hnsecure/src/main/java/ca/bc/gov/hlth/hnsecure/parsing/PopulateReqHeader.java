@@ -2,7 +2,6 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
 
 import java.util.Map;
@@ -41,12 +40,10 @@ public class PopulateReqHeader {
 		// and do not actually belong in the message header (which is converted to http
 		// request headers)
 		Map<String, Object> exchangeProperties = exchange.getProperties();
-		String recApp = V2MessageUtil.getReceivingApp(v2Message);
 		String msgType = V2MessageUtil.getMsgType(v2Message);
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
 		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
-		exchangeProperties.put(PROPERTY_RECEIVING_APP, recApp);
 		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
 		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 
@@ -59,8 +56,8 @@ public class PopulateReqHeader {
 		}
 
 		logger.info(
-				"{} - Transaction Id : {}, Receiving application : {}, Transaction type : {}, Sending Facility : {} ",
-				methodName, transactionUUID, recApp, msgType, sendingFacility);
+				"{} - Transaction Id : {}, Transaction type : {}, Sending Facility : {} ",
+				methodName, transactionUUID, msgType, sendingFacility);
 	}
 
 }
