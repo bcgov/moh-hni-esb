@@ -189,10 +189,9 @@ public class Route extends BaseRoute {
 		return PredicateBuilder.or(isR03, isR07, isR09);
 	}
 	
-	private Predicate isHNETDTTN() {		
-		Predicate isHNETDTTN = exchangeProperty(Util.PROPERTY_RECEIVING_APP).isEqualToIgnoreCase(Util.HNETDTTN);
+	private Predicate isHNETDTTN() {
 		
-		return isHNETDTTN;
+		return exchangeProperty(Util.PROPERTY_RECEIVING_APP).isEqualToIgnoreCase(Util.HNETDTTN);
 	}
 
 	/**
