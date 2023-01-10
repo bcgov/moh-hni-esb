@@ -3,6 +3,7 @@ package ca.bc.gov.hlth.hnsecure.audit.persistence;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_RESPONSE;
+import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_ERROR_RESPONSE;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_RESPONSE;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R09_REQUEST;
@@ -183,6 +184,18 @@ public class AbstractAuditPersistenceTest extends TestPropertiesLoader {
 		assertEquals("123456789", affectedParty.getIdentifier()); //PHN in the ZCC
 		assertEquals(BCPHN, affectedParty.getIdentifierType());
 		assertEquals(AffectedPartyDirection.OUTBOUND.getValue(), affectedParty.getDirection());
+	}
+	
+	@Test
+	public void testCreateAffectedParties_MSG_PHARMANET_ERROR() {
+		UUID transactionId = UUID.randomUUID();
+		
+		AbstractAuditPersistence abstractAuditPersistence = Mockito.mock(
+				AbstractAuditPersistence.class, 
+			    Mockito.CALLS_REAL_METHODS);
+		// PNP error response sample has no ZCC segment and no affected parties should be written	 
+		List<AffectedParty> aps = abstractAuditPersistence.createAffectedParties(MSG_PHARMANET_ERROR_RESPONSE, AffectedPartyDirection.OUTBOUND, transactionId.toString());
+		assertTrue(aps.isEmpty());
 	}
 	
 	@Test

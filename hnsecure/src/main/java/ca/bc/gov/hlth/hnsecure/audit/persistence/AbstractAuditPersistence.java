@@ -169,10 +169,13 @@ public abstract class AbstractAuditPersistence {
 				
 				switch (messageType) {
 				case ZPN:
-					//PharmaNet has client info in ZCC and ZPA
-					//ZCC e.g.
-					//ZCC||||||||||0009735000001|
-					String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.ZCC); 
+					// ZCC e.g.
+					// ZCC||||||||||0009735000001|
+					String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.ZCC);
+					// ZCC will not be populated in the event of an error
+					if (StringUtils.isBlank(segment)) {
+						break;
+					}
 					String[] segmentFields = V2MessageUtil.getSegmentFields(segment);
 					String patientIdentifier = V2MessageUtil.getIdentifierSectionZCC(segmentFields);	//ZCC Provincial Health Care ID field e.g. 0009735000001
 					affectedParty = new AffectedParty();		
@@ -180,8 +183,8 @@ public abstract class AbstractAuditPersistence {
 					affectedParties.add(affectedParty);		
 					break;
 				case E45:
-					//QPD e.g.
-					//QPD|E45^^HNET0003|1|^^00000001^^^CANBC^XX^MOH|^^00000001^^^CANBC^XX^MOH|^^00000754^^^CANBC^XX^MOH|9020198746^^^CANBC^JHN^MOH||19421112||||||19980601||PVC^^HNET9909
+					// QPD e.g.
+					// QPD|E45^^HNET0003|1|^^00000001^^^CANBC^XX^MOH|^^00000001^^^CANBC^XX^MOH|^^00000754^^^CANBC^XX^MOH|9020198746^^^CANBC^JHN^MOH||19421112||||||19980601||PVC^^HNET9909
 					List<String> segmentsQPD = V2MessageUtil.getSegments(segments, V2MessageUtil.SegmentType.QPD);
 					segmentsQPD.forEach(s -> {
 						String [] fields = V2MessageUtil.getSegmentFields(s);
@@ -197,9 +200,8 @@ public abstract class AbstractAuditPersistence {
 				case R15:
 				case R32:
 				case R50:
-					/* PID e.g. 
-					PID||0891250000^^^BC^PH 
-					*/
+					// PID e.g. 
+					// PID||0891250000^^^BC^PH 
 					List<String> segmentsPID = V2MessageUtil.getSegments(segments, V2MessageUtil.SegmentType.PID);
 					segmentsPID.forEach(s -> {
 						String [] fields = V2MessageUtil.getSegmentFields(s);
