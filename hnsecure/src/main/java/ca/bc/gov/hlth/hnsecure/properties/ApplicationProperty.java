@@ -19,6 +19,10 @@ public enum ApplicationProperty {
 	CERTS_ENDPOINT("certs.endpoint"),
 	IS_FILEDDROPS_ENABLED("is.filedrops.enabled"),
 	FILE_DROPS_LOCATION("file.drops.location"),
+	//File Drop rotation properties
+	FILE_DROPS_ROTATION_CRON("file.drops.rotation.cron"),
+	FILE_DROPS_ROTATION_DELETE_AFTER("file.drops.rotation.delete.after"),
+	
 	IS_AUDITS_ENABLED("audits.enabled"),
 	IS_MQ_ENABLED("mq.enabled"),
 	
