@@ -27,7 +27,10 @@ public class RotateFilesRoute extends BaseRoute {
 
 		from(rotationSchedule).routeId("rotate-files-route")
 			.log("Processing file rotation")
-			.process(new RotateFilesProcessor());
+			.to("direct:processFileRotation").id("ToProcessFileRotation");
+		
+		from("direct:processFileRotation").id("ProcessFileRotation")
+		.process(new RotateFilesProcessor());
 	}
 
 }

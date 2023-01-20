@@ -5,6 +5,8 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.FILE_DROPS_
 
 import java.io.File;
 import java.io.FileFilter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -55,13 +57,18 @@ public class RotateFilesProcessor extends AbstractAuditPersistence implements Pr
 		
         FileFilter ageFileFilter = new AgeFileFilter(cutoffDate, true);
         File[] filesToDelete = fileDropDirectory.listFiles(ageFileFilter);
+        logger.info("Found {} files delete.", filesToDelete.length);
         
         //Delete each file but and check for success 
         for (File f:filesToDelete) {
-        	boolean deleted = f.delete();
-        	if (!deleted) {
-				logger.warn("File {} could not be deleted.", f.getPath());
-        	}
+        	try {
+				boolean success = Files.deleteIfExists(Paths.get(f.getPath()));
+				if (success) {
+					logger.debug("Deleted file: {}", f.getName());
+				}
+			} catch (Exception e) {
+				logger.error("An error occurred attempting to delete file: {}; due to: {}.", f.getPath(), e.getMessage());
+			}
         }
         
         logger.info("Deletion of files has completed.");
