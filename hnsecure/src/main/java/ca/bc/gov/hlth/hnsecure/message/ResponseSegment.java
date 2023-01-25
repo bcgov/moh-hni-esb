@@ -72,10 +72,11 @@ public abstract class ResponseSegment {
 		// When constructing responses directly in HNS ESB (as opposed to something returned from a downstream system)
 		// the Message Type will always be ACK
 		// For HNETDTTN it will be NMR
-		if (StringUtils.isNotBlank(messageObj.getReceivingApplication())  && messageObj.getReceivingApplication().equalsIgnoreCase(Util.HNETDTTN)) {
-		sb.append(Util.NMR);
+		if (StringUtils.isNotBlank(messageObj.getReceivingApplication())
+				&& messageObj.getReceivingApplication().equalsIgnoreCase(Util.HNETDTTN)) {
+			sb.append(Util.NMR);
 		} else {
-		sb.append(Util.ACK);
+			sb.append(Util.ACK);
 		}
 		sb.append(messageObj.getFieldSeparator());
 
