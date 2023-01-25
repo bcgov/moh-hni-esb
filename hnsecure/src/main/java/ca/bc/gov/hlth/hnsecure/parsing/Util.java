@@ -38,6 +38,7 @@ public final class Util {
 	
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String ACK = "ACK";
+	public static final String NMR = "NMR";
 
 	public static final String ENCODING_CHARACTERS = "^~\\&";
 
