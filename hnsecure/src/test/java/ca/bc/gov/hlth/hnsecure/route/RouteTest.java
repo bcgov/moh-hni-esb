@@ -20,6 +20,7 @@ import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
 import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
 import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RotateFilesRoute;
 import ca.bc.gov.hlth.hnsecure.routes.Route;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
 
@@ -61,6 +62,7 @@ public class RouteTest extends CamelTestSupport {
 		context.addRoutes(new RTransRoute());
 		context.addRoutes(new HIBCRoute());
 		context.addRoutes(new JMBRoute());
+		context.addRoutes(new RotateFilesRoute());
 		context.addRoutes(new HandleResponseRoute());
 		
 		AdviceWithRouteBuilder.adviceWith(context, "hnsecure-route", a -> {
@@ -87,6 +89,9 @@ public class RouteTest extends CamelTestSupport {
 		});
 		AdviceWithRouteBuilder.adviceWith(context, "jmb-mq-route", a -> {
 			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "rotate-files-route", a -> {
+			a.weaveById("ToProcessFileRotation").replace().to("mock:rotateFiles");
 		});
 	}
 
