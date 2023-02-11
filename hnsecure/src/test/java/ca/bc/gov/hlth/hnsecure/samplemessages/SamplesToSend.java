@@ -10,6 +10,17 @@ public class SamplesToSend {
     
     public static final String e45Base64 = "TVNIfF5+XCZ8SFJ8QkMwMDAwMDA5OHxSQUlHRVQtRE9DLVNVTXxCQzAwMDMwMDB8MTk5OTEwMDQxMDMwMzl8bGhhcnJpc3xFNDV8MTk5ODA5MTUwMDAwMTV8RHwyLjNIRFJ8fHxUUkFJTklOR0FkbWluDQpTRlR8MS4wfHx0ZXN0b3JnXl5vcmdpZF5eXk1PSHwxLjB8YmFyZWJvbmVzfHwNClFQRHxFNDVeXkhORVQwMDAzfDF8Xl4wMDAwMDAwMV5eXkNBTkJDXlhYXk1PSHxeXjAwMDAwMDAxXl5eQ0FOQkNeWFheTU9IfF5eMDAwMDA3NTReXl5DQU5CQ15YWF5NT0h8OTAyMDE5ODc0Nl5eXkNBTkJDXkpITl5NT0h8fDE5NDIwMTEyfHx8fHx8MTk5ODA2MDF8fFBWQ15eSE5FVDk5MDl8fA0KUkNQfEl8";
 
+    public static final String dateTimeMsg = "{\n" +
+            "\"resourceType\": \"DocumentReference\",\n" +
+            "\"status\" : \"current\",\n" +
+            "\"content\": [{\n" +
+            "\"attachment\": {\n" +
+            "\"contentType\": \"x-application/hl7-v2+er7\",\n" +
+            "\"data\": \"TVNIfF5+XCZ8QkFUSEw3Q0x8RTEzREQ2QkItNjkxOTc5NTBDNDh8SE5FVERUVE58QkMwMDAwMTAxM3wyMDIyIDEyIDA1IDE1MDN8TUVESU5FVDp8UVJZVDAxfHxEfDIuMQoN\"\n" +
+            "}\n" +
+            "}]\n" +
+            "}";
+   
     public static final String r03JsonMsg = "{\n" +
             "\"resourceType\": \"DocumentReference\",\n" +
             "\"status\" : \"current\",\n" +
@@ -20,6 +31,7 @@ public class SamplesToSend {
             "}\n" +
             "}]\n" +
             "}";
+    
     public static final String r03JsonMsgLocal = "{\n" +
             "\"resourceType\": \"DocumentReference\",\n" +
             "\"status\" : \"current\",\n" +

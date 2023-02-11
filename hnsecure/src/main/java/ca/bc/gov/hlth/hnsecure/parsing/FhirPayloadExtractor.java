@@ -1,6 +1,9 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_INVALID_REQUEST;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
+
+import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
@@ -40,9 +43,12 @@ public class FhirPayloadExtractor {
         	logger.error("{} - TransactionId: {}, Exception while decoding message {}", methodName, exchange.getExchangeId(), e.getMessage());
         	throw new CustomHNSException(CUSTOM_ERROR_INVALID_REQUEST);
         }
-        logger.debug("{} - TransactionId: {},{}", methodName, exchange.getExchangeId(), "Message extracted successfully");
+        Map<String, Object> exchangeProperties = exchange.getProperties();		
+		exchangeProperties.put(PROPERTY_RECEIVING_APP, V2MessageUtil.getReceivingApp(extractedMessage));
+		
+        logger.info("{} - TransactionId: {},{}, {}", methodName, exchange.getExchangeId(), "Message extracted successfully for the receiving app", exchangeProperties.get(PROPERTY_RECEIVING_APP));
 		logger.debug("{} - TransactionId: {}, The decoded HL7 message is: {}", methodName, exchange.getExchangeId(), extractedMessage);
-        
+        	
 		exchange.getIn().setBody(extractedMessage);
     }    
 }

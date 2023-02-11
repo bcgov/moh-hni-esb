@@ -19,7 +19,7 @@ public class PharmanetErrorResponse extends ResponseSegment {
 	 * Builds error response for Pharmanet
 	 * @return formatted message in MSH+ZCA+ZCB+ZZZ format
 	 */ 
-	@Override
+	
 	public String constructResponse(HL7Message messageObj, ErrorMessage error) {
 		String formattedResponseText = error.getErrorSequence() + "  " + error.formatErrorMessage(messageObj);
 		return constructMSH(messageObj) + buildZCA() + buildZCB() + buildZZZ(formattedResponseText);

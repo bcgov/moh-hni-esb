@@ -38,6 +38,7 @@ public final class Util {
 	
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String ACK = "ACK";
+	public static final String NMR = "NMR";
 
 	public static final String ENCODING_CHARACTERS = "^~\\&";
 
@@ -57,6 +58,7 @@ public final class Util {
     public static final String R03 = "R03";
 	public static final String R07 = "R07";
 	public static final String R09 = "R09";
+	public static final String HNETDTTN = "HNETDTTN";
 	
 	public static final String PROTOCOL_HTTP = "HTTP";
 	public static final String PROTOCOL_MQ = "MQ";	

@@ -42,7 +42,6 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		// Phamanet message only cares the receiving application value. If it is PNP,
 		// the message should be delivery to phamanet endpoint.
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "ZPN");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "PNP");	
 		template.sendBody("direct:sampleHNSecure", MSG_PHARMANET_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
@@ -53,7 +52,6 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		mock.expectedMessageCount(1);
 		mock.expectedBodiesReceived(MSG_E45_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "E45");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIGET-DOC-SUM");
 		template.sendBody("direct:sampleHNSecure", MSG_E45_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
@@ -64,7 +62,6 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		mock.expectedMessageCount(1);
 		mock.expectedBodiesReceived(MSG_R50_Z05);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R50");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIENROL-EMP");
 		template.sendBody("direct:sampleHNSecure", MSG_R50_Z05);
 		assertMockEndpointsSatisfied();
 	}
@@ -75,7 +72,6 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		mock.expectedMessageCount(1);
 		mock.expectedBodiesReceived(MSG_R09_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R09");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIPRSN-NM-SRCH");
 		template.sendBody("direct:sampleHNSecure", MSG_R09_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
@@ -86,7 +82,6 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		mock.expectedMessageCount(1);
 		mock.expectedBodiesReceived(MSG_R03_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R03");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAIGT-PRSN-DMGR");
 		template.sendBody("direct:sampleHNSecure", MSG_R03_REQUEST);
 		assertMockEndpointsSatisfied();
 	}
@@ -97,7 +92,6 @@ public class PopulateReqHeaderTest extends CamelTestSupport {
 		mock.expectedMessageCount(1);
 		mock.expectedBodiesReceived(MSG_R15_REQUEST);
 		mock.expectedPropertyReceived(PROPERTY_MESSAGE_TYPE, "R15");
-		mock.expectedPropertyReceived(PROPERTY_RECEIVING_APP, "RAICHK-BNF-CVST");
 		template.sendBody("direct:sampleHNSecure", MSG_R15_REQUEST);
 		assertMockEndpointsSatisfied();
 	}

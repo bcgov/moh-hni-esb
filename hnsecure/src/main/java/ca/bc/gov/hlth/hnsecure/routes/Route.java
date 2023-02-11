@@ -41,6 +41,7 @@ import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.filedrops.RequestFileDropGenerator;
 import ca.bc.gov.hlth.hnsecure.filedrops.ResponseFileDropGenerator;
+import ca.bc.gov.hlth.hnsecure.parsing.DateTimeResponseProcessor;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateReqHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -69,6 +70,9 @@ public class Route extends BaseRoute {
 		String isAuditsEnabled = applicationProperties.getValue(IS_AUDITS_ENABLED);
 		Predicate isRTrans = isRTrans();
 		Predicate isMessageForHIBC = isMessageForHIBC();
+		Predicate isHNETDTTN = isHNETDTTN();
+		Predicate enableFileDrops = exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE); 		 
+		Predicate doFileDrops = PredicateBuilder.and(PredicateBuilder.not(isHNETDTTN), enableFileDrops);
 
 		HttpComponent httpComponent = getContext().getComponent("https", HttpComponent.class);
 		httpComponent.setX509HostnameVerifier(new NoopHostnameVerifier());
@@ -89,7 +93,7 @@ public class Route extends BaseRoute {
         	.setProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).simple(isFileDropsEnabled)
         	.setProperty(Util.PROPERTY_IS_AUDITS_ENABLED).simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
-        	.bean(FhirPayloadExtractor.class).id("FhirPayloadExtractor").log("Decoded V2: ${body}")
+        	.bean(FhirPayloadExtractor.class).id("FhirPayloadExtractor").log("Decoded V2: ${body}")      	
         	// Added wireTap for asynchronous call to filedrop request
         	.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_START))
 			.wireTap("direct:audit").end()
@@ -102,8 +106,13 @@ public class Route extends BaseRoute {
         	// since the validator wouldn't have been run yet
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-            .log("The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")
-             
+            .log("The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")                      
+            .choice()
+            	// Return current DateTime if receiving app is HNETDTTN
+				.when(isHNETDTTN)
+				.process(new DateTimeResponseProcessor()).id("DTResponse")
+						            
+			.end()
             // Dispatch the message based on the receiving application code and message type
             .choice()
 	            // Sending message to PharmaNet
@@ -132,14 +141,14 @@ public class Route extends BaseRoute {
         // Request File Drop route
         from("direct:requestFileDrop").log("wireTap direct:requestFileDrop")
         	.choice()
-				.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
+				.when(doFileDrops)
 					.bean(RequestFileDropGenerator.class).id("RequestFileDropGenerater")
 					.log("wireTap direct:requestFileDrop done")
 			.end();
         // Response File Drop route
         from("direct:responseFileDrop").log("wireTap direct:responseFileDrop")
 	        .choice()
-	        	.when(exchangeProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE))
+	        	.when(doFileDrops)
 					.bean(ResponseFileDropGenerator.class).id("ResponseFileDropGenerater")
 					.log("wireTap direct:responseFileDrop done")
 			.end();
@@ -147,7 +156,7 @@ public class Route extends BaseRoute {
         // Audit route
 		from("direct:audit").log("wireTap direct:audit")
 			.choice()
-				.when(exchangeProperty(Util.PROPERTY_IS_AUDITS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE.toString()))
+				.when(PredicateBuilder.and(PredicateBuilder.not(isHNETDTTN), exchangeProperty(Util.PROPERTY_IS_AUDITS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE)))
 					.process(new AuditProcessor()).log("wireTap audit done")				
 			.end();		
     }
@@ -180,6 +189,11 @@ public class Route extends BaseRoute {
 		return PredicateBuilder.or(isR03, isR07, isR09);
 	}
 	
+	private Predicate isHNETDTTN() {
+		
+		return exchangeProperty(Util.PROPERTY_RECEIVING_APP).isEqualToIgnoreCase(Util.HNETDTTN);
+	}
+
 	/**
 	 * This method is used to concat multiple Predicates for HIBC message types. It builds a compound 
 	 * predicate to be used in the Route.

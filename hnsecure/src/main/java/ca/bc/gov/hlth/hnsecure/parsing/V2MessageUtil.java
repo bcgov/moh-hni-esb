@@ -230,7 +230,7 @@ public class V2MessageUtil {
 	 * @return
 	 */
 	public static String getDataSegment(String v2Message, String segmentType) {
-		String[] v2DataLinesPharmanet = v2Message.split(Util.LINE_BREAK);
+		String[] v2DataLinesPharmanet = getMessageSegments(v2Message);
 	
 		for (String segment : v2DataLinesPharmanet) {
 	
@@ -255,7 +255,7 @@ public class V2MessageUtil {
 	 */
 	public static boolean isSegmentPresent(String v2Message, String segmentType) {
 	
-		String[] v2DataLines = v2Message.split(Util.LINE_BREAK);
+		String[] v2DataLines = getMessageSegments(v2Message);
 	
 		for (String segment : v2DataLines) {
 	
