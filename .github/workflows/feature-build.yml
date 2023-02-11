@@ -145,7 +145,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
-          ref: 5369-transition-to-gold
+          ref: main
       
 
       - name: Set up Kustomize
@@ -191,7 +191,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
-          ref: 5369-transition-to-gold
+          ref: main
       
 
       - name: Set up Kustomize
