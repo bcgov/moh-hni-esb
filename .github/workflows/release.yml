@@ -214,7 +214,7 @@ jobs:
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.GOLDDR_IMAGE_SHA}}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying release: ${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}} in dev using release-hnsesb workflow."
+          git commit -am "Deploying release: ${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}} in dev-dr using release-hnsesb workflow."
           git push origin 
   
   # This job creates a tag in Git repository with same name as release tag
