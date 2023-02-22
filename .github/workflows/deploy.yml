@@ -80,7 +80,7 @@ jobs:
         run: |
           echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
           echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
-          if (`${{env.ENVIRONMENT}}` == 'production' ) {
+          if (`${{github.event.inputs.Environment}}` == 'production' ) {
             echo "REPLICATE=true"  | tee -a $GITHUB_ENV
           }
 
