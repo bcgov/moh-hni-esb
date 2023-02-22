@@ -80,9 +80,17 @@ jobs:
         run: |
           echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
           echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
-          if (`${{github.event.inputs.Environment}}` == 'production' ) {
-            echo "REPLICATE=true"  | tee -a $GITHUB_ENV
-          }
+
+      # Find the namespace and image digest from input parameters
+      - name: Determine if replication required
+        id: get-replication
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (`${{github.event.inputs.Environment}}` == 'production' ) {
+              return "true"
+            }
+            return "false"
 
       # Find the namespace and image digest from input parameters
       - name: Compute target namespace
@@ -124,10 +132,11 @@ jobs:
               return "${{env.FEATURE_BUILD_IMAGE_TAG_PREFIX}}-${{github.event.inputs.Branch}}"
             }
 
-      - name: Compute image tag
+      - name: Compute image tag and replication
         run: |
           echo "TARGET_NAMESPACE=${{steps.get-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
           echo "IMAGE_TAG=${{steps.get-image-prefix.outputs.result}}-${{github.event.inputs.Build_Run_Number}}"  | tee -a $GITHUB_ENV
+          echo "REPLICATE=${{steps.get-replication.outputs.result}}"  | tee -a $GITHUB_ENV
 
       # Login to OpenShift
       - name: Log in to OpenShift
