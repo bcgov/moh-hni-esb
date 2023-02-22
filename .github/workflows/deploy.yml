@@ -33,7 +33,7 @@ env:
   FEATURE_BUILD_IMAGE_TAG_PREFIX: "featurebuild"
   RELEASE_BUILD_IMAGE_TAG_PREFIX: "release-1.1"
   IMAGE_ID:
-
+  REPLICATE: "false"
 # Controls when the workflow will run
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -80,6 +80,9 @@ jobs:
         run: |
           echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
           echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
+          if (`${{env.ENVIRONMENT}}` == 'production' ) {
+            echo "REPLICATE=true"  | tee -a $GITHUB_ENV
+          }
 
       # Find the namespace and image digest from input parameters
       - name: Compute target namespace
@@ -235,8 +238,13 @@ jobs:
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-          cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
-          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          
+          
+          if (`${{env.REPLICATION}}` == 'true') {
+              cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
+              kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          }
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying feature build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
@@ -296,8 +304,10 @@ jobs:
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-          cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
-          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          if (`${{env.REPLICATION}}` == 'true') {
+            cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
+            kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+          }
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
