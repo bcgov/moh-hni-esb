@@ -241,18 +241,12 @@ jobs:
               return "test"
             }
             core.setFailed(`❌ Invalid inputs for Environment and branch`  );
-
+      # No need to deploy feature build in DR. Hence, no step of DR deployment
       - name: Update image ID and commit change
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-                    
-          if (`${{env.REPLICATE}}` == 'true') {
-              cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
-              kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-          }
-
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying feature build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
@@ -312,10 +306,16 @@ jobs:
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-          if (`${{env.REPLICATE}}` == 'true') {
-            cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
-            kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
-          }
+
+      - name: Deploy in DR if replication is true
+        if: ${{success() && env.REPLICATE == 'true'}}
+        run: |
+          cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
+
+      - name: Update image ID and commit change
+        if: ${{success()}}
+        run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
