@@ -113,3 +113,50 @@ jobs:
           username: ${{env.OPENSHIFT_SA}}
           password: ${{env.OPENSHIFT_GOLDDR_TOKEN}}
 
+
+  # This job updates the Gitops repository with image created in  this workflow. 
+  # Updating the image in Deployment.yml will result in deploying that image in OpenShift
+  deployToGold:
+    runs-on: ubuntu-latest
+    needs: [createHniEsbFeatureBuild]
+    
+    steps:
+      # 1. Login to OpenShift
+      - name: Log in to OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{env.OPENSHIFT_SERVER_GOLD}}
+          openshift_token: ${{env.OPENSHIFT_GOLD_TOKEN}}
+          insecure_skip_tls_verify: true
+          namespace: ${{env.DEFAULT_NAMESPACE}}
+
+      # 2. Push the image to selected repository
+      - name: Push Image to dev 
+        run: |
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLD_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}}
+      
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
+
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
+          repository: bcgov-c/tenant-gitops-c8d6f2
+          ref: main
+      
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Update image ID and commit change
+        if: ${{success()}}
+        run: |
+          cd hnsesb-devops/overlay/dev
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLD_IMAGE_SHA}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}} in dev using feature-build-hnsesb workflow."
+          git push origin    
