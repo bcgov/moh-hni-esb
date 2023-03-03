@@ -14,7 +14,6 @@ name: release
 
 env:
   OPENSHIFT_SERVER_GOLD: ${{secrets.OPENSHIFT_SERVER_GOLD}}
-  OPENSHIFT_SERVER_GOLDDR: ${{secrets.OPENSHIFT_SERVER_GOLDDR}}
   DEFAULT_NAMESPACE: c8d6f2-tools
   DEV_NAMESPACE: c8d6f2-dev
   IMAGE_REGISTRY_GOLD: image-registry.apps.gold.devops.gov.bc.ca
@@ -64,7 +63,7 @@ jobs:
       - name: Determine Version number
         # Branch name is fixed to 'main' in version identifier
         run: |
-          echo "RELEASE_VERSION=Release-1.1-main-${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "RELEASE_VERSION=release-1.1-main-${{github.run_number}}" | tee -a $GITHUB_ENV
           echo "COMMIT_SHA=${GITHUB_SHA}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image

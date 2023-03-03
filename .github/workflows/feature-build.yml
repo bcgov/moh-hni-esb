@@ -13,7 +13,6 @@ name: feature-build
 # Build the image and deploy in OpenShift dev environment
 env:
   OPENSHIFT_SERVER_GOLD: ${{secrets.OPENSHIFT_SERVER_GOLD}}
-  OPENSHIFT_SERVER_GOLDDR: ${{secrets.OPENSHIFT_SERVER_GOLDDR}}
   DEFAULT_NAMESPACE: c8d6f2-tools
   DEV_NAMESPACE: c8d6f2-dev
   IMAGE_REGISTRY_GOLD: image-registry.apps.gold.devops.gov.bc.ca
@@ -61,7 +60,7 @@ jobs:
       # 1. Determine build name i.e. FeatureBuild-<branch-name>-<build execution count> 
       - name: Determine Build name
         run: |
-          echo "FEATURE_BUILD_NAME=featureBuild-${{github.event.inputs.BRANCH_NAME}}-${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "FEATURE_BUILD_NAME=featurebuild-${{github.event.inputs.BRANCH_NAME}}-${{github.run_number}}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
