@@ -1,31 +1,161 @@
-# This is a basic workflow to help you get started with Actions
+# This is a manual workflow that performs following activities:
+# 1. Determine the version number tag i.e. FeatureBuild-<branch-name>-<build execution>  
+# 2. Determine tags for OpenShift image
+# 3. Run the maven install for common code from input branch name
+# 4. Run the maven install for hnsesb code from input branch name
+# 5. Run the docker file to create image
+# 6. Push the image to OpenShift repository
+# 7. Deploy the image in Dev environment
+
 
 name: feature-build
 
+# Build the image and deploy in OpenShift dev environment
+env:
+  OPENSHIFT_SERVER_GOLD: ${{secrets.OPENSHIFT_SERVER_GOLD}}
+  DEFAULT_NAMESPACE: c8d6f2-tools
+  DEV_NAMESPACE: c8d6f2-dev
+  IMAGE_REGISTRY_GOLD: image-registry.apps.gold.devops.gov.bc.ca
+  IMAGE_REGISTRY_GOLDDR: image-registry.apps.golddr.devops.gov.bc.ca
+  OPENSHIFT_SA: ${{secrets.C8D6F2_OPENSHIFT_GITHUB_ACTIONS_SA}}
+  OPENSHIFT_GOLD_TOKEN: ${{secrets.C8D6F2_OPENSHIFT_GITHUB_ACTIONS_SA_GOLD_TOKEN}}
+  OPENSHIFT_GOLDDR_TOKEN: ${{secrets.C8D6F2_OPENSHIFT_GITHUB_ACTIONS_SA_GOLDDR_TOKEN}}
+  IMAGE_NAME: hnsesb
+  IMAGE_TAGS: 
+  FEATURE_BUILD_NAME:
+
 # Controls when the workflow will run
 on:
-
-  # Allows you to run this workflow manually from the Actions tab
+  # The user specifies the optional tag  
   workflow_dispatch:
+    inputs:
+      BRANCH_NAME:
+        description: 'Name of the feature branch'
+        required: true
+        default: main
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This job runs the maven commands to compile code and build package.
+  # This job also creates docker image and push the image to OpenShift repository
+  createHniEsbFeatureBuild:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      GOLD_IMAGE_SHA: ${{steps.push-image-gold.outputs.digest}}
+      GOLDDR_IMAGE_SHA: ${{steps.push-image-golddr.outputs.digest}}
+      FEATURE_BUILD_NAME: ${{env.FEATURE_BUILD_NAME}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      # It should get the code from branch that triggered this workflow
+      - name: Check out code
+        id: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{github.event.inputs.BRANCH_NAME}}
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # 1. Determine build name i.e. FeatureBuild-<branch-name>-<build execution count> 
+      - name: Determine Build name
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "FEATURE_BUILD_NAME=featurebuild-${{github.event.inputs.BRANCH_NAME}}-${{github.run_number}}" | tee -a $GITHUB_ENV
+        
+      # 2. Determine tags for OpenShift image
+      - name: Determine image tags
+        run: |
+          echo "IMAGE_TAGS= ${GITHUB_SHA::12} ${{env.FEATURE_BUILD_NAME}}" | tee -a $GITHUB_ENV
+
+      # Run the maven install for common code
+      - name: Maven run for common code
+        run: |
+          cd ${{github.workspace}}/hn-common
+          mvn install
+
+      # Run the maven install for hnsesb code
+      - name: Maven run for hnsecure code
+        run: |
+          cd ${{github.workspace}}/hnsecure
+          mvn install -Dimpl-version=${{env.FEATURE_BUILD_NAME}} -Dgit-commit=${GITHUB_SHA::12}
+
+      # Build from docker file
+      - name: Build hnsesb image from Dockerfile
+        id: build-docker-hniesb
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{env.IMAGE_NAME}}
+          tags: ${{env.IMAGE_TAGS}}
+          context: ./hnsecure
+          dockerfiles: |
+            ./hnsecure/Dockerfile
+
+      # Upload the images in image repository in tools namespace
+      - name: Push image to gold registry
+        id: push-image-gold
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{steps.build-docker-hniesb.outputs.image}}
+          tags: ${{steps.build-docker-hniesb.outputs.tags}}
+          registry: ${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEFAULT_NAMESPACE}}
+          username: ${{env.OPENSHIFT_SA}}
+          password: ${{env.OPENSHIFT_GOLD_TOKEN}}
+ 
+      # Upload the images in image repository in tools namespace
+      - name: Push image to gold dr registry
+        id: push-image-golddr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{steps.build-docker-hniesb.outputs.image}}
+          tags: ${{steps.build-docker-hniesb.outputs.tags}}
+          registry: ${{env.IMAGE_REGISTRY_GOLDDR}}/${{env.DEFAULT_NAMESPACE}}
+          username: ${{env.OPENSHIFT_SA}}
+          password: ${{env.OPENSHIFT_GOLDDR_TOKEN}}
+
+
+  # This job updates the Gitops repository with image created in  this workflow. 
+  # Updating the image in Deployment.yml will result in deploying that image in OpenShift
+  deployToGold:
+    runs-on: ubuntu-latest
+    needs: [createHniEsbFeatureBuild]
+    
+    steps:
+      # 1. Login to OpenShift
+      - name: Log in to OpenShift
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{env.OPENSHIFT_SERVER_GOLD}}
+          openshift_token: ${{env.OPENSHIFT_GOLD_TOKEN}}
+          insecure_skip_tls_verify: true
+          namespace: ${{env.DEFAULT_NAMESPACE}}
+
+      # 2. Push the image to selected repository
+      - name: Push Image to dev 
+        run: |
+          oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLD_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}}
+      
+      - name: Prepare deploy key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
+
+      - name: Check out manifest repo
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
+          repository: bcgov-c/tenant-gitops-c8d6f2
+          ref: main
+      
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v1
+
+      - name: Update image ID and commit change
+        if: ${{success()}}
+        run: |
+          cd hnsesb-devops/overlay/dev
+          kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbFeatureBuild.outputs.GOLD_IMAGE_SHA}}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Deploying feature build: ${{needs.createHniEsbFeatureBuild.outputs.FEATURE_BUILD_NAME}} in dev using feature-build-hnsesb workflow."
+          git push origin    
