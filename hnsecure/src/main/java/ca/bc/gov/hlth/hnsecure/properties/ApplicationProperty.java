@@ -39,6 +39,7 @@ public enum ApplicationProperty {
 	DATABASE_NAME("database.name"),
 	DATABASE_USERNAME("database.username"),
 	DATABASE_PASSWORD("database.password"),
+	DATABASE_SCHEMA("database.schema"),
 
 	//JMB Properties
 	JMB_REQUEST_QUEUE("jmb.request.queue"),

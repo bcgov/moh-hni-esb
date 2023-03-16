@@ -16,7 +16,7 @@ import javax.persistence.Table;
  * Audit entity TransactionEvent
  */
 @Entity
-@Table(schema = "hnsecure", name = "transaction_event")
+@Table(name = "transaction_event")
 public class TransactionEvent {
 
 	@Id

@@ -10,7 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(schema="hnsecure", name = "TRANSACTION")
+@Table(name = "TRANSACTION")
 public class Transaction {
 	
 	/** 

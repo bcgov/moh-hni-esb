@@ -12,7 +12,7 @@ import javax.persistence.Table;
  * Audit entity EventMessage
  */
 @Entity
-@Table(schema="hnsecure", name="event_message")
+@Table(name="event_message")
 public class EventMessage {
 
 	@Id
