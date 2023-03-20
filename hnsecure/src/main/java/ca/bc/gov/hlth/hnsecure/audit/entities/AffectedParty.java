@@ -14,7 +14,7 @@ import javax.persistence.Table;
  * Audit entity AffectedParty
  */
 @Entity
-@Table(schema="hnsecure", name="affected_party")
+@Table(name="affected_party")
 public class AffectedParty {
 	
 	@Id

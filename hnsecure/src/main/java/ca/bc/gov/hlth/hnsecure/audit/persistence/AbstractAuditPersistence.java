@@ -5,6 +5,7 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_HO
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_NAME;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PASSWORD;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PORT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_SCHEMA;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_USERNAME;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
 
@@ -57,6 +58,7 @@ public abstract class AbstractAuditPersistence {
         persistenceUnitProperties.put("javax.persistence.jdbc.url", url);
         persistenceUnitProperties.put("javax.persistence.jdbc.user", properties.getValue(DATABASE_USERNAME));
 		persistenceUnitProperties.put("javax.persistence.jdbc.password", properties.getValue(DATABASE_PASSWORD));
+		persistenceUnitProperties.put("hibernate.default_schema", properties.getValue(DATABASE_SCHEMA));
     }
     
 	private EntityManagerFactory emf;
