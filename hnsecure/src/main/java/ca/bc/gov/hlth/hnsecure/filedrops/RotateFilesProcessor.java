@@ -52,28 +52,30 @@ public class RotateFilesProcessor extends AbstractAuditPersistence implements Pr
 		logger.info("Delete files older than: {}.", cutoffDate);
 
         File fileDropDirectory = new File(fileDropLocation);
-		long fileDropDirectorySizeBefore = FileUtils.sizeOfDirectory(fileDropDirectory);
-		logger.info("File drop directory size before cleanup: {}.", fileDropDirectorySizeBefore);
-		
-        FileFilter ageFileFilter = new AgeFileFilter(cutoffDate, true);
-        File[] filesToDelete = fileDropDirectory.listFiles(ageFileFilter);
-        logger.info("Found {} files delete.", filesToDelete.length);
-        
-        //Delete each file but and check for success 
-        for (File f:filesToDelete) {
-        	try {
-				boolean success = Files.deleteIfExists(Paths.get(f.getPath()));
-				if (success) {
-					logger.debug("Deleted file: {}", f.getName());
+        if (fileDropDirectory.exists()) {
+			long fileDropDirectorySizeBefore = FileUtils.sizeOfDirectory(fileDropDirectory);
+			logger.info("File drop directory size before cleanup: {}.", fileDropDirectorySizeBefore);
+			
+	        FileFilter ageFileFilter = new AgeFileFilter(cutoffDate, true);
+	        File[] filesToDelete = fileDropDirectory.listFiles(ageFileFilter);
+	        logger.info("Found {} files delete.", filesToDelete.length);
+	        
+	        //Delete each file but and check for success 
+	        for (File f:filesToDelete) {
+	        	try {
+					boolean success = Files.deleteIfExists(Paths.get(f.getPath()));
+					if (success) {
+						logger.debug("Deleted file: {}", f.getName());
+					}
+				} catch (Exception e) {
+					logger.error("An error occurred attempting to delete file: {}; due to: {}.", f.getPath(), e.getMessage());
 				}
-			} catch (Exception e) {
-				logger.error("An error occurred attempting to delete file: {}; due to: {}.", f.getPath(), e.getMessage());
-			}
-        }
-        
-        logger.info("Deletion of files has completed.");
-		long fileDropDirectorySizeAfter = FileUtils.sizeOfDirectory(fileDropDirectory);
-		logger.info("File drop directory size after cleanup: {}. Freed {} bytes: ", fileDropDirectorySizeAfter, fileDropDirectorySizeBefore - fileDropDirectorySizeAfter);
+	        }
+	        
+	        logger.info("Deletion of files has completed.");
+			long fileDropDirectorySizeAfter = FileUtils.sizeOfDirectory(fileDropDirectory);
+			logger.info("File drop directory size after cleanup: {}. Freed {} bytes: ", fileDropDirectorySizeAfter, fileDropDirectorySizeBefore - fileDropDirectorySizeAfter);
+        }        
 	}
 	
 }
