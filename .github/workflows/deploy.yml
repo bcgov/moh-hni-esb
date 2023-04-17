@@ -224,7 +224,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
-          ref: main
+          ref: 7674-add-artifacts-for-gold-prod
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
@@ -278,7 +278,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
-          ref: main
+          ref: 7674-add-artifacts-for-gold-prod
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
@@ -301,22 +301,22 @@ jobs:
               return "prod"
             }
 
-      - name: Update image ID and commit change
+      - name: Update image ID
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
 
       - name: Deploy in DR if replication is true
-        if: ${{success() && env.REPLICATE == 'true'}}
+        if: ${{success() && env.REPLICATE}}
         run: |
-          cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}-dr
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
 
-      - name: Update image ID and commit change
+      - name: Commit change
         if: ${{success()}}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
+          git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{steps.get-kustomize-folder.outputs.result}} using deploy workflow."
           git push origin
