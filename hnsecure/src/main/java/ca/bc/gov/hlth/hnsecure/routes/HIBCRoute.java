@@ -52,11 +52,11 @@ public class HIBCRoute extends BaseRoute {
 		// Setup web endpoint config
 		setupSSLContextHibcRegistry(getContext());
 		String eligibilityHttpUrl = String.format(
-				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_HTTP_PATH_ELIGIBILITY) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
-				SSL_CONTEXT_HIBC, properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
+				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_HTTP_PATH_ELIGIBILITY) + "?bridgeEndpoint=true&sslContextParameters=#%s",
+				SSL_CONTEXT_HIBC);
 		String enrollmentHttpUrl = String.format(
-				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_HTTP_PATH_ENROLLMENT) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
-				SSL_CONTEXT_HIBC, properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
+				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_HTTP_PATH_ENROLLMENT) + "?bridgeEndpoint=true&sslContextParameters=#%s",
+				SSL_CONTEXT_HIBC);
 		
 		// Setup authentication
 		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
@@ -90,8 +90,10 @@ public class HIBCRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
             .choice()
 			.when(isEligibility())
+				.log("Sending to Eligibility endpoint")
 				.to(eligibilityHttpUrl).id("ToHibcEligibility")
 			.when(isEnrollment())
+				.log("Sending to Enrollment endpoint")
 				.to(enrollmentHttpUrl).id("ToHibcEnrollment")
             .otherwise()
             	.log("Found unexpected message of type: ${exchangeProperty.messageType}")             
