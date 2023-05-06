@@ -224,7 +224,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
-          ref: 7674-add-artifacts-for-gold-prod
+          ref: main
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
@@ -278,7 +278,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C8D6F2_PRIVATE_KEY}}
           repository: bcgov-c/tenant-gitops-c8d6f2
-          ref: 7674-add-artifacts-for-gold-prod
+          ref: main
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
