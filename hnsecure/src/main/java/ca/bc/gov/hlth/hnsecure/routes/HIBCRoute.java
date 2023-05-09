@@ -7,13 +7,15 @@ import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R15;
 import static ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType.R50;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_CERT;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_CERT_PASSWORD;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_HTTP_PATH_ELIGIBILITY;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_HTTP_PATH_ENROLLMENT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_ELIGIBILITY_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_ELIGIBILITY_PATH;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_ELIGIBILITY_USER;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_ENROLLMENT_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_ENROLLMENT_PATH;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_ENROLLMENT_USER;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_HTTP_URI;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_PASSWORD;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_USER;
 import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_MQ_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
@@ -52,14 +54,15 @@ public class HIBCRoute extends BaseRoute {
 		// Setup web endpoint config
 		setupSSLContextHibcRegistry(getContext());
 		String eligibilityHttpUrl = String.format(
-				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_HTTP_PATH_ELIGIBILITY) + "?bridgeEndpoint=true&sslContextParameters=#%s",
+				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_ELIGIBILITY_PATH) + "?bridgeEndpoint=true&sslContextParameters=#%s",
 				SSL_CONTEXT_HIBC);
 		String enrollmentHttpUrl = String.format(
-				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_HTTP_PATH_ENROLLMENT) + "?bridgeEndpoint=true&sslContextParameters=#%s",
+				properties.getValue(HIBC_HTTP_URI) + "/" + properties.getValue(HIBC_ENROLLMENT_PATH) + "?bridgeEndpoint=true&sslContextParameters=#%s",
 				SSL_CONTEXT_HIBC);
 		
 		// Setup authentication
-		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(HIBC_USER), properties.getValue(HIBC_PASSWORD));
+		String eligibilityBasicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(HIBC_ELIGIBILITY_USER), properties.getValue(HIBC_ELIGIBILITY_PASSWORD));
+		String enrollmentBasicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(HIBC_ENROLLMENT_USER), properties.getValue(HIBC_ENROLLMENT_PASSWORD));
 
 		// Setup MQ config
 		String hibcRequestQueue = properties.getValue(HIBC_REQUEST_QUEUE);
@@ -86,13 +89,14 @@ public class HIBCRoute extends BaseRoute {
 	     	.wireTap(DIRECT_AUDIT).end()
 	     	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
-			.setHeader(AUTHORIZATION, simple(basicAuthToken))
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
             .choice()
 			.when(isEligibility())
+				.setHeader(AUTHORIZATION, simple(eligibilityBasicAuthToken))
 				.log("Sending to Eligibility endpoint")
 				.to(eligibilityHttpUrl).id("ToHibcEligibility")
 			.when(isEnrollment())
+				.setHeader(AUTHORIZATION, simple(enrollmentBasicAuthToken))
 				.log("Sending to Enrollment endpoint")
 				.to(enrollmentHttpUrl).id("ToHibcEnrollment")
             .otherwise()
