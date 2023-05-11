@@ -26,6 +26,8 @@ public class HL7Message {
 	private String messageControlId;
 
 	private String processingId;
+	
+	private String user;
 
 	private String versionId;
 
@@ -129,6 +131,14 @@ public class HL7Message {
 
 	public void setProcessingId(String processingId) {
 		this.processingId = processingId;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 	public String getVersionId() {

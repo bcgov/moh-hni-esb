@@ -2,11 +2,20 @@ package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_MQ_NOT_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_CERT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_CERT_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_HTTP_URI;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REPLY_QUEUE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_REQUEST_QUEUE;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.HIBC_USER;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_MQ_ENABLED;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.spi.Registry;
+import org.apache.camel.support.jsse.SSLContextParameters;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
@@ -14,8 +23,6 @@ import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
-import org.apache.camel.spi.Registry;
-import org.apache.camel.support.jsse.SSLContextParameters;
 
 
 public class HIBCRoute extends BaseRoute {

@@ -119,6 +119,26 @@ public class V2MessageUtil {
 		}
 		return recApp;
 	}
+	
+	/**
+	 * This method is used to get the receiving application from a HL7 message.
+	 * 
+	 * @param v2Message
+	 * @return the receiving application
+	 */
+	public static String getReceivingFacility(String v2Message) {
+	
+		String recFacility = "";
+	
+		if (v2Message == null || v2Message.isEmpty()) {
+			return recFacility;
+		}
+		String[] hl7Fields = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+		if (hl7Fields.length > 5) {
+			recFacility = hl7Fields[5];
+		}
+		return recFacility;
+	}
 
 	/**
 	 * returns the message type based on the HL7 message.
@@ -157,6 +177,34 @@ public class V2MessageUtil {
 		}
 		return msgType;
 	}
+	
+	/**
+	 * returns the user info based on the HL7 message.
+	 * @param v2Message
+	 * @return
+	 */
+	public static String getUserInfo(String v2Message) {
+
+		String user = "";
+
+		if (StringUtils.isEmpty(v2Message)) {
+			return user;
+		}
+
+		v2Message = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message
+				: v2Message.substring(7);
+		String mshSegment = getMSHSegment(v2Message);
+
+		if (StringUtils.isNotBlank(mshSegment)) {
+			String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+			if (hl7MessageAtt.length > 7) {
+				user = hl7MessageAtt[7];
+			}
+		}
+
+		return user;
+	}
+	
 
 	/**
 	 * returns the message id based on the HL7 message.

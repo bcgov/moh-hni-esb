@@ -47,7 +47,10 @@ public final class Util {
 	public static final String PROPERTY_MESSAGE_PROTOCOL = "messageProtocol";
 	public static final String PROPERTY_MESSAGE_TYPE = "messageType";
 	public static final String PROPERTY_RECEIVING_APP = "receivingApp";
+	public static final String PROPERTY_SENDING_APP = "sendingApp";
 	public static final String PROPERTY_SENDING_FACILITY = "sendingFacility";	
+	public static final String PROPERTY_RECEIVING_FACILITY = "receivingFacility";
+	public static final String PROPERTY_USER_INFO= "receivingFacility";
 	public static final String PROPERTY_TRANSACTION_EVENT_TYPE = "eventType";
 	public static final String PROPERTY_TRANSACTION_EVENT_TIME = "eventTime";
 	

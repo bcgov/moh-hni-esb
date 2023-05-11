@@ -17,7 +17,7 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
 import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
-import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RapidRoute;
 import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RotateFilesRoute;
@@ -61,7 +61,7 @@ public class RouteTest extends CamelTestSupport {
 		context.addRoutes(new PharmanetRoute());
 		context.addRoutes(new RTransRoute());
 		context.addRoutes(new HIBCRoute());
-		context.addRoutes(new JMBRoute());
+		context.addRoutes(new RapidRoute());
 		context.addRoutes(new RotateFilesRoute());
 		context.addRoutes(new HandleResponseRoute());
 		

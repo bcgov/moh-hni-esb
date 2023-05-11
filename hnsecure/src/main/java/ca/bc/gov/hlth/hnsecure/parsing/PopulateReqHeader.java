@@ -3,6 +3,10 @@ package ca.bc.gov.hlth.hnsecure.parsing;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
 
 import java.util.Map;
 
@@ -41,10 +45,19 @@ public class PopulateReqHeader {
 		// request headers)
 		Map<String, Object> exchangeProperties = exchange.getProperties();
 		String msgType = V2MessageUtil.getMsgType(v2Message);
+		String receivingFacility = V2MessageUtil.getReceivingFacility(v2Message);
+		String userInfo = V2MessageUtil.getUserInfo(v2Message);
+		String receivingApp = V2MessageUtil.getReceivingApp(v2Message);
+		String sendingApp =  V2MessageUtil.getSendingApplication(v2Message);
+		
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
 		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
 		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
+		exchangeProperties.put(PROPERTY_RECEIVING_FACILITY, receivingFacility);
+		exchangeProperties.put(PROPERTY_SENDING_APP, sendingApp);
+		exchangeProperties.put(PROPERTY_RECEIVING_APP, receivingApp);
+		exchangeProperties.put(PROPERTY_USER_INFO, userInfo);
 		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 
 		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {
