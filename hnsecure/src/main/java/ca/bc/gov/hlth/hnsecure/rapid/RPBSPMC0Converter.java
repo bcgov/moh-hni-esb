@@ -63,31 +63,7 @@ public class RPBSPMC0Converter {
 		super();
 	}
 
-	/**
-	 * public static void main(String args[]) {
-	 * 
-	 * RPBSPMC0Converter obj = new RPBSPMC0Converter(); RPBSPMC0 request =
-	 * obj.convertRequest(""); System.out.println(request.serialize()); RPBSPMC0
-	 * rpbspmc0 = new RPBSPMC0(R32_WARNING_MORE_THAN_20_PERSONS_FOUND); try {
-	 * obj.convertResponse(rpbspmc0); } catch (HL7Exception e) { // TODO
-	 * Auto-generated catch block e.printStackTrace(); }
-	 * 
-	 * }
-	 * 
-	 * public RPBSPMC0 convertRequest(String request) { RPBSHeader rpbsHeader = new
-	 * RPBSHeader(); rpbsHeader.setOrganization("MSP");
-	 * rpbsHeader.setTranCode(TRAN_CODE);
-	 * 
-	 * RPBSPMC0Data rpbsmc0Data = new RPBSPMC0Data();
-	 * rpbsmc0Data.setPhn("9879869673");
-	 * 
-	 * RPBSPMC0 rpbspmc0 = new RPBSPMC0(); rpbspmc0.setRpbsHeader(rpbsHeader);
-	 * rpbspmc0.setRpbsmc0Data(rpbsmc0Data);
-	 * 
-	 * return rpbspmc0; }
-	 * 
-	 * @throws HL7Exception
-	 **/
+
 	@Handler
 	public String convertResponse(RPBSPMC0 rpbspmc0, Exchange exchange) {
 		String methodName = LoggingUtil.getMethodName();

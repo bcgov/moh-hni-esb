@@ -1,8 +1,8 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_MQ_NOT_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
 import static org.apache.camel.component.http.HttpMethods.POST;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -15,12 +15,12 @@ import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
-import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransResponse;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.rapid.RPBSPMC0Converter;
+import ca.bc.gov.hlth.hnsecure.rapid.RPBSPMC0RequestConverter;
 
 
 public class RapidRoute extends BaseRoute {
@@ -39,12 +39,12 @@ public class RapidRoute extends BaseRoute {
 		String r32Protocol = properties.getValue("R32.protocol");
 		
 		// Setup web endpoint config
-		setupSSLContextHibcRegistry(getContext());
-		//String rapidHttpUrl = properties.getValue(ApplicationProperty.JMB_HTTP_URI) + "?bridgeEndpoint=true";
-		String rapidHttpUrl = String.format(
-				properties.getValue(ApplicationProperty.JMB_HTTP_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
-				SSL_CONTEXT_RAPID, properties.getValue(ApplicationProperty.RAPID_USER), properties.getValue(ApplicationProperty.RAPID_PASSWORD));
+		setupSSLContextRapidRegistry(getContext());
 		
+		String rapidHttpUrl = String.format(
+				properties.getValue(ApplicationProperty.RAPID_HTTP_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
+				SSL_CONTEXT_RAPID, properties.getValue(ApplicationProperty.RAPID_USER), properties.getValue(ApplicationProperty.RAPID_PASSWORD));
+		System.out.println("rapidHttpUrl-----"+rapidHttpUrl);
 		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(ApplicationProperty.RAPID_USER), properties.getValue(ApplicationProperty.RAPID_PASSWORD));
 
 		// Setup MQ config
@@ -71,17 +71,20 @@ public class RapidRoute extends BaseRoute {
 		// XXX This is currently just a simple HTTP route which will need additional configuration (auth, request/response conversion)
 		// once the endpoint is available
 		from("direct:rapidHTTP").routeId("rapid-http-route")
+			
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 	     	.log("Sending to RAPID")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	     	.wireTap(DIRECT_AUDIT).end()
 	     	.setBody().method(new Base64Encoder()).id("RAPIDBase64Encoder")
             .setBody().method(new ProcessV2ToJson()).id("RAPIDProcessV2ToJson")
-	     	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-	        .setHeader("CamelHttpMethod", POST)
+            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+	        .setHeader(CAMEL_HTTP_METHOD, POST)
+			.setHeader(AUTHORIZATION, simple(basicAuthToken))
+	        .setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(rapidHttpUrl).id("TorapidHttpUrl")
-	     	.log("Received response from RAPID for R32")
+	     	.log("Received response from RAPID for R32: ${body}")
 	     	.setBody().method(new RPBSPMC0Converter()).id("rapidResponse")
 	     	.bean(FhirPayloadExtractor.class)
 	     	.log("Decoded V2: ${body}")
@@ -109,8 +112,8 @@ public class RapidRoute extends BaseRoute {
 		} 
 	}
 	
-	private void setupSSLContextHibcRegistry(CamelContext camelContext) {
-		SSLContextParameters sslContextParameters = RouteUtils.setupSslContextParameters(properties.getValue(HIBC_CERT), properties.getValue(HIBC_CERT_PASSWORD));
+	private void setupSSLContextRapidRegistry(CamelContext camelContext) {
+		SSLContextParameters sslContextParameters = RouteUtils.setupSslContextParameters(properties.getValue(ApplicationProperty.RAPID_CERT), properties.getValue(ApplicationProperty.RAPID_CERT_PASSWORD));
 
 		Registry registry = camelContext.getRegistry();
 		registry.bind(SSL_CONTEXT_RAPID, sslContextParameters);
