@@ -52,14 +52,22 @@ public enum ApplicationProperty {
 	RAPID_CERT("rapid.cert"),
 	RAPID_CERT_PASSWORD("rapid.cert.password"),
 
-	//Hibc properties
+	//HIBC MQ properties
 	HIBC_REQUEST_QUEUE("hibc.request.queue"),
 	HIBC_REPLY_QUEUE("hibc.reply.queue"),
+	
+	//HIBC HTTP properties
 	HIBC_HTTP_URI("hibc.http.uri"),
 	HIBC_CERT("hibc.cert"),
 	HIBC_CERT_PASSWORD("hibc.cert.password"),
-	HIBC_USER("hibc.user"),
-	HIBC_PASSWORD("hibc.password"),
+	//Path and basic auth for R15 and E45 endpoint
+	HIBC_ELIGIBILITY_PATH("hibc.eligibility.path"),
+	HIBC_ELIGIBILITY_USER("hibc.eligibility.user"),
+	HIBC_ELIGIBILITY_PASSWORD("hibc.eligibility.password"),
+	//Path and basic auth for R50 endpoint
+	HIBC_ENROLLMENT_PATH("hibc.enrollment.path"),
+	HIBC_ENROLLMENT_USER("hibc.enrollment.user"),
+	HIBC_ENROLLMENT_PASSWORD("hibc.enrollment.password"),
 
 	//MQ Properties
 	MQ_HOST("mq.host"),

@@ -79,7 +79,10 @@ public class RouteTest extends CamelTestSupport {
 			a.weaveById("ToRTrans").replace().to("mock:rtransEndpoint");
 		});
 		AdviceWithRouteBuilder.adviceWith(context, "hibc-http-route", a -> {
-			a.weaveById("ToHibcHttpUrl").replace().to("mock:hibcHttp");
+			a.weaveById("ToHibcEligibility").replace().to("mock:hibcHttpEligibility");
+		});
+		AdviceWithRouteBuilder.adviceWith(context, "hibc-http-route", a -> {
+			a.weaveById("ToHibcEnrollment").replace().to("mock:hibcHttpEnrollment");
 		});
 		AdviceWithRouteBuilder.adviceWith(context, "hibc-mq-route", a -> {
 			a.weaveById("ToHibcMqUrl").replace().to("mock:hibcMq");
@@ -245,7 +248,50 @@ public class RouteTest extends CamelTestSupport {
 	}
 	
 	@Test
-	public void testSuccessFullHIBCMessage() throws Exception {
+	public void testSuccess_HIBCMessageHttp() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:hibcHttpEligibility").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.e45JsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	/*
+	 * This test checks that the default protocol is HTTP for HIBC routes. It uses an R50 message which does not have its protocol explicitly set, this
+	 * should result in it using HTTP when sending to the downstream system.
+	 *
+	 */
+	@Test
+	public void testSuccess_HIBCMessageDefaultProtocol() throws Exception {
+		
+		context.start();
+
+		// Set expectations
+		getMockEndpoint("mock:hibcHttpEnrollment").expectedMessageCount(1);
+		
+		// Send a message
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r50JsonMsg, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessFullHIBCMessageJmb() throws Exception {
 
 		context.start();
 
@@ -255,7 +301,7 @@ public class RouteTest extends CamelTestSupport {
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
-		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.hibcJsonMsg, headers);
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r15JsonMsg, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
