@@ -1,5 +1,15 @@
 package ca.bc.gov.hlth.hnsecure.rapid;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.apache.commons.lang3.StringUtils;
@@ -22,16 +32,6 @@ import ca.uhn.hl7v2.model.v24.segment.MSA;
 import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.model.v24.segment.NK1;
 import ca.uhn.hl7v2.model.v24.segment.PID;
-
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_FACILITY;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class RPBSPMC0Converter {
 
@@ -65,7 +65,8 @@ public class RPBSPMC0Converter {
 
 
 	@Handler
-	public String convertResponse(RPBSPMC0 rpbspmc0, Exchange exchange) {
+	public String convertResponse(Exchange exchange, String responseMessage) {
+		RPBSPMC0 rpbspmc0 = new RPBSPMC0(responseMessage);
 		String methodName = LoggingUtil.getMethodName();
 		HL7Message mshdefaults = getHL7Message(exchange);
 

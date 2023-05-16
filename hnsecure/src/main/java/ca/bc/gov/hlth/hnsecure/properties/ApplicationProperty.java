@@ -46,11 +46,13 @@ public enum ApplicationProperty {
 	JMB_REPLY_QUEUE("jmb.reply.queue"),
 	JMB_HTTP_URI("jmb.http.uri"),
 	
-	RAPID_USER("rapid.user"),
-	RAPID_PASSWORD("rapid.password"),
+	//RAPID HTTP properties
 	RAPID_HTTP_URI("rapid.http.uri"),
+	RAPID_R32_PATH("rapid.r32.path"),
 	RAPID_CERT("rapid.cert"),
 	RAPID_CERT_PASSWORD("rapid.cert.password"),
+	RAPID_USER("rapid.user"),
+	RAPID_PASSWORD("rapid.password"),
 
 	//HIBC MQ properties
 	HIBC_REQUEST_QUEUE("hibc.request.queue"),

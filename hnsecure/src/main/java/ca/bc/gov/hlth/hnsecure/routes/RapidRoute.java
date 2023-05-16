@@ -2,10 +2,17 @@ package ca.bc.gov.hlth.hnsecure.routes;
 
 import static ca.bc.gov.hlth.hnsecure.message.ErrorMessage.CUSTOM_ERROR_MQ_NOT_ENABLED;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.AUTHORIZATION;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_CERT;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_CERT_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_HTTP_URI;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_PASSWORD;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_R32_PATH;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_USER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.SSLContextParameters;
 
@@ -42,10 +49,10 @@ public class RapidRoute extends BaseRoute {
 		setupSSLContextRapidRegistry(getContext());
 		
 		String rapidHttpUrl = String.format(
-				properties.getValue(ApplicationProperty.RAPID_HTTP_URI) + "?bridgeEndpoint=true&sslContextParameters=#%s&authMethod=Basic&authUsername=%s&authPassword=%s",
-				SSL_CONTEXT_RAPID, properties.getValue(ApplicationProperty.RAPID_USER), properties.getValue(ApplicationProperty.RAPID_PASSWORD));
+				properties.getValue(RAPID_HTTP_URI) + "/" + properties.getValue(RAPID_R32_PATH) + "?bridgeEndpoint=true&sslContextParameters=#%s",
+				SSL_CONTEXT_RAPID);
 		System.out.println("rapidHttpUrl-----"+rapidHttpUrl);
-		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(ApplicationProperty.RAPID_USER), properties.getValue(ApplicationProperty.RAPID_PASSWORD));
+		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(RAPID_USER), properties.getValue(RAPID_PASSWORD));
 
 		// Setup MQ config
 		boolean isMQEnabled = Boolean.parseBoolean(properties.getValue(ApplicationProperty.IS_MQ_ENABLED));	
@@ -113,7 +120,7 @@ public class RapidRoute extends BaseRoute {
 	}
 	
 	private void setupSSLContextRapidRegistry(CamelContext camelContext) {
-		SSLContextParameters sslContextParameters = RouteUtils.setupSslContextParameters(properties.getValue(ApplicationProperty.RAPID_CERT), properties.getValue(ApplicationProperty.RAPID_CERT_PASSWORD));
+		SSLContextParameters sslContextParameters = RouteUtils.setupSslContextParameters(properties.getValue(RAPID_CERT), properties.getValue(RAPID_CERT_PASSWORD));
 
 		Registry registry = camelContext.getRegistry();
 		registry.bind(SSL_CONTEXT_RAPID, sslContextParameters);

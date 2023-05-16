@@ -35,7 +35,7 @@ public class RPBSPMC0RequestConverter {
 	@Handler
 	public String convertRequest(String v2Message) {
 		RPBSHeader rpbsHeader = new RPBSHeader();
-		rpbsHeader.setOrganization("000001");
+		rpbsHeader.setOrganization("00000010");
 		rpbsHeader.setTranCode(TRAN_CODE);
 
 		RPBSPMC0Data rpbsmc0Data = new RPBSPMC0Data();
