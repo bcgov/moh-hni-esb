@@ -8,11 +8,12 @@ import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
+import java.util.Date;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
@@ -38,6 +39,7 @@ import ca.uhn.hl7v2.model.v24.segment.PID;
 public class RPBSPMC0Converter {
 
 	private static final Logger logger = LoggerFactory.getLogger(RPBSPMC0Converter.class);
+	
 	private static final String PID_NAMESPACE_ID = "BC";
 
 	private static final String PID_ID_TYPE_CODE = "PH";
@@ -166,17 +168,23 @@ public class RPBSPMC0Converter {
 	}
 
 	private String convertDate(String date) {
-		String oldDate = date;
-		String newDate = "";
-		String dateFormat = "yyyyMMdd";
-		try {
-			SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-			Calendar cl = Calendar.getInstance();
-			cl.setTime(sdf.parse(oldDate));
-			newDate = sdf.format(cl.getTime());
-		} catch (ParseException ex) {
+		if (date.contentEquals("0000-00-00")) {
+			return "";
 		}
-		return newDate;
+		String strDate = date;
+		DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		Date formattedDate = new Date();
+		try {
+			formattedDate = (Date) inputFormatter.parse(strDate);
+
+		} catch (ParseException e) {
+			logger.error("Error whhile parsing effective/cancellation date: {}", e.getMessage());
+		}
+
+		DateFormat outputFormatter = new SimpleDateFormat("yyyyMMdd");
+		String strDateTime = outputFormatter.format(formattedDate);
+
+		return strDateTime;
 	}
 
 }
