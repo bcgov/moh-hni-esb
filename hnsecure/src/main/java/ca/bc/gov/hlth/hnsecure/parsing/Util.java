@@ -26,8 +26,11 @@ public final class Util {
 	public static final String HL7_DELIMITER = "|";
 	public static final String CARET = "^";
 	public static final String ZCB_SEGMENT = "ZCB";
+	public static final String ZHD_SEGMENT = "ZHD";
+	public static final String PID_SEGMENT = "PID";
 	public static final String RECEIVING_APP_PNP = "PNP";
 	public static final String MESSAGE_TYPE_PNP = "ZPN";
+	public static final String MESSAGE_TYPE_R32 = "R32";
 	public static final String RECEIVING_APP_HNSECURE = "HNSECURE";
 	public static final String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
 	public static final String DATE_PATTERN = "yyyyMMddHHmmss";
@@ -51,6 +54,9 @@ public final class Util {
 	public static final String PROPERTY_SENDING_FACILITY = "sendingFacility";	
 	public static final String PROPERTY_RECEIVING_FACILITY = "receivingFacility";
 	public static final String PROPERTY_USER_INFO= "receivingFacility";
+	public static final String PROPERTY_PROCESSING_DOMAIN= "processingDomain";
+	public static final String PROPERTY_RAPID_PHN= "phn";
+	public static final String PROPERTY_RAPID_ORG= "organization";
 	public static final String PROPERTY_TRANSACTION_EVENT_TYPE = "eventType";
 	public static final String PROPERTY_TRANSACTION_EVENT_TIME = "eventTime";
 	

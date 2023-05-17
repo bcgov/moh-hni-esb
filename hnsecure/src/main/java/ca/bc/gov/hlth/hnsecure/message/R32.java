@@ -6,8 +6,6 @@ import static ca.bc.gov.hlth.hnsecure.message.V2MessageUtil.FIELD_SEPARATOR;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.bc.gov.hlth.hnsecure.rapid.*;
-import ca.bc.gov.hlth.hnsecure.message.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIA;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIH;
 import ca.uhn.hl7v2.HL7Exception;

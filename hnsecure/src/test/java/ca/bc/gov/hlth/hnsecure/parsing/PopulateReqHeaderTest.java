@@ -1,7 +1,6 @@
 package ca.bc.gov.hlth.hnsecure.parsing;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_MESSAGE_TYPE;
-import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_E45_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_PHARMANET_REQUEST;
 import static ca.bc.gov.hlth.hnsecure.test.TestMessages.MSG_R03_REQUEST;

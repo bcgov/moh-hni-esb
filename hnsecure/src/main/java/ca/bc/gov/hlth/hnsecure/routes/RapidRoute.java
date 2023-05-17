@@ -12,7 +12,6 @@ import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.SSLContextParameters;
 
@@ -21,7 +20,6 @@ import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
-import ca.bc.gov.hlth.hnsecure.parsing.FhirPayloadExtractor;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -51,7 +49,6 @@ public class RapidRoute extends BaseRoute {
 		String rapidHttpUrl = String.format(
 				properties.getValue(RAPID_HTTP_URI) + "/" + properties.getValue(RAPID_R32_PATH) + "?bridgeEndpoint=true&sslContextParameters=#%s",
 				SSL_CONTEXT_RAPID);
-		System.out.println("rapidHttpUrl-----"+rapidHttpUrl);
 		String basicAuthToken = RouteUtils.buildBasicAuthToken(properties.getValue(RAPID_USER), properties.getValue(RAPID_PASSWORD));
 
 		// Setup MQ config
@@ -63,8 +60,8 @@ public class RapidRoute extends BaseRoute {
 		
 		handleExceptions();
 		
-		from("direct:jmb").routeId("jmb-route")
-		.process(new ProtocolEvaluator()).id("JmbProtocolEvaluator")
+		from("direct:rapid").routeId("rapid-route")
+		.process(new ProtocolEvaluator()).id("rapidProtocolEvaluator")
 		.choice()
 			.when(exchangeProperty(Util.PROPERTY_MESSAGE_PROTOCOL).isEqualTo(Util.PROTOCOL_HTTP))
 				.to(DIRECT_RAPID_HTTP)
@@ -74,11 +71,8 @@ public class RapidRoute extends BaseRoute {
 				.log("Protocol for message type ${exchangeProperty.messageType} not found or not valid. Defaulting to HTTP")
 				.to(DIRECT_RAPID_HTTP)
 		.end();
-		
-		// XXX This is currently just a simple HTTP route which will need additional configuration (auth, request/response conversion)
-		// once the endpoint is available
-		from("direct:rapidHTTP").routeId("rapid-http-route")
-			
+	
+		from(DIRECT_RAPID_HTTP).routeId("rapid-http-route")		
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 	     	.log("Sending to RAPID")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
@@ -88,13 +82,11 @@ public class RapidRoute extends BaseRoute {
             .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 			.setHeader(AUTHORIZATION, simple(basicAuthToken))
-	        .setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
+			.setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(rapidHttpUrl).id("TorapidHttpUrl")
-	     	.log("Received response from RAPID for R32: ${body}")
-	     	.setBody().method(new RPBSPMC0Converter()).id("rapidResponse")
-	     	.bean(FhirPayloadExtractor.class)
-	     	.log("Decoded V2: ${body}")
+	     	.log("Received response from RAPID for R32: {$body}")
+	     	.setBody().method(new RPBSPMC0Converter()).id("rapidResponse")	     	
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
 

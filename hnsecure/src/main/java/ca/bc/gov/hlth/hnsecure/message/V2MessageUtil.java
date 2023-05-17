@@ -8,14 +8,12 @@ import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIH;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.Version;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.datatype.ELD;
 import ca.uhn.hl7v2.model.v24.segment.ERR;
 import ca.uhn.hl7v2.model.v24.segment.IN1;
 import ca.uhn.hl7v2.model.v24.segment.MSA;
 import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.model.v24.segment.NK1;
 import ca.uhn.hl7v2.model.v24.segment.PID;
-import ca.uhn.hl7v2.model.v24.segment.RCP;
 import ca.uhn.hl7v2.util.Terser;
 
 /**
@@ -31,11 +29,7 @@ public class V2MessageUtil {
 	public static final String DATE_FORMAT_DATE_ONLY = "yyyyMMdd";
 	
 	public static final String  DEFAULT_VERSION_ID = "2.4";
-
-	
-	private static final String RCP_QUERY_PRIORITY = "I";
-	
-	
+		
 	public enum SegmentType {
 		MSH, PID, QPD, ADJ
 	}
@@ -125,12 +119,15 @@ public class V2MessageUtil {
     public static void setZiaValues(ZIA zia, String bcResidencyDate, String surname, String firstGivenName, String secondGivenName,  String telephone, String immigrationOrVisaCode, String priorResidenceCode) throws HL7Exception {
     	//e.g. ZIA||20210101|||||||||||||HELP^RERE^^^^^L|898 RETER ST^^^^^^^^^^^^^^^^^^^VICTORIA^BC^V8V8V8^^H~123 UIYUI ST^^^^^^^^^^^^^^^^^^^VICTORIA^BC^V8V8V8^^M|^PRN^PH^^^250^8578974|||||||S|AB^M
     	String areaCode = null;
-    	String phoneNumber = null;  	
+    	String phoneNumber = null;  
     	
+    	String[] names = firstGivenName.split("\\s+");
+    	String firstName  = names[0];
+    	String secondName = names[1];
     	zia.getZia2_BCResidencyDate().parse(bcResidencyDate);
     	zia.getZia15_ExtendedPersonName().parse(StringUtils.trim(surname));   	
-    	zia.getZia15_ExtendedPersonName().getGivenName().parse(StringUtils.trim(firstGivenName));
-    	zia.getZia15_ExtendedPersonName().getXpn3_SecondAndFurtherGivenNamesOrInitialsThereof().parse(StringUtils.trim(secondGivenName));
+    	zia.getZia15_ExtendedPersonName().getGivenName().parse(StringUtils.trim(firstName));
+    	zia.getZia15_ExtendedPersonName().getXpn3_SecondAndFurtherGivenNamesOrInitialsThereof().parse(StringUtils.trim(secondName));
     	zia.getZia15_ExtendedPersonName().getNameTypeCode().parse("L");;
     
     	if(StringUtils.isNotBlank(telephone)) {   		
@@ -188,8 +185,8 @@ public class V2MessageUtil {
     	in1.getIn18_GroupNumber().parse(groupNumber);
     	in1.getIn110_InsuredSGroupEmpID(0).parse(insuredSGroupEmpID);
     	in1.getIn111_InsuredSGroupEmpName(0).getXon3_IDNumber().parse(insuredSGroupEmpNameIdNumber);
-    	in1.getIn112_PlanEffectiveDate().parse("");
-    	in1.getIn113_PlanExpirationDate().parse("");
+    	in1.getIn112_PlanEffectiveDate().parse(planEffectiveDate);
+    	in1.getIn113_PlanExpirationDate().parse(planExpirationDate);
     }
     
     /**

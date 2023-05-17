@@ -241,6 +241,51 @@ public class V2MessageUtil {
         
          return controlId;        
 	}
+	
+	public static String getProcessingDomain(String v2Msg) {
+		String methodName = LoggingUtil.getMethodName();
+		String domain = null;
+		if (StringUtils.isBlank(v2Msg)) {
+			logger.warn("{} - Processing domain is blank", methodName);
+			return domain;
+        }
+        String[] v2DataLines = v2Msg.split("\n");
+		String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
+		domain = v2Segments[10];
+        
+         return domain;        
+	}
+	
+	/**
+	 * @param zhdSegment
+	 * ZHD|20220920115331|^^00000010|HNAIADMINISTRATION||||2.4
+	 * @return organization 
+	 */
+	public static String getOrg(String zhdSegment) {		
+		if(StringUtils.isNotEmpty(zhdSegment)) {
+			String[] zhdDataSegment = zhdSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+			if(zhdDataSegment.length >2 && StringUtils.isNotEmpty(zhdDataSegment[2])) {
+				String formattedOrg =  zhdDataSegment[2].replace("^", "");
+				return formattedOrg.trim();
+			}
+		}
+		return "";
+	}
+	
+	/**
+	 * @param pidSegment
+	 * PID||PHN^^^BC^PH
+	 * @return phn 
+	 */
+	public static String getPHN(String pidSegment) {		
+		if(StringUtils.isNotEmpty(pidSegment)) {
+			String[] pidDataSegment = pidSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+			if(pidDataSegment.length > 2 && StringUtils.isNotEmpty(pidDataSegment[2])) {
+				return pidDataSegment[2].substring(0, 10);
+			}
+		}
+		return "";
+	}
 
 	/**
 	 * @param zcbSegment
