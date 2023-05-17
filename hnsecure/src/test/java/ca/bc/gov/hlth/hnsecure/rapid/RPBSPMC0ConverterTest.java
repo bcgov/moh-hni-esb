@@ -10,7 +10,8 @@ import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
@@ -39,19 +40,26 @@ public class RPBSPMC0ConverterTest {
 		setProperties(ex);
 		RPBSPMC0Converter converter = new RPBSPMC0Converter();
 		String response = converter.convertResponse(R32_SUCCESS, ex);
-		assertNotNull("no response found", response);
+		String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
+		assertTrue(response.startsWith("MSH"));
+		assertEquals("PID||9873672248^^^BC^PH", pidsegment);
+
 	}
-	
+
 	@Test
 	public void rapid_phnNotFound() {
 		CamelContext ctx = new DefaultCamelContext();
 		Exchange ex = new DefaultExchange(ctx);
 		setProperties(ex);
+		String errResponse = "ERR|^^^RPBS9145&PHN NOT FOUND";
 		RPBSPMC0Converter converter = new RPBSPMC0Converter();
 		String response = converter.convertResponse(R32_ERROR_PHN_NOT_FOUND, ex);
-		assertNotNull("no response found", response);
+		assertTrue(response.startsWith("MSH"));
+		String errSegment = V2MessageUtil.getDataSegment(response, "ERR");	
+		assertEquals(errResponse.trim(), errSegment.trim());
+		assertTrue(response.startsWith("MSH"));
 	}
-	
+
 	@Test
 	public void rapid_moreThan20PersonsFound() {
 		CamelContext ctx = new DefaultCamelContext();
@@ -59,7 +67,9 @@ public class RPBSPMC0ConverterTest {
 		setProperties(ex);
 		RPBSPMC0Converter converter = new RPBSPMC0Converter();
 		String response = converter.convertResponse(R32_WARNING_MORE_THAN_20_PERSONS_FOUND, ex);
-		assertNotNull("no response found", response);
+		String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
+		assertTrue(response.startsWith("MSH"));
+		assertEquals("PID||9873672255^^^BC^PH", pidsegment);
 	}
 
 	private void setProperties(Exchange exchange) {
