@@ -20,7 +20,7 @@ import ca.uhn.hl7v2.util.Terser;
  * Contains utility methods related to HL7 V2 messages
  *
  */
-public class V2MessageUtil {
+public class RapidV2MessageUtil {
 
 	public static final String FIELD_SEPARATOR = "|";
 

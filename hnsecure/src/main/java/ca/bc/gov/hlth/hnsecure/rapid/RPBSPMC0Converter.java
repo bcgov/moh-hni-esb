@@ -26,7 +26,7 @@ import ca.bc.gov.hlth.hnsecure.message.HL7Message;
 import ca.bc.gov.hlth.hnsecure.message.R32;
 import ca.bc.gov.hlth.hnsecure.message.R32Beneficiary;
 import ca.bc.gov.hlth.hnsecure.message.R32ContractPeriods;
-import ca.bc.gov.hlth.hnsecure.message.V2MessageUtil;
+import ca.bc.gov.hlth.hnsecure.message.RapidV2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIA;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIH;
 import ca.uhn.hl7v2.HL7Exception;
@@ -131,40 +131,40 @@ public class RPBSPMC0Converter {
 	}
 
 	private void populateMSH(MSH msh, HL7Message mshDefaults) throws HL7Exception {
-		V2MessageUtil.setMshValues(msh, mshDefaults.getSendingApplication(), mshDefaults.getSendingFacility(),
+		RapidV2MessageUtil.setMshValues(msh, mshDefaults.getSendingApplication(), mshDefaults.getSendingFacility(),
 				mshDefaults.getReceivingApplication(), mshDefaults.getReceivingFacility(), messageDateTime,
 				mshDefaults.getUser(), mshDefaults.getMessageType(),
 				StringUtils.substring(mshDefaults.getMessageControlId(), 0, 20), mshDefaults.getProcessingId());
 	}
 
 	private void populatePID(PID pid, String phn) throws HL7Exception {
-		V2MessageUtil.setPidValues(pid, phn, PID_NAMESPACE_ID, PID_ID_TYPE_CODE, "", "", "");
+		RapidV2MessageUtil.setPidValues(pid, phn, PID_NAMESPACE_ID, PID_ID_TYPE_CODE, "", "", "");
 	}
 
 	private void populateZIA(ZIA zia, String bcResidencyDate, String surname, String firstGivenName,
 			String secondGivenName, String telephone, String immigrationOrVisaCode, String priorResidenceCode)
 			throws HL7Exception {
 
-		V2MessageUtil.setZiaValues(zia, bcResidencyDate, surname, firstGivenName, secondGivenName, telephone,
+		RapidV2MessageUtil.setZiaValues(zia, bcResidencyDate, surname, firstGivenName, secondGivenName, telephone,
 				immigrationOrVisaCode, priorResidenceCode);
 	}
 
 	private void populateMSA(MSA msa, String message) throws HL7Exception {
-		V2MessageUtil.setMSAValues(msa, message);
+		RapidV2MessageUtil.setMSAValues(msa, message);
 	}
 
 	private void populateNK1(NK1 nk1, String relationship) throws HL7Exception {
-		V2MessageUtil.setNK1Values(nk1, relationship);
+		RapidV2MessageUtil.setNK1Values(nk1, relationship);
 	}
 
 	private void populateIN1(IN1 in1, String planEffectiveDate, String planCancellationDate, String groupNumber,
 			String groupMemberNumber, String departmentNumber) throws HL7Exception {
-		V2MessageUtil.setIn1Values(in1, groupNumber, groupMemberNumber, departmentNumber, planEffectiveDate,
+		RapidV2MessageUtil.setIn1Values(in1, groupNumber, groupMemberNumber, departmentNumber, planEffectiveDate,
 				planCancellationDate);
 	}
 
 	private void populateZIH(ZIH zih, String payerCancelReason) throws HL7Exception {
-		V2MessageUtil.setZihValues(zih, payerCancelReason);
+		RapidV2MessageUtil.setZihValues(zih, payerCancelReason);
 	}
 
 	private String convertDate(String date) {

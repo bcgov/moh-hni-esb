@@ -1,7 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.message;
 
-import static ca.bc.gov.hlth.hnsecure.message.V2MessageUtil.ENCODING_CHARACTERS;
-import static ca.bc.gov.hlth.hnsecure.message.V2MessageUtil.FIELD_SEPARATOR;
+import static ca.bc.gov.hlth.hnsecure.message.RapidV2MessageUtil.ENCODING_CHARACTERS;
+import static ca.bc.gov.hlth.hnsecure.message.RapidV2MessageUtil.FIELD_SEPARATOR;
 
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIA;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIH;
@@ -56,7 +56,7 @@ public class R32Beneficiary extends AbstractMessage {
 	 */
 	@Override
 	public String getVersion() {
-		return V2MessageUtil.DEFAULT_VERSION_ID;
+		return RapidV2MessageUtil.DEFAULT_VERSION_ID;
 	}
 
 	public MSH getMSH() {
