@@ -53,7 +53,7 @@ public final class Util {
 	public static final String PROPERTY_SENDING_APP = "sendingApp";
 	public static final String PROPERTY_SENDING_FACILITY = "sendingFacility";	
 	public static final String PROPERTY_RECEIVING_FACILITY = "receivingFacility";
-	public static final String PROPERTY_USER_INFO= "receivingFacility";
+	public static final String PROPERTY_USER_INFO= "userInfo";
 	public static final String PROPERTY_PROCESSING_DOMAIN= "processingDomain";
 	public static final String PROPERTY_RAPID_PHN= "phn";
 	public static final String PROPERTY_RAPID_ORG= "organization";

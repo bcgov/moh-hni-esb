@@ -99,8 +99,7 @@ public class RPBSPMC0Converter {
 							convertDate(cp.getCancelDate()), cp.getGroupNumber(), "", "");
 					// Remove beneficiary contract period MSH segment
 					StringBuffer formattedResponse = new StringBuffer(contractPeriod.toString()).replace(0, 8, "");
-					v2Response.append(formattedResponse.toString());
-					// v2Response.append(formattedResponse.toString().trim());
+					v2Response.append(formattedResponse.toString());			
 
 				} catch (HL7Exception e) {
 
