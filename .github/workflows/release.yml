@@ -138,8 +138,7 @@ jobs:
       - name: Push Image to dev 
         run: |
           oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createHniEsbRelease.outputs.GOLD_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}}
-          
-      
+                
       - name: Prepare deploy key
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -152,7 +151,6 @@ jobs:
           repository: bcgov-c/tenant-gitops-c8d6f2
           ref: main
       
-
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
 
@@ -166,8 +164,6 @@ jobs:
           git commit -am "Deploying release: ${{needs.createHniEsbRelease.outputs.RELEASE_VERSION}} in dev using release-hnsesb workflow."
           git push origin    
 
-
- 
   
   # This job creates a tag in Git repository with same name as release tag
   createTagInGit:

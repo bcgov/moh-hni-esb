@@ -45,6 +45,8 @@ on:
         options:
           - dev
           - test
+          - training
+          - VC1
           - sandbox
           - production
       Build_Type:
@@ -102,7 +104,7 @@ jobs:
               if (`${{env.ENVIRONMENT}}` == 'dev') {
                 return "c8d6f2-dev"
               }
-              if (`${{env.ENVIRONMENT}}` == 'test' ) {
+              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'training' || `${{env.ENVIRONMENT}}` == 'VC1') {
                 return "c8d6f2-test"
               }
                core.setFailed(`❌ Feature build can only be deployed in dev or test environments`  );
@@ -240,7 +242,12 @@ jobs:
             if (`${{github.event.inputs.ENVIRONMENT}}` == 'test') {
               return "test"
             }
-            core.setFailed(`❌ Invalid inputs for Environment and branch`  );
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'training') {
+              return "trn"
+            }
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'VC1') {
+              return "vc1"
+            }
       # No need to deploy feature build in DR. Hence, no step of DR deployment
       - name: Update image ID and commit change
         if: ${{success()}}
@@ -294,6 +301,12 @@ jobs:
             if (`${{github.event.inputs.ENVIRONMENT}}` == 'test') {
               return "test"
             }
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'training') {
+              return "trn"
+            }
+            if (`${{github.event.inputs.ENVIRONMENT}}` == 'VC1') {
+              return "vc1"
+            }
             if (`${{github.event.inputs.ENVIRONMENT}}` == 'sandbox') {
               return "sbx"
             }
@@ -301,22 +314,22 @@ jobs:
               return "prod"
             }
 
-      - name: Update image ID and commit change
+      - name: Update image ID
         if: ${{success()}}
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
 
       - name: Deploy in DR if replication is true
-        if: ${{success() && env.REPLICATE == 'true'}}
+        if: ${{success() && env.REPLICATE}}
         run: |
-          cd ../${{steps.get-kustomize-folder.outputs.result}}-dr
+          cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}-dr
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
 
-      - name: Update image ID and commit change
+      - name: Commit change
         if: ${{success()}}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{needs.validate.outputs.ENVIRONMENT}} using deploy workflow."
+          git commit -am "Deploying release build: ${{needs.validate.outputs.IMAGE_TAG}} in ${{steps.get-kustomize-folder.outputs.result}} using deploy workflow."
           git push origin
