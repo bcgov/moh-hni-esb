@@ -1,14 +1,12 @@
 package ca.bc.gov.hlth.hnsecure.message;
 
-import static ca.bc.gov.hlth.hnsecure.message.RapidV2MessageUtil.ENCODING_CHARACTERS;
-import static ca.bc.gov.hlth.hnsecure.message.RapidV2MessageUtil.FIELD_SEPARATOR;
+import static ca.bc.gov.hlth.hnsecure.message.V2MessageSegmentUtil.ENCODING_CHARACTERS;
+import static ca.bc.gov.hlth.hnsecure.message.V2MessageSegmentUtil.FIELD_SEPARATOR;
 
-import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIA;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIH;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractMessage;
 import ca.uhn.hl7v2.model.v24.segment.IN1;
-import ca.uhn.hl7v2.model.v24.segment.MSA;
 import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.model.v24.segment.NK1;
 import ca.uhn.hl7v2.model.v24.segment.PID;
@@ -20,9 +18,9 @@ import ca.uhn.hl7v2.util.Terser;
  * Structure to represent a HL7 R32 Response Message.
  */
 @SuppressWarnings("serial")
-public class R32ContractPeriods extends AbstractMessage {
+public class R32ContractPeriod extends AbstractMessage {
 
-	public R32ContractPeriods() {
+	public R32ContractPeriod() {
 		this(new DefaultModelClassFactory());
 	}
 
@@ -31,7 +29,7 @@ public class R32ContractPeriods extends AbstractMessage {
 	 * 
 	 * @param theFactory ModelClassFactory is used to call parent constructor.
 	 */
-	public R32ContractPeriods(ModelClassFactory theFactory) {
+	public R32ContractPeriod(ModelClassFactory theFactory) {
 		super(theFactory);
 		init();
 	}
@@ -52,21 +50,8 @@ public class R32ContractPeriods extends AbstractMessage {
 		}
 	}
 
-	/**
-	 *
-	 * @return Returns "2.4"
-	 */
-	@Override
-	public String getVersion() {
-		return RapidV2MessageUtil.DEFAULT_VERSION_ID;
-	}
-
 	public MSH getMSH() {
 		return getTyped("MSH", MSH.class);
-	}
-
-	public MSA getMSA() {
-		return getTyped("MSA", MSA.class);
 	}
 
 	public IN1 getIN1() {
@@ -79,10 +64,6 @@ public class R32ContractPeriods extends AbstractMessage {
 
 	public ZIH getZIH() {
 		return getTyped("ZIH", ZIH.class);
-	}
-
-	public ZIA getZIA() {
-		return getTyped("ZIA", ZIA.class);
 	}
 
 	public NK1 getNK1() {

@@ -7,20 +7,20 @@ import org.apache.commons.lang3.StringUtils;
 
 public class RPBSPMC0Data {
 
-	/** 1 PHN String No 0...10 .. */	
-	private String phn;	//145-154 The PHN from the request
-	
+	/** 1 PHN String No 0...10 .. */
+	private String phn; // 145-154 The PHN from the request
+
 	private List<RPBSPMC0Beneficiary> beneficiaries = new ArrayList<>();
-	
+
 	public RPBSPMC0Data() {
 		super();
 	}
-	
-	 public RPBSPMC0Data(String message) {
+
+	public RPBSPMC0Data(String message) {
 		super();
 		this.phn = StringUtils.substring(message, 0, 10);
-		
-		//Build the remaining response from repeating beneficiaries		
+
+		// Build the remaining response from repeating beneficiaries
 
 		String beneficiariesStr = StringUtils.substring(message, 10);
 
@@ -31,10 +31,11 @@ public class RPBSPMC0Data {
 				RPBSPMC0Beneficiary rpbspmc0Beneficiary = new RPBSPMC0Beneficiary(beneficiary);
 				beneficiaries.add(rpbspmc0Beneficiary);
 				count++;
-				beneficiary = StringUtils.substring(beneficiariesStr, RPBSPMC0Beneficiary.SEGMENT_LENGTH * count, RPBSPMC0Beneficiary.SEGMENT_LENGTH * (count + 1));
+				beneficiary = StringUtils.substring(beneficiariesStr, RPBSPMC0Beneficiary.SEGMENT_LENGTH * count,
+						RPBSPMC0Beneficiary.SEGMENT_LENGTH * (count + 1));
 			}
 		}
-	} 
+	}
 
 	public String serialize() {
 		// Serialize is only used when creating the request
@@ -60,12 +61,6 @@ public class RPBSPMC0Data {
 		this.beneficiaries = beneficiaries;
 	}
 
-	/*
-	 * public List<RPBSPMC0Beneficiary> getBeneficiaries() { return beneficiaries; }
-	 * 
-	 * public void setBeneficiaries(List<RPBSPMC0Beneficiary> beneficiaries) {
-	 * this.beneficiaries = beneficiaries; }
-	 */
 	@Override
 	public String toString() {
 		return "RPBSPMC0Data [phn=" + phn + "]";

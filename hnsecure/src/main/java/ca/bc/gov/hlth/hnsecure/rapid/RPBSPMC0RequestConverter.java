@@ -1,16 +1,25 @@
 package ca.bc.gov.hlth.hnsecure.rapid;
 
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_PROCESSING_DOMAIN;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RAPID_ORG;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RAPID_PHN;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_RECEIVING_FACILITY;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
+import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
+
+import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
+import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 
 public class RPBSPMC0RequestConverter {
-	public static final String PROPERTY_RAPID_PHN = "phn";
-	public static final String PROPERTY_RAPID_ORG = "organization";
-
+	
 	private static final Logger logger = LoggerFactory.getLogger(RPBSPMC0RequestConverter.class);
 
 	private static final String TRAN_CODE = "RPBSPMC0";
@@ -20,9 +29,27 @@ public class RPBSPMC0RequestConverter {
 	}
 
 	@Handler
-	public String convertRequest(Exchange exchange, String v2Message) {
-		String org = exchange.getProperty(Util.PROPERTY_RAPID_ORG).toString();
-		String pid = exchange.getProperty(Util.PROPERTY_RAPID_PHN).toString();
+	public String convertRequest(Exchange exchange, String message) {
+		System.out.println(exchange.getIn().getBody().toString());
+		String v2Message = message;
+		String zhdSegment = V2MessageUtil.getDataSegment(v2Message, Util.ZHD_SEGMENT);
+		String pidSegment = V2MessageUtil.getDataSegment(v2Message, Util.PID_SEGMENT);
+		String receivingFacility = V2MessageUtil.getReceivingFacility(v2Message);		
+		String receivingApp = V2MessageUtil.getReceivingApp(v2Message);
+		String sendingApp =  V2MessageUtil.getSendingApplication(v2Message);
+		String userInfo = V2MessageUtil.getUserInfo(v2Message);
+		String domain = V2MessageUtil.getProcessingDomain(v2Message);
+		String org = V2MessageUtil.getOrg(zhdSegment);		
+		String pid = V2MessageUtil.getPHN(pidSegment);
+		
+		Map<String, Object> exchangeProperties = exchange.getProperties();
+		exchangeProperties.put(PROPERTY_USER_INFO, userInfo);
+		exchangeProperties.put(PROPERTY_PROCESSING_DOMAIN, domain);			
+		exchangeProperties.put(PROPERTY_RAPID_PHN, pid);
+		exchangeProperties.put(PROPERTY_RAPID_ORG, org);		
+		exchangeProperties.put(PROPERTY_RECEIVING_FACILITY, receivingFacility);
+		exchangeProperties.put(PROPERTY_SENDING_APP, sendingApp);
+		exchangeProperties.put(PROPERTY_RECEIVING_APP, receivingApp);
 
 		RPBSHeader rpbsHeader = new RPBSHeader();
 		rpbsHeader.setOrganization(org);

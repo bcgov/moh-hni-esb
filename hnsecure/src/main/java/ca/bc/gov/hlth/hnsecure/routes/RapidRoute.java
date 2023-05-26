@@ -11,21 +11,18 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_USER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Exchange;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.SSLContextParameters;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
-import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
-import ca.bc.gov.hlth.hnsecure.json.fhir.ProcessV2ToJson;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
-import ca.bc.gov.hlth.hnsecure.rapid.RPBSPMC0Converter;
 import ca.bc.gov.hlth.hnsecure.rapid.RPBSPMC0RequestConverter;
+import ca.bc.gov.hlth.hnsecure.rapid.RPBSPMC0ResponseConverter;
 
 
 public class RapidRoute extends BaseRoute {
@@ -76,17 +73,13 @@ public class RapidRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 	     	.log("Sending to RAPID")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
-	     	.wireTap(DIRECT_AUDIT).end()
-	     	.setBody().method(new Base64Encoder()).id("RAPIDBase64Encoder")
-            .setBody().method(new ProcessV2ToJson()).id("RAPIDProcessV2ToJson")
-            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 			.setHeader(AUTHORIZATION, simple(basicAuthToken))
 			.setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(rapidHttpUrl).id("TorapidHttpUrl")
 	     	.log("Received response from RAPID for R32: {$body}")
-	     	.setBody().method(new RPBSPMC0Converter()).id("rapidResponse")	     	
+	     	.setBody().method(new RPBSPMC0ResponseConverter()).id("rapidResponse")	     	
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
 

@@ -2,13 +2,11 @@ package ca.bc.gov.hlth.hnsecure.message;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ca.bc.gov.hlth.hnsecure.message.v2.segment.HDR;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIA;
 import ca.bc.gov.hlth.hnsecure.message.v2.segment.ZIH;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.Version;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.segment.ERR;
 import ca.uhn.hl7v2.model.v24.segment.IN1;
 import ca.uhn.hl7v2.model.v24.segment.MSA;
 import ca.uhn.hl7v2.model.v24.segment.MSH;
@@ -20,7 +18,7 @@ import ca.uhn.hl7v2.util.Terser;
  * Contains utility methods related to HL7 V2 messages
  *
  */
-public class RapidV2MessageUtil {
+public class V2MessageSegmentUtil {
 
 	public static final String FIELD_SEPARATOR = "|";
 
@@ -29,17 +27,11 @@ public class RapidV2MessageUtil {
 	public static final String DATE_FORMAT_DATE_ONLY = "yyyyMMdd";
 
 	public static final String DEFAULT_VERSION_ID = "2.4";
-
-	public enum SegmentType {
-		MSH, PID, QPD, ADJ
-	}
-
+	
+	public static final String TELEPHONE_USE_CODE = "PRN";
+	
 	public enum AddressType {
 		H, M;
-	}
-
-	public enum TelePhoneUseCode {
-		PRN, ORN, WPN, EMR;
 	}
 
 	/**
@@ -150,7 +142,7 @@ public class RapidV2MessageUtil {
 			zia.getZia17_ExtendedTelephoneNumber().getTelecommunicationEquipmentType().parse("PH");
 
 			zia.getZia17_ExtendedTelephoneNumber().getPhoneNumber().parse(phoneNumber);
-			zia.getZia17_ExtendedTelephoneNumber().getTelecommunicationUseCode().parse(TelePhoneUseCode.PRN.name());
+			zia.getZia17_ExtendedTelephoneNumber().getTelecommunicationUseCode().parse(TELEPHONE_USE_CODE);
 		}
 
 		zia.getZia24_ImmigrationOrVisaCode().parse(immigrationOrVisaCode);
@@ -233,37 +225,11 @@ public class RapidV2MessageUtil {
 		zih.getZih19_PayerCancelReason().parse(payerCancelReason);
 	}
 
-	/**
-	 * Populate HDR segment
-	 * 
-	 * @param hdr
-	 * 
-	 * @throws HL7Exception
-	 */
-	public static void setHdrValues(HDR hdr, String businessUserGroup) throws HL7Exception {
-		// e.g. HDR|||TRAININGAdmin
-
-		hdr.getHDR3_BusinessUserGroup().parse(businessUserGroup);
-	}
-
 	public static void setMSAValues(MSA msa, String message) throws HL7Exception {
 
 		msa.getMsa1_AcknowledgementCode().parse("AA");
 		msa.getMsa2_MessageControlID().parse("202204041623");
 		msa.getMsa3_TextMessage().parse(message);
-	}
-
-	public static void setERRValues(ERR err, String message) throws HL7Exception {
-
-		// e.g. ERR|^^^HJMB001I&SUCCESSFULLY COMPLETED
-		err.getErr1_ErrorCodeAndLocation();
-
-	}
-
-	public static String correctMSH9(String v2, String messageType) {
-		// XXX This is to fix the following parsing issue: Can't determine message
-		// structure from MSH-9: R15 HINT: there are only 1 of 3 components present]
-		return v2.replaceAll("\\|" + messageType + "\\|", "|" + messageType + "^^|");
 	}
 
 	public static String getMessageID(Message message) {

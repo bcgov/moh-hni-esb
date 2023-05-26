@@ -23,10 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
+import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 
-public class RPBSPMC0ConverterTest {
+public class RPBSPMC0ResponseConverterTest {
 	private static String v2Message = "MSH|^~\\&|HNWeb|E13DD6BB-69197950C48|RAIGT-CNT-PRDS|BC00001013|20210820125|anu-test|R32|20220920115331|D|2.4||\r\n"
 			+ "ZHD|20220920115331|^^00000010|HNAIADMINISTRATION||||2.4\r\n" + "PID||9337796509^^^BC^PH";
 	private static final String R32_SUCCESS = "        RPBSPMC000000010                                RESPONSERPBS9014TRANSACTION SUCCESSFUL                                                  98736722489873672248SPBIGDATASNAME                     SPBIGDATAFNAME                               1983-01-01F98736722550000001S2022-02-010000-00-00 98736722484044574C2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                         9873672255BIGDATASNAME                       BIGDATAFNAME                                 1983-09-09M98736722550000001C2022-02-010000-00-00 98736722484044574S2022-02-012022-02-28E                             ";
@@ -34,11 +35,11 @@ public class RPBSPMC0ConverterTest {
 	private static final String R32_ERROR_PHN_NOT_FOUND = "        RPBSPMC000000010                                ERRORMSGRPBS9145PHN NOT FOUND                                                           9159869673		";
 
 	@Test
-	public void rapid_successMessage() {
+	public void rapid_successMessage() throws CustomHNSException {
 		CamelContext ctx = new DefaultCamelContext();
 		Exchange ex = new DefaultExchange(ctx);
 		setProperties(ex);
-		RPBSPMC0Converter converter = new RPBSPMC0Converter();
+		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_SUCCESS, ex);
 		String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
 		assertTrue(response.startsWith("MSH"));
@@ -47,12 +48,12 @@ public class RPBSPMC0ConverterTest {
 	}
 
 	@Test
-	public void rapid_phnNotFound() {
+	public void rapid_phnNotFound() throws CustomHNSException {
 		CamelContext ctx = new DefaultCamelContext();
 		Exchange ex = new DefaultExchange(ctx);
 		setProperties(ex);
 		String errResponse = "ERR|^^^RPBS9145&PHN NOT FOUND";
-		RPBSPMC0Converter converter = new RPBSPMC0Converter();
+		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_ERROR_PHN_NOT_FOUND, ex);
 		assertTrue(response.startsWith("MSH"));
 		String errSegment = V2MessageUtil.getDataSegment(response, "ERR");	
@@ -61,11 +62,11 @@ public class RPBSPMC0ConverterTest {
 	}
 
 	@Test
-	public void rapid_moreThan20PersonsFound() {
+	public void rapid_moreThan20PersonsFound() throws CustomHNSException {
 		CamelContext ctx = new DefaultCamelContext();
 		Exchange ex = new DefaultExchange(ctx);
 		setProperties(ex);
-		RPBSPMC0Converter converter = new RPBSPMC0Converter();
+		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_WARNING_MORE_THAN_20_PERSONS_FOUND, ex);
 		String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
 		assertTrue(response.startsWith("MSH"));
