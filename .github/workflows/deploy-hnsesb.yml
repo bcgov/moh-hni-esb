@@ -270,7 +270,7 @@ jobs:
         with:
           ssh-key: ${{secrets.GITOPS_C5839F_PRIVATE_KEY}}
           repository: ${{secrets.GITOPS_C5839F_REPO}}
-          ref: 9996_prod_artifacts_for_silver
+          ref: main
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v1
