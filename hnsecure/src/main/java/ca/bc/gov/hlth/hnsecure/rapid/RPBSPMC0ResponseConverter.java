@@ -174,9 +174,9 @@ public class RPBSPMC0ResponseConverter {
 			return "";
 		}
 
-		LocalDate formattedDate = LocalDate.parse(date);
+		LocalDate parsedDate = LocalDate.parse(date);
 
-		String strDateTime = formattedDate.format(outputDateTimeFormatter);
+		String strDateTime = parsedDate.format(outputDateTimeFormatter);
 
 		return strDateTime;
 	}
