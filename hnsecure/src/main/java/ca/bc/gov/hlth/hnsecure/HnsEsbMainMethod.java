@@ -4,7 +4,7 @@ import org.apache.camel.main.Main;
 
 import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
 import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
-import ca.bc.gov.hlth.hnsecure.routes.JMBRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RapidRoute;
 import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RotateFilesRoute;
@@ -33,7 +33,7 @@ public final class HnsEsbMainMethod {
         main.configure().addRoutesBuilder(PharmanetRoute.class);
         main.configure().addRoutesBuilder(RTransRoute.class);
         main.configure().addRoutesBuilder(HIBCRoute.class);
-        main.configure().addRoutesBuilder(JMBRoute.class);
+        main.configure().addRoutesBuilder(RapidRoute.class);
         main.configure().addRoutesBuilder(HandleResponseRoute.class);
         main.configure().addRoutesBuilder(RotateFilesRoute.class);
         main.run(args);

@@ -27,7 +27,8 @@ public enum ErrorMessage {
 	CUSTOM_ERROR_INVALID_AUTH_KEY("HNSE002E", "Invalid token passed in request header."),
 	CUSTOM_ERROR_DOWN_STREAM_CONNECTION_FAILED("HNSE003E", "Downstream connection failed."),
 	CUSTOM_ERROR_INVALID_REQUEST("HNSE004E", "Invalid request."),
-	CUSTOM_ERROR_MQ_NOT_ENABLED("HNSE005E", "Messages Queues are not enabled");
+	CUSTOM_ERROR_MQ_NOT_ENABLED("HNSE005E", "Messages Queues are not enabled"),
+	CUSTOM_ERROR_INVALID_RESPONSE_MAPPING("HNSE006E", "Invalid response mapping to v2 message.");
 
 	private final String errorSequence;
 	private final String message;
