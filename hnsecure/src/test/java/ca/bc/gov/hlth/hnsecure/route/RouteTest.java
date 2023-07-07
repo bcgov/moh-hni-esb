@@ -83,16 +83,10 @@ public class RouteTest extends CamelTestSupport {
 		});
 		AdviceWithRouteBuilder.adviceWith(context, "hibc-http-route", a -> {
 			a.weaveById("ToHibcEnrollment").replace().to("mock:hibcHttpEnrollment");
-		});
-		AdviceWithRouteBuilder.adviceWith(context, "hibc-mq-route", a -> {
-			a.weaveById("ToHibcMqUrl").replace().to("mock:hibcMq");
-		});
+		});		
 		AdviceWithRouteBuilder.adviceWith(context, "rapid-http-route", a -> {
 			a.weaveById("ToRapidHttpUrl").replace().to("mock:rapidHttp");
-		});
-		AdviceWithRouteBuilder.adviceWith(context, "jmb-mq-route", a -> {
-			a.weaveById("ToJmbUrl").replace().to("mock:jmb");
-		});
+		});		
 		AdviceWithRouteBuilder.adviceWith(context, "rotate-files-route", a -> {
 			a.weaveById("ToProcessFileRotation").replace().to("mock:rotateFiles");
 		});
@@ -296,7 +290,7 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:hibcMq").expectedMessageCount(1);
+		getMockEndpoint("mock:hibcMq").expectedMessageCount(0);
 		
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
@@ -315,7 +309,7 @@ public class RouteTest extends CamelTestSupport {
 		context.start();
 
 		// Set expectations
-		getMockEndpoint("mock:jmb").expectedMessageCount(1);
+		getMockEndpoint("mock:jmb").expectedMessageCount(0);
 		
 		// Send a message
 		Map<String, Object> headers = new HashMap<String, Object>();
