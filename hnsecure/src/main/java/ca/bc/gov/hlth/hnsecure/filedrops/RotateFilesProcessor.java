@@ -21,14 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hncommon.util.LoggingUtil;
-import ca.bc.gov.hlth.hnsecure.audit.persistence.AbstractAuditPersistence;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 
 /**
  * Processor to handle file rotation policy. Currently this does a cleanup on logged request/response messages
  *
  */
-public class RotateFilesProcessor extends AbstractAuditPersistence implements Processor {
+public class RotateFilesProcessor implements Processor {
 
 	private static Logger logger = LoggerFactory.getLogger(RotateFilesProcessor.class);
 

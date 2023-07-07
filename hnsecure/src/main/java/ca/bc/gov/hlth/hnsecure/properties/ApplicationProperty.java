@@ -40,6 +40,8 @@ public enum ApplicationProperty {
 	DATABASE_USERNAME("database.username"),
 	DATABASE_PASSWORD("database.password"),
 	DATABASE_SCHEMA("database.schema"),
+	DATABASE_MINIMUM_IDLE("database.minimumIdle"),
+	DATABASE_MAXIMUM_POOL_SIZE("database.maximumPoolSize"),
 
 	//JMB Properties
 	JMB_REQUEST_QUEUE("jmb.request.queue"),
