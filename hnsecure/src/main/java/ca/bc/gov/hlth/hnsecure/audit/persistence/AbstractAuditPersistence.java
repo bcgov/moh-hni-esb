@@ -1,13 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.audit.persistence;
 
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.BCPHN;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_HOST;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_NAME;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PASSWORD;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_PORT;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_SCHEMA;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.DATABASE_USERNAME;
-import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.IS_AUDITS_ENABLED;
+import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,6 +18,7 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.hikaricp.internal.HikariCPConnectionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,29 +44,26 @@ public abstract class AbstractAuditPersistence {
     private static final String PERSISTENCE_UNIT_HNI_ESB_AUDITS = "HNI-ESB-AUDITS";
     
     private static final ApplicationProperties properties = ApplicationProperties.getInstance(); 
-
        
     private static Map<String, String> persistenceUnitProperties = new HashMap<>();
     
    	static {   
    		String url = String.format("jdbc:postgresql://%s:%s/%s", properties.getValue(DATABASE_HOST), properties.getValue(DATABASE_PORT),properties.getValue(DATABASE_NAME));
-        persistenceUnitProperties.put("javax.persistence.jdbc.url", url);
-        persistenceUnitProperties.put("javax.persistence.jdbc.user", properties.getValue(DATABASE_USERNAME));
-		persistenceUnitProperties.put("javax.persistence.jdbc.password", properties.getValue(DATABASE_PASSWORD));
+        persistenceUnitProperties.put("hibernate.connection.url", url);
+        persistenceUnitProperties.put("hibernate.connection.username", properties.getValue(DATABASE_USERNAME));
+		persistenceUnitProperties.put("hibernate.connection.password", properties.getValue(DATABASE_PASSWORD));
 		persistenceUnitProperties.put("hibernate.default_schema", properties.getValue(DATABASE_SCHEMA));
+		persistenceUnitProperties.put("hibernate.hikari.minimumIdle", properties.getValue(DATABASE_MINIMUM_IDLE));
+		persistenceUnitProperties.put("hibernate.hikari.maximumPoolSize", properties.getValue(DATABASE_MAXIMUM_POOL_SIZE));
+		persistenceUnitProperties.put("hibernate.hikari.idleTimeout", "30000");
+		persistenceUnitProperties.put("hibernate.connection.provider_class", HikariCPConnectionProvider.class.getCanonicalName());
+		
+		if (Boolean.TRUE.equals(Boolean.valueOf(properties.getValue(IS_AUDITS_ENABLED)))) {
+            emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
+        }
     }
-    
-	private EntityManagerFactory emf;
 
-	/**
-	 * Constructor that sets up the Entity Manager Factory so that it is only created once.
-	 * 
-	 */
-   	protected AbstractAuditPersistence() {
-   		if (Boolean.TRUE.equals(Boolean.valueOf(properties.getValue(IS_AUDITS_ENABLED)))) {
-   			emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_HNI_ESB_AUDITS, persistenceUnitProperties);
-   		}
-   	}
+	private static EntityManagerFactory emf;
    	
    	/**
    	 * Inserts a single record.
