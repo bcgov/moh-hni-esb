@@ -40,11 +40,13 @@ public class PopulateReqHeader {
 		// and do not actually belong in the message header (which is converted to http
 		// request headers)
 		Map<String, Object> exchangeProperties = exchange.getProperties();
-		String msgType = V2MessageUtil.getMsgType(v2Message);
+		
+		String msgType = V2MessageUtil.getMsgType(v2Message);			
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION);
 		String sendingFacility = Util.getSendingFacility(accessToken);
-		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
 		exchangeProperties.put(PROPERTY_SENDING_FACILITY, sendingFacility);
+		exchangeProperties.put(PROPERTY_MESSAGE_TYPE, msgType);
+				
 		exchangeProperties.put(Exchange.HTTP_RESPONSE_CODE, HttpStatus.OK_200);
 
 		if (StringUtils.equals(Util.MESSAGE_TYPE_PNP, msgType)) {

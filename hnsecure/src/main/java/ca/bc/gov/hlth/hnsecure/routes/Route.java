@@ -127,9 +127,9 @@ public class Route extends BaseRoute {
 				.when(isMessageForHIBC)
 					.to("direct:hibc")
                  
-    	        // sending to JMB
+    	        // sending to Rapid
                 .when(exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualTo(R32))
-                	.to("direct:jmb")
+                	.to("direct:rapid")
 
                 // handle unexpected message types     
 	            .otherwise()

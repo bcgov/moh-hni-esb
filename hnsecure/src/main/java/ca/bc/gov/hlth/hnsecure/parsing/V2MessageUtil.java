@@ -119,6 +119,26 @@ public class V2MessageUtil {
 		}
 		return recApp;
 	}
+	
+	/**
+	 * This method is used to get the receiving application from a HL7 message.
+	 * 
+	 * @param v2Message
+	 * @return the receiving application
+	 */
+	public static String getReceivingFacility(String v2Message) {
+	
+		String recFacility = "";
+	
+		if (v2Message == null || v2Message.isEmpty()) {
+			return recFacility;
+		}
+		String[] hl7Fields = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+		if (hl7Fields.length > 5) {
+			recFacility = hl7Fields[5];
+		}
+		return recFacility;
+	}
 
 	/**
 	 * returns the message type based on the HL7 message.
@@ -157,6 +177,34 @@ public class V2MessageUtil {
 		}
 		return msgType;
 	}
+	
+	/**
+	 * returns the user info based on the HL7 message.
+	 * @param v2Message
+	 * @return
+	 */
+	public static String getUserInfo(String v2Message) {
+
+		String user = "";
+
+		if (StringUtils.isEmpty(v2Message)) {
+			return user;
+		}
+
+		v2Message = StringUtils.startsWith(v2Message, V2MessageUtil.SegmentType.MSH.toString()) ? v2Message
+				: v2Message.substring(7);
+		String mshSegment = getMSHSegment(v2Message);
+
+		if (StringUtils.isNotBlank(mshSegment)) {
+			String[] hl7MessageAtt = v2Message.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+			if (hl7MessageAtt.length > 7) {
+				user = hl7MessageAtt[7];
+			}
+		}
+
+		return user;
+	}
+	
 
 	/**
 	 * returns the message id based on the HL7 message.
@@ -192,6 +240,51 @@ public class V2MessageUtil {
 		controlId = v2Segments[9];
         
          return controlId;        
+	}
+	
+	public static String getProcessingDomain(String v2Msg) {
+		String methodName = LoggingUtil.getMethodName();
+		String domain = null;
+		if (StringUtils.isBlank(v2Msg)) {
+			logger.warn("{} - Processing domain is blank", methodName);
+			return domain;
+        }
+        String[] v2DataLines = v2Msg.split("\n");
+		String[] v2Segments = v2DataLines[0].split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER,-1);
+		domain = v2Segments[10];
+        
+         return domain;        
+	}
+	
+	/**
+	 * @param zhdSegment
+	 * ZHD|20220920115331|^^00000010|HNAIADMINISTRATION||||2.4
+	 * @return organization 
+	 */
+	public static String getOrg(String zhdSegment) {		
+		if(StringUtils.isNotEmpty(zhdSegment)) {
+			String[] zhdDataSegment = zhdSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+			if(zhdDataSegment.length >2 && StringUtils.isNotEmpty(zhdDataSegment[2])) {
+				String formattedOrg =  zhdDataSegment[2].replace("^", "");
+				return formattedOrg.trim();
+			}
+		}
+		return "";
+	}
+	
+	/**
+	 * @param pidSegment
+	 * PID||PHN^^^BC^PH
+	 * @return phn 
+	 */
+	public static String getPHN(String pidSegment) {		
+		if(StringUtils.isNotEmpty(pidSegment)) {
+			String[] pidDataSegment = pidSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER);
+			if(pidDataSegment.length > 2 && StringUtils.isNotEmpty(pidDataSegment[2])) {
+				return pidDataSegment[2].substring(0, 10);
+			}
+		}
+		return "";
 	}
 
 	/**
