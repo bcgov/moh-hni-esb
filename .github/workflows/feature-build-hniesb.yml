@@ -1,5 +1,5 @@
 # This is a manual workflow that performs following activities:
-# 1. Determine the version number tag i.e. FeatureBuild-<branch-name>-<build execution>  
+# 1. Determine the version number tag i.e. featurebuild-<branch-name>-<build execution>  
 # 2. Determine tags for OpenShift image
 # 3. Run the maven install for common code from input branch name
 # 4. Run the maven install for hnsesb code from input branch name
@@ -54,10 +54,10 @@ jobs:
           ref: ${{github.event.inputs.BRANCH_NAME}}
 
 
-      # 1. Determine build name i.e. FeatureBuild-<branch-name>-<build execution count> 
+      # 1. Determine build name i.e. featurebuild-<branch-name>-<build execution count> 
       - name: Determine Build name
         run: |
-          echo "FEATURE_BUILD_NAME=FeatureBuild-${{github.event.inputs.BRANCH_NAME}}-${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "FEATURE_BUILD_NAME=featurebuild-${{github.event.inputs.BRANCH_NAME}}-${{github.run_number}}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image
       - name: Determine image tags
