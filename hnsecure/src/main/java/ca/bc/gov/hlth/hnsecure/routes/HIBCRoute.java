@@ -100,9 +100,9 @@ public class HIBCRoute extends BaseRoute {
 				.log("Sending to Enrollment endpoint")
 				.to(enrollmentHttpUrl).id("ToHibcEnrollment")
             .otherwise()
-            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")             
-             
-			.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")
+            .end()
+            .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 			.convertBodyTo(String.class)
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
