@@ -78,7 +78,7 @@ public class RapidRoute extends BaseRoute {
 			.setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
 	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	     	.to(rapidHttpUrl).id("TorapidHttpUrl")
-	     	.log("Received response from RAPID for R32: {$body}")
+	     	.log("Received response from RAPID for R32")
 	     	.setBody().method(new RPBSPMC0ResponseConverter()).id("rapidResponse")	     	
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();

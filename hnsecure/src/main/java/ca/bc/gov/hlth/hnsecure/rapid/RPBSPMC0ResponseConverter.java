@@ -56,6 +56,10 @@ public class RPBSPMC0ResponseConverter {
 	@Handler
 	public String convertResponse(String responseMessage, Exchange exchange) throws CustomHNSException {
 		String methodName = LoggingUtil.getMethodName();
+
+		logger.debug("{} - TransactionId: {}, RAPID response for R32 transaction {}", methodName,
+				exchange.getExchangeId(), responseMessage);
+
 		StringBuffer v2Response = new StringBuffer();
 		RPBSPMC0 rpbspmc0 = new RPBSPMC0(responseMessage);
 		HL7Message mshdefaults = getHL7Message(exchange);
@@ -63,26 +67,32 @@ public class RPBSPMC0ResponseConverter {
 
 		try {
 			populateMSH(r32.getMSH(), mshdefaults);
-			populateMSA(r32.getMSA(), rpbspmc0.getRpbsHeader().getStatusText());
+			populateMSA(r32.getMSA(), rpbspmc0.getRpbsHeader().getStatusText().trim());
 		} catch (HL7Exception e) {
 			logger.error("{} - TransactionId: {}, Exception while converting R32 data {}", methodName,
 					exchange.getExchangeId(), e.getMessage());
 			throw new CustomHNSException(ErrorMessage.CUSTOM_ERROR_INVALID_RESPONSE_MAPPING);
 		}
 		v2Response.append(r32.toString());
-		v2Response.append(
-				"ERR|^^^" + rpbspmc0.getRpbsHeader().getStatusCode() + "&" + rpbspmc0.getRpbsHeader().getStatusText());
+
+		String err = "ERR|^^^" + rpbspmc0.getRpbsHeader().getStatusCode() + "&"
+				+ rpbspmc0.getRpbsHeader().getStatusText().trim();
+		v2Response.append(err);
+		v2Response.append(System.lineSeparator());
 
 		rpbspmc0.getRpbsmc0Data().getBeneficiaries().forEach(b -> {
 			// Output must be a hl7v2 structure so map contract period to a
 			// hl7v2 message
 			try {
 				R32Beneficiary r32Beneficiary = new R32Beneficiary();
-				populateZIA(r32Beneficiary.getZIA(), "", b.getLastName(), b.getFirstName(), "", "", "", "");
-				populatePID(r32Beneficiary.getPID(), b.getPhn());
 				// Remove beneficiary MSH segment
-				StringBuffer formattedResponse = new StringBuffer(r32Beneficiary.toString()).replace(0, 8, "");
-				v2Response.append(formattedResponse.toString());
+				populateZIA(r32Beneficiary.getZIA(), "", b.getLastName().trim(), b.getFirstName().trim(), "", "", "",
+						"");
+				populatePID(r32Beneficiary.getPID(), b.getPhn());
+				StringBuffer formattedResponse = new StringBuffer(r32Beneficiary.toString()).delete(0, 8);
+
+				// Remove any leading empty line or whitespace
+				v2Response.append(formattedResponse.toString().stripLeading());
 
 			} catch (HL7Exception e) {
 				logger.error("{} - TransactionId: {}, Exception while converting beneficiary data {}", methodName,
@@ -100,9 +110,12 @@ public class RPBSPMC0ResponseConverter {
 
 					populateIN1(r32ContractPeriod.getIN1(), convertDate(cp.getEffectiveDate()),
 							convertDate(cp.getCancelDate()), cp.getGroupNumber(), "", "");
+
 					// Remove beneficiary contract period MSH segment
-					StringBuffer formattedResponse = new StringBuffer(r32ContractPeriod.toString()).replace(0, 8, "");
-					v2Response.append(formattedResponse.toString());
+					StringBuffer formattedResponse = new StringBuffer(r32ContractPeriod.toString()).delete(0, 8);
+
+					// Remove any leading empty line or whitespace
+					v2Response.append(formattedResponse.toString().stripLeading());
 
 				} catch (HL7Exception e) {
 					logger.error("{} - TransactionId: {}, Exception while converting contract period {}", methodName,
@@ -115,6 +128,7 @@ public class RPBSPMC0ResponseConverter {
 		});
 
 		logger.debug(v2Response.toString());
+
 		return v2Response.toString();
 	}
 
@@ -156,6 +170,19 @@ public class RPBSPMC0ResponseConverter {
 	}
 
 	private void populateNK1(NK1 nk1, String relationship) throws HL7Exception {
+		if (StringUtils.isNotEmpty(relationship)) {
+			switch (relationship) {
+			case "S":
+				relationship = "SP";
+				break;
+			case "D":
+				relationship = "DP";
+				break;
+			case "C":
+				relationship = "SB";
+				break;
+			}
+		}
 		V2MessageSegmentUtil.setNK1Values(nk1, relationship);
 	}
 

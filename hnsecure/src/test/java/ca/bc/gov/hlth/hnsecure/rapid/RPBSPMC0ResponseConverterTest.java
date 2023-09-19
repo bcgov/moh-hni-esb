@@ -32,18 +32,39 @@ public class RPBSPMC0ResponseConverterTest {
 			+ "ZHD|20220920115331|^^00000010|HNAIADMINISTRATION||||2.4\r\n" + "PID||9337796509^^^BC^PH";
 	private static final String R32_SUCCESS = "        RPBSPMC000000010                                RESPONSERPBS9014TRANSACTION SUCCESSFUL                                                  98736722489873672248SPBIGDATASNAME                     SPBIGDATAFNAME                               1983-01-01F98736722550000001S2022-02-010000-00-00 98736722484044574C2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                         9873672255BIGDATASNAME                       BIGDATAFNAME                                 1983-09-09M98736722550000001C2022-02-010000-00-00 98736722484044574S2022-02-012022-02-28E                             ";
 	private static final String R32_WARNING_MORE_THAN_20_PERSONS_FOUND = "        RPBSPMC000000010                                INFO    RPBS0086MORE THAN 20 PERSONS FOUND - NOT ALL DISPLAYED                          98736722559873672255BIGDATASNAME                       BIGDATAFNAME                                 1983-09-09M98736722550000001C2022-02-010000-00-00 98736722484044574S2022-02-012022-02-28E                                                                                                                                                                                                                                                                                                                        9873672248SPBIGDATASNAME                     SPBIGDATAFNAME                               1983-01-01F98736722550000001S2022-02-010000-00-00 98736722484044574C2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                         9873671593CHSIXTNBIGDSNAME                   CHSIXTNBIGFNAME                              2018-01-16M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671601CHFRTENBDSNAME                     CHFRTNBDFNAME                                2018-01-14M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671769CHTRTBIGDTSNAME                    CHTRTBIGDATFNAM                              2018-01-13M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671776CHTWTREBIGDTSNAME                  CHTWTREBIGDTFNA                              2018-01-23M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671783CHTWNTTWBISNAME                    CHETWNTTWEBFNAM                              2018-01-21M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671809CHTWTONBIGSNAME                    CHTWTONBIGFNAME                              2018-01-21M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671816CHTNTYBIGDTSNAME                   CHNINTYBIGDTFNA                              2018-01-20M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671823CHNINTNBIGDTSNAME                  CHNINTBIGDAFNAM                              2018-01-19F98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671848CHEITNBIGDTSNAME                   CHDITNBIDTAFNAM                              2018-01-18M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671941CHSETNBIGDTSNAME                   CHSEVTNBDTFNAME                              2018-01-17M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671959CHFIFTNBIGDTSNAME                  CHFIFTNBIGDAFNA                              2018-01-15M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671966CHTLEBIGDTSNAME                    CHTLEBIGDTFNAME                              2018-12-12M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671973CHELNBIGDASNAME                    CHELNBIGDFNAME                               2018-11-11M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873671998CHTENBIGSNAME                      CHTENBIGDFNAME                               2019-10-10M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873672001CHNINBIGDTSNAME                    CHNINBIGDATFNAM                              2019-09-09M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873672019CHETBIGDASNAME                     CHETBIGDTFNAME                               2018-08-08M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873672026CHSVNBIGDSNAME                     CHSVNBIGDFNAME                               2019-07-07M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                9873672033CHSIXBIGDTSNAME                    CHSIXBIGDTFNAME                              2018-06-06M98736722550000001D2022-02-010000-00-00                                                                                                                                                                                                                                                                                                                                                                ";
+	
 	private static final String R32_ERROR_PHN_NOT_FOUND = "        RPBSPMC000000010                                ERRORMSGRPBS9145PHN NOT FOUND                                                           9159869673		";
-
+	private static final String R32_RESPONSE = "MSA|AA|202204041623|TRANSACTION SUCCESSFUL\r\n" + 
+			"ERR|^^^RPBS9014&TRANSACTION SUCCESSFUL\r\n" + 
+			"ZIA|||||||||||||||SPBIGDATASNAME^SPBIGDATAFNAME^^^^^L\r\n" + 
+			"PID||9873672248^^^BC^PHPID||9873672255^^^BC^PH\r\n" + 
+			"NK1|||SP\r\n" + 
+			"IN1||||||||0000001||||20220201\r\n" + 
+			"PID||9873672248^^^BC^PH\r\n" + 
+			"NK1|||SB\r\n" + 
+			"IN1||||||||4044574||||20220201\r\n" + 
+			"ZIA|||||||||||||||BIGDATASNAME^BIGDATAFNAME^^^^^L\r\n" + 
+			"PID||9873672255^^^BC^PHPID||9873672255^^^BC^PH\r\n" + 
+			"NK1|||SB\r\n" + 
+			"IN1||||||||0000001||||20220201\r\n" + 
+			"PID||9873672248^^^BC^PH\r\n" + 
+			"NK1|||SP\r\n" + 
+			"IN1||||||||4044574||||20220201|20220228\r\n" + 
+			"ZIH|||||||||||||||||||E";
+	
 	@Test
 	public void rapid_successMessage() throws CustomHNSException {
 		CamelContext ctx = new DefaultCamelContext();
 		Exchange ex = new DefaultExchange(ctx);
 		setProperties(ex);
+		String ziaSegment = "ZIA|||||||||||||||SPBIGDATASNAME^SPBIGDATAFNAME^^^^^L";
 		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_SUCCESS, ex);
-		String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
+		String dataSegments[] = response.split("\r");
+		//String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
 		assertTrue(response.startsWith("MSH"));
-		assertEquals("PID||9873672248^^^BC^PH", pidsegment);
+		//assertEquals("PID||9873672248^^^BC^PH", pidsegment);
+		assertEquals(ziaSegment, dataSegments[3].trim());
 
 	}
 
@@ -56,7 +77,8 @@ public class RPBSPMC0ResponseConverterTest {
 		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_ERROR_PHN_NOT_FOUND, ex);
 		assertTrue(response.startsWith("MSH"));
-		String errSegment = V2MessageUtil.getDataSegment(response, "ERR");	
+		String datasegments[] = response.split("\r");
+		String errSegment = datasegments[2];
 		assertEquals(errResponse.trim(), errSegment.trim());
 		assertTrue(response.startsWith("MSH"));
 	}
@@ -68,9 +90,13 @@ public class RPBSPMC0ResponseConverterTest {
 		setProperties(ex);
 		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_WARNING_MORE_THAN_20_PERSONS_FOUND, ex);
-		String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
+		String datasegments[] = response.split("\r");
+	
 		assertTrue(response.startsWith("MSH"));
-		assertEquals("PID||9873672255^^^BC^PH", pidsegment);
+		assertEquals("PID||9873672255^^^BC^PH", datasegments[4]);
+		assertEquals("PID||9873672255^^^BC^PH", datasegments[5]);
+		assertEquals("IN1||||||||0000001||||20220201", datasegments[109]);
+		
 	}
 
 	private void setProperties(Exchange exchange) {
@@ -105,5 +131,7 @@ public class RPBSPMC0ResponseConverterTest {
 			exchangeProperties.put(PROPERTY_RAPID_ORG, org);
 		}
 	}
+	
+	
 
 }
