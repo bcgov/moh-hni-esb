@@ -78,7 +78,7 @@ public class RPBSPMC0ResponseConverter {
 		String err = "ERR|^^^" + rpbspmc0.getRpbsHeader().getStatusCode() + "&"
 				+ rpbspmc0.getRpbsHeader().getStatusText().trim();
 		v2Response.append(err);
-		v2Response.append(System.lineSeparator());
+		v2Response.append("\r\n");
 
 		rpbspmc0.getRpbsmc0Data().getBeneficiaries().forEach(b -> {
 			// Output must be a hl7v2 structure so map contract period to a
