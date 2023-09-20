@@ -44,10 +44,8 @@ public class RPBSPMC0ResponseConverterTest {
 		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_SUCCESS, ex);
 		String dataSegments[] = response.split("\r");
-		//String pidsegment = V2MessageUtil.getDataSegment(response, Util.PID_SEGMENT);
-		assertTrue(response.startsWith("MSH"));
-		//assertEquals("PID||9873672248^^^BC^PH", pidsegment);
-		assertEquals(ziaSegment, dataSegments[3].trim());
+		assertTrue(response.startsWith("MSH"));		
+		assertEquals(ziaSegment, dataSegments[3]);
 
 	}
 
@@ -59,10 +57,11 @@ public class RPBSPMC0ResponseConverterTest {
 		String errResponse = "ERR|^^^RPBS9145&PHN NOT FOUND";
 		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_ERROR_PHN_NOT_FOUND, ex);
+		
 		assertTrue(response.startsWith("MSH"));
 		String datasegments[] = response.split("\r");
 		String errSegment = datasegments[2];
-		assertEquals(errResponse.trim(), errSegment.trim());
+		assertEquals(errResponse.trim(), errSegment);
 		assertTrue(response.startsWith("MSH"));
 	}
 
@@ -73,6 +72,7 @@ public class RPBSPMC0ResponseConverterTest {
 		setProperties(ex);
 		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
 		String response = converter.convertResponse(R32_WARNING_MORE_THAN_20_PERSONS_FOUND, ex);
+		System.out.println(response);
 		String datasegments[] = response.split("\r");
 	
 		assertTrue(response.startsWith("MSH"));
