@@ -86,8 +86,7 @@ public class RPBSPMC0ResponseConverter {
 			try {
 				R32Beneficiary r32Beneficiary = new R32Beneficiary();
 				// Remove beneficiary MSH segment
-				populateZIA(r32Beneficiary.getZIA(), "", b.getLastName().trim(), b.getFirstName().trim(), "", "", "",
-						"");
+				populateZIA(r32Beneficiary.getZIA(), "", b.getLastName().trim(), b.getFirstName().trim(), "", "", "", "");
 				populatePID(r32Beneficiary.getPID(), b.getPhn());
 				StringBuffer formattedResponse = new StringBuffer(r32Beneficiary.toString()).delete(0, 8);
 
