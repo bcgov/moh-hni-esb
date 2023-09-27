@@ -26,6 +26,7 @@ public final class Util {
 	public static final String HL7_DELIMITER = "|";
 	public static final String CARET = "^";
 	public static final String ZCB_SEGMENT = "ZCB";
+	public static final String ZZZ_SEGMENT = "ZZZ";
 	public static final String ZHD_SEGMENT = "ZHD";
 	public static final String PID_SEGMENT = "PID";
 	public static final String RECEIVING_APP_PNP = "PNP";
