@@ -26,10 +26,9 @@ public class FormatTRPRequestMessage {
 
 	@Handler
 	public String format(String v2Message) throws CustomHNSException {
+		
 		logger.debug("{}: Converting TRP request to formal format {}", LoggingUtil.getMethodName(), v2Message);
 
-		// It should be impossible for the body to be empty here (the handshake server
-		// should catch that) but handle it just in case
 		if (StringUtils.isBlank(v2Message)) {
 			throw new CustomHNSException(HL7_ERROR_NO_INPUT);
 		}
@@ -37,42 +36,31 @@ public class FormatTRPRequestMessage {
 		String[] segments = V2MessageUtil.getMessageSegments(v2Message);
 		String zzzSegment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.ZZZ);
 		String[] zzzSegmentFields = zzzSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
+		int zzzSegmentsLength = zzzSegmentFields.length;
 
-		// Apply formal formatting only for TRP transaction id
-		if (zzzSegmentFields.length >= 1 && zzzSegmentFields[1].equalsIgnoreCase("TRP")) {
-
-			// Append missing optional fields
-			if (zzzSegmentFields.length >= 6 && zzzSegmentFields.length < 11) {
-				while (zzzSegmentFields.length < 11) {
-					String formattedSegment = zzzSegment.concat(Util.HL7_DELIMITER);
-					String replacedmsg = v2Message.replace(zzzSegment, formattedSegment);
-					v2Message = replacedmsg;
-					String[] formattedZZZSegments = V2MessageUtil.getMessageSegments(v2Message);
-					String formattedZZZSegment = V2MessageUtil.getSegment(formattedZZZSegments,
-							V2MessageUtil.SegmentType.ZZZ);
-					String[] updatedSegmentFields = formattedZZZSegment
-							.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
-					zzzSegmentFields = updatedSegmentFields;
-				}
+		// Apply formal formatting only for TRP request profile
+		if (zzzSegmentsLength >= 1 && zzzSegmentFields[1].equalsIgnoreCase(Util.PROFILE_TYPE_TRP)) {
+			if (zzzSegmentsLength >= 6 && zzzSegmentsLength < 11) {
+				int noOfMissingSeparators = 11 - zzzSegmentsLength;
+				// Append missing separators
+				String mSeparators = buildMissingSeparators(noOfMissingSeparators);
+				String formattedZZZSegment = zzzSegment + mSeparators;
+				String replacedMsg = v2Message.replace(zzzSegment, formattedZZZSegment);
+				v2Message = replacedMsg;
 			}
 
 			// MSH
-			String segment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.MSH);
+			String mshSegment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.MSH);
 
-			String[] mshSegmentFields = segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
+			String[] mshSegmentFields = mshSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
+			int mshSegmnetsLength = mshSegmentFields.length;
 			if (mshSegmentFields.length >= 12 && mshSegmentFields.length < 14) {
-				while (mshSegmentFields.length < 14) {
-					String formattedSegment = segment.concat(Util.HL7_DELIMITER);
-					String replacedmsg = v2Message.replace(segment, formattedSegment);
-					v2Message = replacedmsg;
-					String[] formattedMSHSegments = V2MessageUtil.getMessageSegments(v2Message);
-					String formattedMSHSegment = V2MessageUtil.getSegment(formattedMSHSegments,
-							V2MessageUtil.SegmentType.MSH);
-					String[] updatedSegmentFields = formattedMSHSegment
-							.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
-					mshSegmentFields = updatedSegmentFields;
-				}
-
+				int noOfMissingSeparators = 14 - mshSegmnetsLength;
+				// Append missing separators
+				String mSeparators = buildMissingSeparators(noOfMissingSeparators);
+				String formattedMSHSegment = mshSegment + mSeparators;
+				String replacedMsg = v2Message.replace(mshSegment, formattedMSHSegment);
+				v2Message = replacedMsg;
 			}
 
 			// ZCC
@@ -80,16 +68,24 @@ public class FormatTRPRequestMessage {
 
 			String[] zccSegmentFields = zccSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
 			if (zccSegmentFields.length == 11) {
-				String formattedSegment = zccSegment.concat(Util.HL7_DELIMITER);
-				String replacedmsg = v2Message.replace(zccSegment, formattedSegment);
-				v2Message = replacedmsg;
+				String formattedZCCSegment = zccSegment.concat(Util.HL7_DELIMITER);
+				String replacedMsg = v2Message.replace(zccSegment, formattedZCCSegment);
+				v2Message = replacedMsg;
 			}
 
 			logger.debug("{}: Formatted TRP request {}", LoggingUtil.getMethodName(), v2Message);
-		}
 
+		}
 		return v2Message;
 
+	}
+
+	private String buildMissingSeparators(int noOfSeparators) {
+		String separators = "";
+		for (int i = 0; i < noOfSeparators; i++) {
+			separators = separators.concat(Util.HL7_DELIMITER);
+		}
+		return separators.trim();
 	}
 
 }
