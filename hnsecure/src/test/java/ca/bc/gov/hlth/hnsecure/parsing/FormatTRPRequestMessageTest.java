@@ -28,5 +28,29 @@ public class FormatTRPRequestMessageTest {
 		assertEquals(TestMessages.MSG_FORMATTED_TRP_REQUEST, formatResponse);
 
 	}
+	
+	@Test
+	public void testFormat_when_requestHasMissingZZZSegments() throws CustomHNSException {
+
+		String formatResponse = new FormatTRPRequestMessage().format(TestMessages.MSG_MISSING_ZZZ_TRP_REQUEST);
+		assertEquals(TestMessages.MSG_MISSING_ZZZ_TRP_REQUEST, formatResponse);
+
+	}
+	
+	@Test
+	public void testFormat_when_requestHasMissingMSHSegments() throws CustomHNSException {
+
+		String formatResponse = new FormatTRPRequestMessage().format(TestMessages.MSG_MISSING_MSH_TRP_REQUEST);
+		assertEquals(TestMessages.MSG_MISSING_MSH_TRP_REQUEST, formatResponse);
+
+	}
+	
+	@Test
+	public void testFormat_when_requestHasMissingZCCSegments() throws CustomHNSException {
+
+		String formatResponse = new FormatTRPRequestMessage().format(TestMessages.MSG_MISSING_ZCC_TRP_REQUEST);
+		assertEquals(TestMessages.MSG_MISSING_ZCC_TRP_REQUEST, formatResponse);
+
+	}
 
 }
