@@ -60,10 +60,12 @@ public class FormatTRPRequestMessage {
 
 				return formattedMessage; // return formatted TRP message
 
-			} else
+			} else {
 				return v2Message;
-		} else
+			}
+		} else {
 			return v2Message;
+		}
 
 	}
 
