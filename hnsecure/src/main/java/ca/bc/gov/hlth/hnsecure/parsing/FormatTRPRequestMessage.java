@@ -39,20 +39,20 @@ public class FormatTRPRequestMessage {
 		String zccSegment = V2MessageUtil.getSegment(segments, V2MessageUtil.SegmentType.ZCC);
 
 		if (StringUtils.isNotEmpty(zzzSegment)) {
-			String formattedMessage = "";
+
 			String[] zzzSegmentFields = zzzSegment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
 
 			int zzzSegmentsLength = zzzSegmentFields.length;
 
 			// Apply formal formatting only for TRP request profile
 			if (zzzSegmentsLength >= 1 && zzzSegmentFields[1].equalsIgnoreCase(Util.PROFILE_TYPE_TRP)) {
-				
-				//ZZZ
-				formattedMessage = formatMessage(v2Message, zzzSegment, 6, 11);
 
-				// MSH					
+				// ZZZ
+				String formattedMessage = formatMessage(v2Message, zzzSegment, 6, 11);
+
+				// MSH
 				formattedMessage = formatMessage(formattedMessage, mshSegment, 12, 14);
-				
+
 				// ZCC
 				formattedMessage = formatMessage(formattedMessage, zccSegment, 11, 12);
 
@@ -67,15 +67,7 @@ public class FormatTRPRequestMessage {
 
 	}
 
-	/**
-	 * @param v2Message
-	 * @param mshSegment
-	 * @param minSegment
-	 * @param maxSegment
-	 */
-	protected String formatMessage(String v2Message, String segment, int minSegment, int maxSegment) {
-		
-		String formattedSegment = "";
+	private String formatMessage(String v2Message, String segment, int minSegment, int maxSegment) {
 		if (StringUtils.isNotEmpty(segment)) {
 			String[] segmentFields = segment.split(Util.DOUBLE_BACKSLASH + Util.HL7_DELIMITER, -1);
 
@@ -84,7 +76,7 @@ public class FormatTRPRequestMessage {
 				int noOfMissingSeparators = maxSegment - segmnetsLength;
 				// Append missing separators
 				String missingSeparators = buildMissingSeparators(noOfMissingSeparators);
-				formattedSegment = segment + missingSeparators;
+				String formattedSegment = segment + missingSeparators;
 				return v2Message.replace(segment, formattedSegment);
 			} else {
 				return v2Message;
