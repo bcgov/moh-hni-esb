@@ -17,7 +17,10 @@ import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
+
 import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatTRPRequestMessage;
 
 public class PharmanetRoute extends BaseRoute {
 
@@ -39,6 +42,7 @@ public class PharmanetRoute extends BaseRoute {
 		
 		from("direct:pharmanet").routeId("pharmanet-route")
 	    	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
+	    	.setBody().method(new FormatTRPRequestMessage()).id("FormatTRPRequestMessage")
 	    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	    	.wireTap("direct:audit").end()
 			.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")

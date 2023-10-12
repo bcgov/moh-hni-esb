@@ -26,11 +26,13 @@ public final class Util {
 	public static final String HL7_DELIMITER = "|";
 	public static final String CARET = "^";
 	public static final String ZCB_SEGMENT = "ZCB";
+	public static final String ZZZ_SEGMENT = "ZZZ";
 	public static final String ZHD_SEGMENT = "ZHD";
 	public static final String PID_SEGMENT = "PID";
 	public static final String RECEIVING_APP_PNP = "PNP";
 	public static final String MESSAGE_TYPE_PNP = "ZPN";
 	public static final String MESSAGE_TYPE_R32 = "R32";
+	public static final String PROFILE_TYPE_TRP = "TRP";
 	public static final String RECEIVING_APP_HNSECURE = "HNSECURE";
 	public static final String PHARMA_PATTERN = "yyyy/MM/dd HH:mm:ss";
 	public static final String DATE_PATTERN = "yyyyMMddHHmmss";
