@@ -93,7 +93,7 @@ public class FormatTRPRequestMessage {
 		for (int i = 0; i < noOfSeparators; i++) {
 			separators = separators.concat(Util.HL7_DELIMITER);
 		}
-		return separators.trim();
+		return separators;
 	}
 
 }
