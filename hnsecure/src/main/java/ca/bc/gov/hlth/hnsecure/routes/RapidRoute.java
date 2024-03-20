@@ -73,6 +73,7 @@ public class RapidRoute extends BaseRoute {
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
 	     	.log("Sending to RAPID")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
+	    	.wireTap(DIRECT_AUDIT).end()
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 			.setHeader(AUTHORIZATION, simple(basicAuthToken))
 			.setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
