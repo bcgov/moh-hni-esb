@@ -113,7 +113,7 @@ jobs:
               if (`${{env.ENVIRONMENT}}` == 'dev') {
                 return "c8d6f2-dev"
               }
-              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox') {
+              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox' || `${{env.ENVIRONMENT}}` == 'training' || `${{env.ENVIRONMENT}}` == 'VC1') {
                 return "c8d6f2-test"
               }
               if (`${{env.ENVIRONMENT}}` == 'production') {
