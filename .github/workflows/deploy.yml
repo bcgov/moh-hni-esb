@@ -73,6 +73,7 @@ jobs:
       IMAGE_ID: ${{env.IMAGE_ID}}
       IMAGE_TAG: ${{env.IMAGE_TAG}}
       TARGET_NAMESPACE: ${{env.TARGET_NAMESPACE}}
+      REPLICATE: ${{env.REPLICATE}} 
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
