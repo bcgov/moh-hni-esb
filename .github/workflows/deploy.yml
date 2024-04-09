@@ -73,6 +73,7 @@ jobs:
       IMAGE_ID: ${{env.IMAGE_ID}}
       IMAGE_TAG: ${{env.IMAGE_TAG}}
       TARGET_NAMESPACE: ${{env.TARGET_NAMESPACE}}
+      REPLICATE: ${{env.REPLICATE}} 
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -113,7 +114,7 @@ jobs:
               if (`${{env.ENVIRONMENT}}` == 'dev') {
                 return "c8d6f2-dev"
               }
-              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox') {
+              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox' || `${{env.ENVIRONMENT}}` == 'training' || `${{env.ENVIRONMENT}}` == 'VC1') {
                 return "c8d6f2-test"
               }
               if (`${{env.ENVIRONMENT}}` == 'production') {
@@ -321,7 +322,7 @@ jobs:
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLD}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
 
       - name: Deploy in DR if replication is true
-        if: ${{success() && env.REPLICATE}}
+        if: ${{success() && needs.validate.outputs.REPLICATE == 'true'}}
         run: |
           cd hnsesb-devops/overlay/${{steps.get-kustomize-folder.outputs.result}}-dr
           kustomize edit set image "hnsesb-image=${{env.IMAGE_REGISTRY_GOLDDR}}/${{needs.validate.outputs.TARGET_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.validate.outputs.IMAGE_ID}}"
