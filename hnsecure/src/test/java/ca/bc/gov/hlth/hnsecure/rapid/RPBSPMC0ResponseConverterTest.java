@@ -35,6 +35,8 @@ public class RPBSPMC0ResponseConverterTest {
 	
 	private static final String R32_ERROR_PHN_NOT_FOUND = "        RPBSPMC000000010                                ERRORMSGRPBS9145PHN NOT FOUND                                                           9159869673		";
 	
+	private static final String R32_RESPONSE_ZERO_DATE = "        RPBSPMC000000010                                RESPONSERPBS9014TRANSACTION SUCCESSFUL                                                  94012460659401246065JRE                                VCDFDR                                       1983-07-14M94012460650000001C2023-05-010000-00-00                                               ";
+
 	@Test
 	public void rapid_successMessage() throws CustomHNSException {
 		CamelContext ctx = new DefaultCamelContext();
@@ -78,8 +80,26 @@ public class RPBSPMC0ResponseConverterTest {
 		assertTrue(response.startsWith("MSH"));
 		assertEquals("PID||9873672255^^^BC^PH", datasegments[4]);
 		assertEquals("PID||9873672255^^^BC^PH", datasegments[5]);
-		assertEquals("IN1||||||||0000001||||20220201", datasegments[109]);
+		assertEquals("IN1||||||||0000001||||20220201|00000000", datasegments[109]);
 		
+	}
+
+	/**
+	 * Test to check that when no Cancel Date exists, which is returned as '0000-00-00' in the response from RAPID, 
+	 * then a value of '00000000' still gets populated to the v2 message.
+	 */
+	@Test
+	public void testZerosReturnedForNoDate() throws CustomHNSException {
+		CamelContext ctx = new DefaultCamelContext();
+		Exchange ex = new DefaultExchange(ctx);
+		setProperties(ex);
+		String in1Segment = "IN1||||||||0000001||||20230501|00000000";
+		RPBSPMC0ResponseConverter converter = new RPBSPMC0ResponseConverter();
+		String response = converter.convertResponse(R32_RESPONSE_ZERO_DATE, ex);
+		String dataSegments[] = response.split("\r");
+		assertTrue(response.startsWith("MSH"));		
+		assertEquals(in1Segment, dataSegments[7]);
+
 	}
 
 	private void setProperties(Exchange exchange) {
