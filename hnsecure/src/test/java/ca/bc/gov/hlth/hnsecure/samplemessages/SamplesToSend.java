@@ -43,6 +43,19 @@ public class SamplesToSend {
             "}]\n" +
             "}";
 
+    public static final String r32JsonMsg_ZeroCancelDate = "{\r\n"
+    		+ "	\"content\": [\r\n"
+    		+ "		{\r\n"
+    		+ "			\"attachment\": {\r\n"
+    		+ "				\"data\": \"TVNIfF5+XCZ8SE5XZWJ8RTEzREQ2QkItMTJERjVCQzEzODB8UkFJR1QtQ05ULVBSRFN8QkMwMDAwMTAxM3wyMDI0MDUwMjExNTIyNXxBRy0wMDc2MjctbmV3UGhufFIzMnwyMDI0MDUwMjExNTIyNXxEfDIuNHx8DVpIRHwyMDIxMDgxOTExNTMzMXxeXjAwMDAwMDEwfEhOQUlBRE1JTklTVFJBVElPTnx8fHwyLjQNUElEfHw5NDAxMjQ2MDY1Xl5eQkNeUEgN\",\r\n"
+    		+ "				\"contentType\": \"x-application/hl7-v2+er7\"\r\n"
+    		+ "			}\r\n"
+    		+ "		}\r\n"
+    		+ "	],\r\n"
+    		+ "	\"resourceType\": \"DocumentReference\",\r\n"
+    		+ "	\"status\": \"current\"\r\n"
+    		+ "}";
+    
     public static final String e45JsonMsg = "{\n" +
             "\"resourceType\": \"DocumentReference\",\n" +
             "\"status\" : \"current\",\n" +

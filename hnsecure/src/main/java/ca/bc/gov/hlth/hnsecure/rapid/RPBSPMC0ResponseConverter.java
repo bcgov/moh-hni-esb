@@ -8,7 +8,6 @@ import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_APP;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_SENDING_FACILITY;
 import static ca.bc.gov.hlth.hnsecure.parsing.Util.PROPERTY_USER_INFO;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -44,8 +43,6 @@ public class RPBSPMC0ResponseConverter {
 	private static final String PID_ID_TYPE_CODE = "PH";
 
 	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddkkmmss");
-
-	private static DateTimeFormatter outputDateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	private String messageDateTime = LocalDateTime.now().format(dateTimeFormatter);
 
@@ -196,15 +193,8 @@ public class RPBSPMC0ResponseConverter {
 	}
 
 	private String convertDate(String date) {
-		if (date.equals("0000-00-00")) {
-			return "";
-		}
-
-		LocalDate parsedDate = LocalDate.parse(date);
-
-		String strDateTime = parsedDate.format(outputDateTimeFormatter);
-
-		return strDateTime;
+		// Convert the response Date from yyyy-MM-dd to yyyyMMdd
+		return StringUtils.remove(date, "-");
 	}
 
 }

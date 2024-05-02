@@ -17,9 +17,9 @@ import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperties;
 import ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty;
 import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
 import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
-import ca.bc.gov.hlth.hnsecure.routes.RapidRoute;
 import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RapidRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RotateFilesRoute;
 import ca.bc.gov.hlth.hnsecure.routes.Route;
 import ca.bc.gov.hlth.hnsecure.samplemessages.SamplesToSend;
@@ -106,6 +106,26 @@ public class RouteTest extends CamelTestSupport {
 		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
 		// trigger route execution by sending input to route
 		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r03JsonMsgLocal, headers);
+
+		// Verify our expectations were met
+		assertMockEndpointsSatisfied();
+
+		context.stop();
+	}
+	
+	@Test
+	public void testSuccessfulR32RTransMessage() throws Exception {
+
+		context.start();
+
+		// Set expectations
+		responseEndpoint.expectedMessageCount(1);
+
+		// Send a message with header
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("Authorization", SamplesToSend.AUTH_HEADER);
+		// trigger route execution by sending input to route
+		mockRouteStart.sendBodyAndHeaders("direct:testRouteStart", SamplesToSend.r32JsonMsg_ZeroCancelDate, headers);
 
 		// Verify our expectations were met
 		assertMockEndpointsSatisfied();
