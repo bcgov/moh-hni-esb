@@ -15,7 +15,7 @@ public class RTransRoute extends BaseRoute {
 		
 		from("direct:rtrans").routeId("rtrans-route")
      		.log("Message identified as RTrans message. Preparing message for RTrans.")
-     		.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
+	        .to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
      		.setBody().method(new FormatRTransMessage()).id("FormatRTransMessage")
      		.log("Sending to RTrans")
      		.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
