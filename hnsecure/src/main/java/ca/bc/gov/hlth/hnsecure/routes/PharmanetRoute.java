@@ -17,10 +17,8 @@ import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
-
-import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
-import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatTRPRequestMessage;
+import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 
 public class PharmanetRoute extends BaseRoute {
 
@@ -54,7 +52,7 @@ public class PharmanetRoute extends BaseRoute {
 	        .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 	        .setHeader(AUTHORIZATION, simple(basicToken))
-	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+	        .to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
 	        .to(pharmanetUrl).id("ToPharmaNet")
 	        .log("Received response from Pharmanet:${headers}")
 	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
