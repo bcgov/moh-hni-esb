@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import javax.jms.JMSException;
 
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.component.jms.JmsComponent;
@@ -82,7 +83,7 @@ public class Route extends BaseRoute {
 		// Main (Jetty HTTP server) route
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}?httpMethodRestrict=POST").routeId("hnsecure-route")
 
-        	.log("HNSecure received a request")
+        	.log(LoggingLevel.DEBUG, "HNSecure received a request")
 			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
 			.choice()
 				.when(header(HTTP_REQUEST_ID_HEADER))
@@ -93,7 +94,8 @@ public class Route extends BaseRoute {
         	.setProperty(Util.PROPERTY_IS_FILE_DROPS_ENABLED).simple(isFileDropsEnabled)
         	.setProperty(Util.PROPERTY_IS_AUDITS_ENABLED).simple(isAuditsEnabled)
         	// Extract the message using custom extractor and log 
-        	.bean(FhirPayloadExtractor.class).id("FhirPayloadExtractor").log("Decoded V2: ${body}")      	
+        	.bean(FhirPayloadExtractor.class).id("FhirPayloadExtractor")
+        	.log(LoggingLevel.DEBUG, "Decoded V2: ${body}")      	
         	// Added wireTap for asynchronous call to filedrop request
         	.process(new AuditSetupProcessor(TransactionEventType.TRANSACTION_START))
 			.wireTap("direct:audit").end()
@@ -106,7 +108,7 @@ public class Route extends BaseRoute {
         	// since the validator wouldn't have been run yet
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-            .log("The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")                      
+            .log(LoggingLevel.DEBUG, "The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")                      
             .choice()
             	// Return current DateTime if receiving app is HNETDTTN
 				.when(isHNETDTTN)
@@ -139,25 +141,25 @@ public class Route extends BaseRoute {
             .to("direct:handleResponse").id("HandleResponse");
 		      
         // Request File Drop route
-        from("direct:requestFileDrop").log("wireTap direct:requestFileDrop")
+        from("direct:requestFileDrop").log(LoggingLevel.DEBUG, "wireTap direct:requestFileDrop")
         	.choice()
 				.when(doFileDrops)
 					.bean(RequestFileDropGenerator.class).id("RequestFileDropGenerater")
-					.log("wireTap direct:requestFileDrop done")
+					.log(LoggingLevel.DEBUG, "wireTap direct:requestFileDrop done")
 			.end();
         // Response File Drop route
-        from("direct:responseFileDrop").log("wireTap direct:responseFileDrop")
+        from("direct:responseFileDrop").log(LoggingLevel.DEBUG, "wireTap direct:responseFileDrop")
 	        .choice()
 	        	.when(doFileDrops)
 					.bean(ResponseFileDropGenerator.class).id("ResponseFileDropGenerater")
-					.log("wireTap direct:responseFileDrop done")
+					.log(LoggingLevel.DEBUG, "wireTap direct:responseFileDrop done")
 			.end();
         
         // Audit route
-		from("direct:audit").log("wireTap direct:audit")
+		from("direct:audit").log(LoggingLevel.DEBUG, "wireTap direct:audit")
 			.choice()
 				.when(PredicateBuilder.and(PredicateBuilder.not(isHNETDTTN), exchangeProperty(Util.PROPERTY_IS_AUDITS_ENABLED).isEqualToIgnoreCase(Boolean.TRUE)))
-					.process(new AuditProcessor()).log("wireTap audit done")				
+					.process(new AuditProcessor()).log(LoggingLevel.DEBUG, "wireTap audit done")				
 			.end();		
     }
 	

@@ -59,7 +59,7 @@ public class PayLoadValidator extends AbstractValidator {
 	@Override
 	public boolean validate(Exchange exchange) throws ValidationFailedException, CustomHNSException {
 		String methodName = LoggingUtil.getMethodName();
-		logger.info("{} - PayLoadValidator Validation started",methodName);
+		logger.debug("{} - PayLoadValidator Validation started",methodName);
 		HL7Message messageObj = new HL7Message();
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
@@ -73,7 +73,7 @@ public class PayLoadValidator extends AbstractValidator {
 		validatePharmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
 		// To ensure validation in wrapper class is called.
 		validator.validate(exchange);
-		logger.info("{} - PayLoadValidator Validation completed",methodName);
+		logger.debug("{} - PayLoadValidator Validation completed",methodName);
 		return true;
 	}
 
@@ -224,7 +224,7 @@ public class PayLoadValidator extends AbstractValidator {
 			String zcbSegment = V2MessageUtil.getDataSegment(v2Message,Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
 			String traceNumber = V2MessageUtil.getTraceNumber(zcbSegment);
-			logger.info("{} - TransactionId: {}, FacilityId: {}, PharmacyId: {}, TraceNumber: {}",
+			logger.debug("{} - TransactionId: {}, FacilityId: {}, PharmacyId: {}, TraceNumber: {}",
 					methodName, transactionId, messageObj.getSendingFacility(), pharmacyID, traceNumber);
 			return true;
 		}

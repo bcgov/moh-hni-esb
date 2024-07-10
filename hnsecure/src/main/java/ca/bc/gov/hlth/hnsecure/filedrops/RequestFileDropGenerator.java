@@ -40,7 +40,7 @@ public class RequestFileDropGenerator extends FileDropGenerator {
 		String fileName = buildFileNameParameters(exchange,corId);
 		String requestFileName = fileName + REQUEST_FILE;
 		writeFiledrop(body.toString(), requestFileName);
-		logger.info("{} - TransactionId: {}, Successfully created file drops for request: {}",methodName, exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);
+		logger.debug("{} - TransactionId: {}, Successfully created file drops for request: {}",methodName, exchange.getProperty(Exchange.CORRELATION_ID, String.class), requestFileName);
 
 		logger.debug("{} - Finished.", methodName);
 	}

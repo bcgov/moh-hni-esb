@@ -78,13 +78,13 @@ public class TokenValidator extends AbstractValidator {
 		}
 		try {
 			AccessToken accessToken = AccessToken.parse(authorizationKey);
-			logger.info("{} - TransactionId: {}, Access token: {}", methodName, exchange.getExchangeId(), accessToken);
+			logger.debug("{} - TransactionId: {}, Access token: {}", methodName, exchange.getExchangeId(), accessToken);
 
 			// Process the token
 			JWTClaimsSet claimsSet = jwtProcessor.process(accessToken.toString(), null);
 
 			// Print out the token claims set
-			logger.info("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getExchangeId(), claimsSet.toJSONObject());
+			logger.debug("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getExchangeId(), claimsSet.toJSONObject());
 		
 			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getExchangeId());			
 		} catch (ParseException | java.text.ParseException | BadJOSEException | JOSEException e) {

@@ -37,7 +37,7 @@ public class PharmaNetPayloadExtractor implements Processor {
         PharmaNetJsonMessage encodedExtractedMessage = PharmaNetJsonUtil.parseJsonToPharmanetMsg(pharmaNetJSON); 
 
         String extractedMessage = Util.decodeBase64(encodedExtractedMessage.getHl7Message());
-        logger.info("{} - The decoded PharmaNet HL7 message response is: {}", methodName, extractedMessage);
+        logger.debug("{} - The decoded PharmaNet HL7 message response is: {}", methodName, extractedMessage);
         exchange.getIn().setBody(extractedMessage);
 	}    
 }

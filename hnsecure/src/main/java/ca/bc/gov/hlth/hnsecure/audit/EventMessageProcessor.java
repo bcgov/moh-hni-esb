@@ -26,7 +26,7 @@ public class EventMessageProcessor extends AbstractAuditPersistence {
 	public void process(Exchange exchange, TransactionEventType eventType, EventMessageErrorLevel errorLevel, String errorCode, String messageText) {
 		String methodName = LoggingUtil.getMethodName();
 
-		logger.info("{} - Begin", methodName);
+		logger.debug("{} - Begin", methodName);
 
 		String v2 = (String)exchange.getIn().getBody();
 		String messageId = V2MessageUtil.getMsgId(v2);

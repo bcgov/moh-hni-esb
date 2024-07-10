@@ -21,6 +21,7 @@ import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.builder.PredicateBuilder;
@@ -93,14 +94,14 @@ public class HIBCRoute extends BaseRoute {
             .choice()
 			.when(isEligibility())
 				.setHeader(AUTHORIZATION, simple(eligibilityBasicAuthToken))
-				.log("Sending to Eligibility endpoint")
+				.log(LoggingLevel.DEBUG, "Sending to Eligibility endpoint")
 				.to(eligibilityHttpUrl).id("ToHibcEligibility")
 			.when(isEnrollment())
 				.setHeader(AUTHORIZATION, simple(enrollmentBasicAuthToken))
-				.log("Sending to Enrollment endpoint")
+				.log(LoggingLevel.DEBUG, "Sending to Enrollment endpoint")
 				.to(enrollmentHttpUrl).id("ToHibcEnrollment")
             .otherwise()
-            	.log("Found unexpected message of type: ${exchangeProperty.messageType}")
+            	.log(LoggingLevel.DEBUG, "Found unexpected message of type: ${exchangeProperty.messageType}")
             .end()
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 			.convertBodyTo(String.class)
@@ -113,7 +114,7 @@ public class HIBCRoute extends BaseRoute {
 		        .log(String.format("Processing HIBC messages. Request Queue : %s, ReplyQ: %s", hibcRequestQueue, hibcReplyQueue))
 		        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 		        .bean(new PopulateJMSMessageHeader()).id("PopulateJMSMessageHeaderHIBC")
-				.log("HIBC request message ::: ${body}")
+				.log(LoggingLevel.DEBUG, "HIBC request message ::: ${body}")
 				.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, hibcRequestQueue)))	           		        	
 		    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 		    	.wireTap(DIRECT_AUDIT).end()
@@ -121,7 +122,7 @@ public class HIBCRoute extends BaseRoute {
 				.removeHeaders("JMS*")	
 		        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		        .wireTap(DIRECT_AUDIT).end()
-		        .log("Received response message from HIBC queue ::: ${body}");
+		        .log(LoggingLevel.DEBUG, "Received response message from HIBC queue ::: ${body}");
 		} else {
 			from(DIRECT_HIBC_MQ).routeId("hibc-mq-route")
 	    	.log("MQ routes are disabled.")
