@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
@@ -24,7 +25,8 @@ public class HandleResponseRoute extends RouteBuilder {
 			.setBody().method(new ProcessV2ToJson()).id("ProcessV2ToJson")
 			// Set any final headers
 			.removeHeader(Util.AUTHORIZATION)
-			.setHeader(Exchange.CONTENT_TYPE, constant(Util.MEDIA_TYPE_FHIR_JSON));
+			.setHeader(Exchange.CONTENT_TYPE, constant(Util.MEDIA_TYPE_FHIR_JSON))
+			.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Completed.");
 	}
 
 }

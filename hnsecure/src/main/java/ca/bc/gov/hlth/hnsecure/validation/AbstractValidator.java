@@ -21,9 +21,9 @@ public abstract class AbstractValidator implements Validator {
 
 	@Override
 	public void process(Exchange exchange) throws CustomHNSException, ValidationFailedException {
-		logger.info("{} - AbstractValidator processing started",LoggingUtil.getMethodName());
+		logger.debug("{} - AbstractValidator processing started",LoggingUtil.getMethodName());
 		validate(exchange);
-		logger.info("{} - AbstractValidator processing completed",LoggingUtil.getMethodName());
+		logger.debug("{} - AbstractValidator processing completed",LoggingUtil.getMethodName());
 	}
 
 	

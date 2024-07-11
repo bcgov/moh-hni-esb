@@ -59,7 +59,7 @@ public class PayLoadValidator extends AbstractValidator {
 	@Override
 	public boolean validate(Exchange exchange) throws ValidationFailedException, CustomHNSException {
 		String methodName = LoggingUtil.getMethodName();
-		logger.debug("{} - PayLoadValidator Validation started",methodName);
+		logger.info("{} - TransactionId: {}, PayLoadValidator Validation started", methodName, exchange.getExchangeId());
 		HL7Message messageObj = new HL7Message();
 		String accessToken = (String) exchange.getIn().getHeader(AUTHORIZATION); 
 		// Validate v2Message format
@@ -73,7 +73,7 @@ public class PayLoadValidator extends AbstractValidator {
 		validatePharmanetMessageFormat(exchange, v2Message, messageObj, isPharmanetMode);
 		// To ensure validation in wrapper class is called.
 		validator.validate(exchange);
-		logger.debug("{} - PayLoadValidator Validation completed",methodName);
+		logger.info("{} - TransactionId: {}, PayLoadValidator Validation completed", methodName, exchange.getExchangeId());
 		return true;
 	}
 
@@ -91,7 +91,7 @@ public class PayLoadValidator extends AbstractValidator {
 			boolean isPharmanetMode) throws ValidationFailedException {	
 		if (isPharmanetMode && !V2MessageUtil.isSegmentPresent(v2Message, Util.ZCB_SEGMENT)) {
 			populateFieldsForErrorResponse(messageObj);
-			logger.error("{} - TransactionId: {}. couldn't find ZCB segment", LoggingUtil.getMethodName(), exchange.getExchangeId());
+			logger.error("{} - TransactionId: {}, couldn't find ZCB segment", LoggingUtil.getMethodName(), exchange.getExchangeId());
 			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_TRANSACTION_FORMAT_ERROR, exchange);
 		}		
 	}
@@ -110,12 +110,12 @@ public class PayLoadValidator extends AbstractValidator {
 		} else if (!messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)) {
 			Set<String> validReceivingFacility = Util.getPropertyAsSet(properties.getValue(VALID_RECIEVING_FACILITY));
 			if (validReceivingFacility.stream().noneMatch(messageObj.getReceivingFacility()::equalsIgnoreCase)) {
-				logger.error("{} - TransactionId: {}. Facility Not Found '{}, {}'", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getReceivingFacility(), messageObj.getProcessingId());
+				logger.error("{} - TransactionId: {}, Facility Not Found '{}, {}'", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getReceivingFacility(), messageObj.getProcessingId());
 				generateError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 			}
 		} else if (messageObj.getReceivingApplication().equalsIgnoreCase(Util.RECEIVING_APP_PNP)
 					&& (!messageObj.getMessageType().equalsIgnoreCase(Util.MESSAGE_TYPE_PNP))) {
-			logger.error("{} - TransactionId: {}. Receiving application is PNP for non-ZPN Message Type: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getMessageType());
+			logger.error("{} - TransactionId: {}, Receiving application is PNP for non-ZPN Message Type: {}", LoggingUtil.getMethodName(), exchange.getExchangeId(), messageObj.getMessageType());
 			generatePharmanetError(messageObj, ErrorMessage.HL7_ERROR_ENCRYPTION_ERROR, exchange);
 		}
 	}

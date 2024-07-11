@@ -52,7 +52,7 @@ public class PopulateJMSMessageHeader {
 		exchange.getIn().setHeader("JMS_IBM_Character_Set", CHAR_SET_ID);
 
 
-		logger.debug("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ",
+		logger.info("{} - Transaction Id : {}, JMS messageId is set to : {}, JMS correlationId is set to : {}  ",
 				methodName, exchange.getExchangeId(), hexStringForMsgId, hexStringForCorId);
 	}
 

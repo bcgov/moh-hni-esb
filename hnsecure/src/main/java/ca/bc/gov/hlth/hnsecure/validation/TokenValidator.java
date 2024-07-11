@@ -68,7 +68,7 @@ public class TokenValidator extends AbstractValidator {
 	public boolean validate(Exchange exchange) throws CustomHNSException, ValidationFailedException {
 		String methodName = LoggingUtil.getMethodName();
 
-		logger.debug("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getExchangeId());
+		logger.info("{} - TransactionId: {}, TokenValidator validation started", methodName, exchange.getExchangeId());
 		
 		// If more validation is required for exchange message, we should create a new bean
 		String authorizationKey = (String) exchange.getIn().getHeader(AUTHORIZATION);
@@ -86,7 +86,7 @@ public class TokenValidator extends AbstractValidator {
 			// Print out the token claims set
 			logger.debug("{} - TransactionId: {}, TOKEN PAYLOAD: {}", methodName, exchange.getExchangeId(), claimsSet.toJSONObject());
 		
-			logger.debug("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getExchangeId());			
+			logger.info("{} - TransactionId: {}, TokenValidator validation completed", methodName, exchange.getExchangeId());			
 		} catch (ParseException | java.text.ParseException | BadJOSEException | JOSEException e) {
 			logger.error("{} - TransactionId: {}, Error: {}", methodName, exchange.getExchangeId(), e.getMessage());
 			throw new CustomHNSException(ErrorMessage.CUSTOM_ERROR_INVALID_AUTH_KEY);

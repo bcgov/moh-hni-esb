@@ -108,7 +108,7 @@ public class Route extends BaseRoute {
         	// since the validator wouldn't have been run yet
             .bean(PopulateReqHeader.class).id("PopulateReqHeader")
             .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
-            .log(LoggingLevel.DEBUG, "The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")                      
+            .log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, The message receiving application is <${exchangeProperty.receivingApp}> and the message type is <${exchangeProperty.messageType}>.")                      
             .choice()
             	// Return current DateTime if receiving app is HNETDTTN
 				.when(isHNETDTTN)

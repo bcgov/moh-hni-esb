@@ -46,7 +46,7 @@ public class FhirPayloadExtractor {
         Map<String, Object> exchangeProperties = exchange.getProperties();		
 		exchangeProperties.put(PROPERTY_RECEIVING_APP, V2MessageUtil.getReceivingApp(extractedMessage));
 		
-        logger.info("{} - TransactionId: {},{}, {}", methodName, exchange.getExchangeId(), "Message extracted successfully for the receiving app", exchangeProperties.get(PROPERTY_RECEIVING_APP));
+        logger.info("{} - TransactionId: {}, Message extracted successfully for the receiving app: {}", methodName, exchange.getExchangeId(), exchangeProperties.get(PROPERTY_RECEIVING_APP));
 		logger.debug("{} - TransactionId: {}, The decoded HL7 message is: {}", methodName, exchange.getExchangeId(), extractedMessage);
         	
 		exchange.getIn().setBody(extractedMessage);
