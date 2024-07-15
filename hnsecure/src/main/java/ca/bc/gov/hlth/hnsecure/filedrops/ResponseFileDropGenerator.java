@@ -33,7 +33,7 @@ public class ResponseFileDropGenerator extends FileDropGenerator {
 			String fileName = buildFileNameParameters(exchange, corId);
 			String responseFileName = fileName + RESPONSE_FILE;		
 			writeFiledrop(body.toString(), responseFileName);
-			logger.info("{} - TransactionId: {}, Successfully created file drops for response: {}",
+			logger.debug("{} - TransactionId: {}, Successfully created file drops for response: {}",
 					LoggingUtil.getMethodName(), corId, responseFileName);
 		}
 

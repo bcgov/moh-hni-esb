@@ -22,7 +22,7 @@ public class ValidatorImpl implements Validator {
 	
 	@Override
 	public void process(Exchange exchange) throws Exception {
-		logger.info("Validation processing started");
+		logger.debug("Validation processing started");
 	}
 
 	/**
@@ -32,8 +32,8 @@ public class ValidatorImpl implements Validator {
 	 */
 	@Override
 	public boolean validate(Exchange exchange) {
-		logger.info("Inner validation processing started");
-		logger.info("Inner validation processing complete");
+		logger.debug("Inner validation processing started");
+		logger.debug("Inner validation processing complete");
 		return true;
 	}
 

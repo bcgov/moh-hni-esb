@@ -11,6 +11,7 @@ import static ca.bc.gov.hlth.hnsecure.properties.ApplicationProperty.RAPID_USER;
 import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.SSLContextParameters;
 
@@ -71,15 +72,16 @@ public class RapidRoute extends BaseRoute {
 	
 		from(DIRECT_RAPID_HTTP).routeId("rapid-http-route")		
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")           		
-	     	.log("Sending to RAPID")
+     		.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Preparing message for RAPID.")
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	    	.wireTap(DIRECT_AUDIT).end()
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 			.setHeader(AUTHORIZATION, simple(basicAuthToken))
 			.setBody().method(new RPBSPMC0RequestConverter()).id("rapidRequest")
-	     	.to("log:HttpLogger?level=INFO&showBody=true&showHeaders=true&multiline=true")
+	     	.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+	     	.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Sending to RAPID")
 	     	.to(rapidHttpUrl).id("TorapidHttpUrl")
-	     	.log("Received response from RAPID for R32")
+	     	.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Received response from RAPID for R32")
 	     	.setBody().method(new RPBSPMC0ResponseConverter()).id("rapidResponse")	     	
 	     	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 	     	.wireTap(DIRECT_AUDIT).end();
@@ -89,7 +91,7 @@ public class RapidRoute extends BaseRoute {
 		    	.log(String.format("Processing MQ Series for ${exchangeProperty.messageType}. Request Queue : %s, Reply Queue: %s", jmbRequestQueue, jmbReplyQueue))
 		        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 		        .bean(new PopulateJMSMessageHeader()).id("JmbPopulateJMSMessageHeader")
-				.log("jmb request message for R32 ::: ${body}")
+				.log(LoggingLevel.DEBUG, "jmb request message for R32 ::: ${body}")
 				.setHeader("CamelJmsDestinationName", constant(String.format(JMS_DESTINATION_NAME_FORMAT, jmbRequestQueue)))  
 		    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 		    	.wireTap(DIRECT_AUDIT).end()
@@ -97,7 +99,7 @@ public class RapidRoute extends BaseRoute {
 				.removeHeaders("JMS*")				
 		        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))
 		        .wireTap(DIRECT_AUDIT).end()
-		        .log("Received response message for ${exchangeProperty.messageType} ::: ${body}");
+		        .log(LoggingLevel.DEBUG, "Received response message for ${exchangeProperty.messageType} ::: ${body}");
 		} else {
 			from(DIRECT_JMB_MQ).routeId("jmb-mq-route")
 	    		.log("MQ routes are disabled.")

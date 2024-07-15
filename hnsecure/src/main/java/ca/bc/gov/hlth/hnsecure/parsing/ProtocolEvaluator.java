@@ -29,7 +29,7 @@ public class ProtocolEvaluator implements Processor {
 		
 		exchange.setProperty(Util.PROPERTY_MESSAGE_PROTOCOL, protocol);
 
-        logger.info("{} - Message Type: {} protocol {}", methodName, messageType, StringUtils.isNotBlank(protocol) ? protocol : "<not found>");
+        logger.debug("{} - Message Type: {} protocol {}", methodName, messageType, StringUtils.isNotBlank(protocol) ? protocol : "<not found>");
 	}  
 
 }

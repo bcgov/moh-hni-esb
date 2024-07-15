@@ -1,6 +1,7 @@
 package ca.bc.gov.hlth.hnsecure.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateVersionInformation;
 
@@ -15,11 +16,11 @@ public class VersionRoute extends BaseRoute {
     public void configure() {
     	  	
         from("jetty:http://{{hostname}}:{{port}}/version").routeId("hnsecure-version")
-        	.log("HNSecure received a request for version information")
+        	.log(LoggingLevel.DEBUG, "HNSecure received a request for version information")
         	.to("log:HttpLogger?level=DEBUG&showBody=true&multiline=true")
         	.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
         	.process(new PopulateVersionInformation())
-        	.log("HNSecure sent a response with version information")
+        	.log(LoggingLevel.DEBUG, "HNSecure sent a response with version information")
         	;
     }
 }

@@ -12,16 +12,12 @@ import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 
 public class RPBSPMC0RequestConverter {
 	
-	private static final Logger logger = LoggerFactory.getLogger(RPBSPMC0RequestConverter.class);
-
 	private static final String TRAN_CODE = "RPBSPMC0";
 
 	public RPBSPMC0RequestConverter() {
@@ -30,7 +26,6 @@ public class RPBSPMC0RequestConverter {
 
 	@Handler
 	public String convertRequest(Exchange exchange, String message) {
-		System.out.println(exchange.getIn().getBody().toString());
 		String v2Message = message;
 		String zhdSegment = V2MessageUtil.getDataSegment(v2Message, Util.ZHD_SEGMENT);
 		String pidSegment = V2MessageUtil.getDataSegment(v2Message, Util.PID_SEGMENT);
@@ -61,7 +56,6 @@ public class RPBSPMC0RequestConverter {
 		RPBSPMC0 rpbspmc0 = new RPBSPMC0();
 		rpbspmc0.setRpbsHeader(rpbsHeader);
 		rpbspmc0.setRpbsmc0Data(rpbsmc0Data);
-		logger.debug(rpbspmc0.toString());
 
 		return rpbspmc0.serialize();
 	}

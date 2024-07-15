@@ -10,6 +10,7 @@ import static org.apache.camel.component.http.HttpMethods.POST;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.support.jsse.SSLContextParameters;
 
@@ -17,10 +18,8 @@ import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.json.Base64Encoder;
 import ca.bc.gov.hlth.hnsecure.json.pharmanet.ProcessV2ToPharmaNetJson;
-
-import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
-import ca.bc.gov.hlth.hnsecure.parsing.FormatRTransMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.FormatTRPRequestMessage;
+import ca.bc.gov.hlth.hnsecure.parsing.PharmaNetPayloadExtractor;
 
 public class PharmanetRoute extends BaseRoute {
 
@@ -41,7 +40,7 @@ public class PharmanetRoute extends BaseRoute {
 		handleExceptions();
 		
 		from("direct:pharmanet").routeId("pharmanet-route")
-	    	.log("Message identified as PharmaNet message. Preparing message for PharmaNet.")
+	    	.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Preparing message for PharmaNet.")
 	    	.setBody().method(new FormatTRPRequestMessage()).id("FormatTRPRequestMessage")
 	    	.process(new AuditSetupProcessor(TransactionEventType.MESSAGE_SENT))
 	    	.wireTap("direct:audit").end()
@@ -49,14 +48,14 @@ public class PharmanetRoute extends BaseRoute {
 			.setBody(body().regexReplaceAll("\r\n","\r"))
 	        .setBody().method(new Base64Encoder())
 	        .setBody().method(new ProcessV2ToPharmaNetJson()).id("ProcessV2ToPharmaNetJson")
-	        .log("Sending to Pharmanet")
 	        .removeHeader(Exchange.HTTP_URI) //clean this header as it has been set in the "from" section
 	        .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 	        .setHeader(AUTHORIZATION, simple(basicToken))
 	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
+     		.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Sending to PharmaNet")	        
 	        .to(pharmanetUrl).id("ToPharmaNet")
-	        .log("Received response from Pharmanet:${headers}")
+	        .log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Received response from Pharmanet.")
 	        .to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
 	        .process(new PharmaNetPayloadExtractor())
 	        .process(new AuditSetupProcessor(TransactionEventType.MESSAGE_RECEIVED))

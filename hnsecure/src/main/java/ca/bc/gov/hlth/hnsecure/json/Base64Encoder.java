@@ -22,7 +22,7 @@ public class Base64Encoder {
 
     @Handler
     public String convertToBase64String(String v2Message) throws CustomHNSException {
-		logger.debug("{}: Converting V2 Message to Base64 {}", LoggingUtil.getMethodName(), v2Message);
+		logger.debug("{}: Converting V2 Message to Base64", LoggingUtil.getMethodName());
 
 		// It should be impossible for the body to be empty here (the handshake server should catch that) but handle it just in case
 		if (StringUtil.isBlank(v2Message)) {

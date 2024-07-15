@@ -53,12 +53,12 @@ public class PopulateReqHeader {
 			String zcbSegment = V2MessageUtil.getDataSegment(v2Message, Util.ZCB_SEGMENT);
 			String pharmacyID = V2MessageUtil.getPharmacyId(zcbSegment);
 			String traceID = V2MessageUtil.getTraceNumber(zcbSegment);
-			logger.info("{} - Transaction Id : {}, Pharmacy Id : {}, TraceId : {}", methodName, transactionUUID,
+			logger.info("{} - TransactionId: {}, PharmacyId: {}; TraceId: {}", methodName, transactionUUID,
 					pharmacyID, traceID);
 		}
 
 		logger.info(
-				"{} - Transaction Id : {}, Transaction type : {}, Sending Facility : {} ",
+				"{} - TransactionId: {}, Transaction type: {}: Sending Facility: {} ",
 				methodName, transactionUUID, msgType, sendingFacility);
 	}
 

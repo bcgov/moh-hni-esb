@@ -30,7 +30,7 @@ public class AuditSetupProcessor implements Processor {
 	public void process(Exchange exchange) throws Exception {
 		
     	String methodName = LoggingUtil.getMethodName();
-		logger.info("{} - Begin {}", methodName, eventType);
+		logger.debug("{} - Begin {}", methodName, eventType);
         
         exchange.setProperty(Util.PROPERTY_TRANSACTION_EVENT_TIME, new Date());
         exchange.setProperty(Util.PROPERTY_TRANSACTION_EVENT_TYPE, eventType);
