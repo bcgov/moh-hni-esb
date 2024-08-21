@@ -4,10 +4,9 @@ import org.apache.camel.main.Main;
 
 import ca.bc.gov.hlth.hnsecure.routes.HIBCRoute;
 import ca.bc.gov.hlth.hnsecure.routes.HandleResponseRoute;
-import ca.bc.gov.hlth.hnsecure.routes.RapidRoute;
 import ca.bc.gov.hlth.hnsecure.routes.PharmanetRoute;
 import ca.bc.gov.hlth.hnsecure.routes.RTransRoute;
-import ca.bc.gov.hlth.hnsecure.routes.RotateFilesRoute;
+import ca.bc.gov.hlth.hnsecure.routes.RapidRoute;
 import ca.bc.gov.hlth.hnsecure.routes.Route;
 import ca.bc.gov.hlth.hnsecure.routes.VersionRoute;
 
@@ -35,7 +34,7 @@ public final class HnsEsbMainMethod {
         main.configure().addRoutesBuilder(HIBCRoute.class);
         main.configure().addRoutesBuilder(RapidRoute.class);
         main.configure().addRoutesBuilder(HandleResponseRoute.class);
-        main.configure().addRoutesBuilder(RotateFilesRoute.class);
+//        main.configure().addRoutesBuilder(RotateFilesRoute.class); //Currently not required as the rotation is being handled by a Job in OpenShift
         main.run(args);
     }
     
