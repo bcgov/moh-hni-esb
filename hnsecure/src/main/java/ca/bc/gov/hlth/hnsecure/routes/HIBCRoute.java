@@ -30,6 +30,7 @@ import org.apache.camel.support.jsse.SSLContextParameters;
 import ca.bc.gov.hlth.hnsecure.audit.AuditSetupProcessor;
 import ca.bc.gov.hlth.hnsecure.audit.entities.TransactionEventType;
 import ca.bc.gov.hlth.hnsecure.exception.CustomHNSException;
+import ca.bc.gov.hlth.hnsecure.parsing.FormatE45RequestMessage;
 import ca.bc.gov.hlth.hnsecure.parsing.PopulateJMSMessageHeader;
 import ca.bc.gov.hlth.hnsecure.parsing.ProtocolEvaluator;
 import ca.bc.gov.hlth.hnsecure.parsing.Util;
@@ -93,7 +94,12 @@ public class HIBCRoute extends BaseRoute {
 	        .setHeader(CAMEL_HTTP_METHOD, POST)
 	     	.to("log:HttpLogger?level=DEBUG&showBody=true&showHeaders=true&multiline=true")
             .choice()
-			.when(isEligibility())
+			.when(isE45())
+				.setHeader(AUTHORIZATION, simple(eligibilityBasicAuthToken))
+				.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Sending to Eligibility endpoint")
+		    	.setBody().method(new FormatE45RequestMessage()).id("FormatE45RequestMessage")
+				.to(eligibilityHttpUrl).id("ToHibcEligibility")
+			.when(isR15())
 				.setHeader(AUTHORIZATION, simple(eligibilityBasicAuthToken))
 				.log(LoggingLevel.INFO, "TransactionId: ${exchange.exchangeId}, Sending to Eligibility endpoint")
 				.to(eligibilityHttpUrl).id("ToHibcEligibility")
@@ -144,6 +150,17 @@ public class HIBCRoute extends BaseRoute {
 		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
 		
 		return PredicateBuilder.or(isR15, isE45);
+	}
+    
+	private Predicate isE45() {
+		Predicate isE45 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(E45);	
+		return isE45;
+	}
+    
+	private Predicate isR15() {
+		Predicate isR15 = exchangeProperty(Util.PROPERTY_MESSAGE_TYPE).isEqualToIgnoreCase(R15);
+		
+		return isR15;
 	}
     
 	private Predicate isEnrollment() {
