@@ -210,6 +210,9 @@ jobs:
             if (`${{env.ENVIRONMENT}}` == 'test') {
               return "test"
             }
+            if (`${{env.ENVIRONMENT}}` == 'sandbox') {
+              return "sbx"
+            }
             core.setFailed(`❌ Invalid inputs for Environment and branch`  );
 
       - name: Update image ID and commit change
