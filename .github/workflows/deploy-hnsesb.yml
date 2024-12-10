@@ -85,7 +85,7 @@ jobs:
               if (`${{env.ENVIRONMENT}}` == 'dev') {
                 return "c5839f-dev"
               }
-              if (`${{env.ENVIRONMENT}}` == 'test' ) {
+              if (`${{env.ENVIRONMENT}}` == 'test' || `${{env.ENVIRONMENT}}` == 'sandbox') {
                 return "c5839f-test"
               }
                core.setFailed(`❌ Feature build can only be deployed in dev or test environments`  );
