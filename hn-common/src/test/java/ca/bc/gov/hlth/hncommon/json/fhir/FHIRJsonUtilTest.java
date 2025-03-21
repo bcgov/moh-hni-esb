@@ -1,5 +1,5 @@
 /**
- * 
+ * Test commit
  */
 package ca.bc.gov.hlth.hncommon.json.fhir;
 
