@@ -21,7 +21,7 @@ import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil;
 import ca.bc.gov.hlth.hnsecure.parsing.V2MessageUtil.MessageType;
 
 /**
- * Processor for logging auditing information.
+ * Processor for logging auditing information. Implements {@link AbstractAuditPersistence}. 
  * 
  */
 public class AuditProcessor extends AbstractAuditPersistence implements Processor {
