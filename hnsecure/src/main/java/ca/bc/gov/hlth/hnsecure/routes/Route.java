@@ -83,7 +83,7 @@ public class Route extends BaseRoute {
 		// Main (Jetty HTTP server) route
         from("jetty:http://{{hostname}}:{{port}}/{{endpoint}}?httpMethodRestrict=POST").routeId("hnsecure-route")
 
-        	.log(LoggingLevel.DEBUG, "HNSecure received a request")
+        	.log(LoggingLevel.INFO, "HNSecure received a request. Processing now...")
 			// If a transaction ID is provided in the HTTP request header, use it as the exchange id instead of the camel generated id
 			.choice()
 				.when(header(HTTP_REQUEST_ID_HEADER))
