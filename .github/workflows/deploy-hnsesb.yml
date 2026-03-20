@@ -120,6 +120,11 @@ jobs:
           echo "TARGET_NAMESPACE=${{steps.get-namespace.outputs.result}}"  | tee -a $GITHUB_ENV
           echo "IMAGE_TAG=${{steps.get-image-prefix.outputs.result}}-${{github.event.inputs.Build_Run_Number}}"  | tee -a $GITHUB_ENV
 
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: latest
+
       # Login to OpenShift
       - name: Log in to OpenShift
         uses: redhat-actions/oc-login@v1
@@ -163,6 +168,11 @@ jobs:
           echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
           echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
           echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
+
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: latest
 
       # Login to OpenShift
       - name: Log in to OpenShift
@@ -239,6 +249,11 @@ jobs:
           echo "TARGET_NAMESPACE=${{needs.validate.outputs.TARGET_NAMESPACE}}"  | tee -a $GITHUB_ENV
           echo "ENVIRONMENT=${{github.event.inputs.Environment}}"  | tee -a $GITHUB_ENV
           echo "BUILD_TYPE=${{github.event.inputs.Build_Type}}"  | tee -a $GITHUB_ENV
+
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: latest
 
       # Login to OpenShift
       - name: Log in to OpenShift
