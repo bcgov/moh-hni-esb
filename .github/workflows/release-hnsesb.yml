@@ -114,6 +114,11 @@ jobs:
         run: |
           echo "This step should move the image to repository to test namespace"
 
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: latest
+
       # 1. Login to OpenShift
       - name: Log in to OpenShift
         uses: redhat-actions/oc-login@v1

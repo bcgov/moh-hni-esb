@@ -124,6 +124,10 @@ jobs:
     needs: [createHniEsbRelease]
     
     steps:
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: latest
 
       # 1. Login to OpenShift
       - name: Log in to OpenShift
