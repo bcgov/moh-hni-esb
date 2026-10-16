@@ -1,5 +1,5 @@
 # Add code for maven build
-FROM maven:3.8.3-openjdk-11-slim as build-stage
+FROM maven:3.9-eclipse-temurin-11 AS build-stage
 COPY src /home/app/src
 COPY pom.xml /home/app
 
