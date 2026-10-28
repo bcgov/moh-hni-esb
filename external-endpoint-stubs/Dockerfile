@@ -5,7 +5,7 @@ COPY pom.xml /home/app
 
 RUN mvn -f /home/app/pom.xml clean install
 
-FROM adoptopenjdk:11-jre-hotspot
+FROM eclipse-temurin:11-jre
 
 WORKDIR /tmp
 
